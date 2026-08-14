@@ -11,22 +11,27 @@ const DYNAMIC_BUTTONS = [
   // =====================================
   // XP & LEVEL
   // =====================================
+
   {
     prefix: "xp_add_",
     handler: "xp_add"
   },
+
   {
     prefix: "xp_remove_",
     handler: "xp_remove"
   },
+
   {
     prefix: "xp_set_",
     handler: "xp_set"
   },
+
   {
     prefix: "level_set_",
     handler: "level_set"
   },
+
   {
     prefix: "xp_reset_",
     handler: "xp_reset"
@@ -35,38 +40,41 @@ const DYNAMIC_BUTTONS = [
   // =====================================
   // DEVELOPER AUDIT
   // =====================================
+
   {
     prefix: "dev_audit_page:",
     handler: "dev_audit_page"
   },
 
   // =====================================
-  // EVENT CONTEST
+  // CONTEST MANAGEMENT
   // =====================================
+
   {
     prefix: "contest_announce:",
     handler: "contest_announce"
   },
+
   {
     prefix: "contest_submissions_manage:",
     handler: "contest_submissions_manage"
   },
+
   {
     prefix: "contest_refresh:",
     handler: "contest_refresh"
   },
+
   {
     prefix: "contest_open_vote:",
     handler: "contest_open_vote"
   },
+
   {
     prefix: "contest_end:",
     handler: "contest_end"
   },
 
-  // =====================================
-  // PUBLISH RESULTS
-  // =====================================
   {
     prefix: "contest_publish_results:",
     handler: "contest_publish_results"
@@ -74,36 +82,42 @@ const DYNAMIC_BUTTONS = [
 
   // =====================================
   // CONTEST DELETE
-  // confirm phải đứng trước delete
+  // confirm đặt trước delete
   // =====================================
+
   {
     prefix: "contest_delete_confirm:",
     handler: "contest_delete_confirm"
   },
+
   {
     prefix: "contest_delete:",
     handler: "contest_delete"
   },
 
   // =====================================
-  // MEMBER SUBMIT
+  // CONTEST MEMBER SUBMIT
   // =====================================
+
   {
     prefix: "contest_submit:",
     handler: "contest_submit"
   },
 
   // =====================================
-  // SUBMISSION MODERATION
+  // CONTEST SUBMISSION MODERATION
   // =====================================
+
   {
     prefix: "contest_submission_approve:",
     handler: "contest_submission_approve"
   },
+
   {
     prefix: "contest_submission_reject:",
     handler: "contest_submission_reject"
   },
+
   {
     prefix: "contest_submission_skip:",
     handler: "contest_submission_skip"
@@ -112,9 +126,29 @@ const DYNAMIC_BUTTONS = [
   // =====================================
   // CONTEST VOTE
   // =====================================
+
   {
     prefix: "contest_vote:",
     handler: "contest_vote"
+  },
+
+  // =====================================
+  // CONTEST ANTI-FRAUD
+  // =====================================
+
+  {
+    prefix: "contest_fraud_approve:",
+    handler: "contest_fraud_approve"
+  },
+
+  {
+    prefix: "contest_fraud_invalidate_confirm:",
+    handler: "contest_fraud_invalidate_confirm"
+  },
+
+  {
+    prefix: "contest_fraud_invalidate:",
+    handler: "contest_fraud_invalidate"
   }
 ];
 
@@ -126,14 +160,17 @@ const DYNAMIC_SELECT_MENUS = [
   // =====================================
   // CONTEST CHANNEL CONFIG
   // =====================================
+
   {
     prefix: "contest_channel_event:",
     handler: "contest_channel_event"
   },
+
   {
     prefix: "contest_channel_gallery:",
     handler: "contest_channel_gallery"
   },
+
   {
     prefix: "contest_channel_result:",
     handler: "contest_channel_result"
@@ -148,18 +185,22 @@ const DYNAMIC_MODALS = [
   // =====================================
   // XP & LEVEL
   // =====================================
+
   {
     prefix: "xp_add_modal_",
     handler: "xp_add_modal"
   },
+
   {
     prefix: "xp_remove_modal_",
     handler: "xp_remove_modal"
   },
+
   {
     prefix: "xp_set_modal_",
     handler: "xp_set_modal"
   },
+
   {
     prefix: "level_set_modal_",
     handler: "level_set_modal"
@@ -168,6 +209,7 @@ const DYNAMIC_MODALS = [
   // =====================================
   // CONTEST SUBMIT
   // =====================================
+
   {
     prefix: "contest_submit_modal:",
     handler: "contest_submit_modal"
@@ -176,9 +218,19 @@ const DYNAMIC_MODALS = [
   // =====================================
   // CONTEST REJECT
   // =====================================
+
   {
     prefix: "contest_submission_reject_modal:",
     handler: "contest_submission_reject_modal"
+  },
+
+  // =====================================
+  // CONTEST EVENT IMAGE
+  // =====================================
+
+  {
+    prefix: "contest_event_image_modal:",
+    handler: "contest_event_image_modal"
   }
 ];
 
@@ -214,10 +266,6 @@ async function sendInteractionError(
   interaction
 ) {
   try {
-    // =====================================
-    // ALREADY ACKNOWLEDGED
-    // =====================================
-
     if (
       interaction.replied ||
       interaction.deferred
@@ -229,6 +277,7 @@ async function sendInteractionError(
         await interaction.editReply({
           content:
             "❌ Đã xảy ra lỗi khi xử lý thao tác này.",
+
           embeds: [],
           components: []
         });
@@ -239,26 +288,16 @@ async function sendInteractionError(
       return;
     }
 
-    // =====================================
-    // NORMAL ERROR
-    // =====================================
-
     await interaction.reply({
       content:
         "❌ Đã xảy ra lỗi khi xử lý thao tác này.",
+
       flags:
         MessageFlags.Ephemeral
     });
   } catch (replyError) {
-    // Unknown Interaction
     if (
-      replyError?.code === 10062
-    ) {
-      return;
-    }
-
-    // Interaction already acknowledged
-    if (
+      replyError?.code === 10062 ||
       replyError?.code === 40060
     ) {
       return;
@@ -321,13 +360,11 @@ function loadInteractionHandler(
         if (
           interaction.isButton()
         ) {
-          // Static button trước
           let button =
             client.buttons?.get(
               interaction.customId
             );
 
-          // Dynamic button
           if (!button) {
             button =
               findDynamicComponent(
@@ -366,13 +403,11 @@ function loadInteractionHandler(
           interaction.isRoleSelectMenu() ||
           interaction.isUserSelectMenu()
         ) {
-          // Static Select Menu trước
           let menu =
             client.selectMenus?.get(
               interaction.customId
             );
 
-          // Dynamic Select Menu
           if (!menu) {
             menu =
               findDynamicComponent(
@@ -408,13 +443,11 @@ function loadInteractionHandler(
         if (
           interaction.isModalSubmit()
         ) {
-          // Static Modal trước
           let modal =
             client.modals?.get(
               interaction.customId
             );
 
-          // Dynamic Modal
           if (!modal) {
             modal =
               findDynamicComponent(
@@ -448,15 +481,8 @@ function loadInteractionHandler(
           error
         );
 
-        // Discord Unknown Interaction
         if (
-          error?.code === 10062
-        ) {
-          return;
-        }
-
-        // Interaction already acknowledged
-        if (
+          error?.code === 10062 ||
           error?.code === 40060
         ) {
           return;

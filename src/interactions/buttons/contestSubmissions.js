@@ -17,19 +17,35 @@ module.exports = {
 
   async execute(interaction) {
     try {
+      // =====================================
+      // GUILD ONLY
+      // =====================================
+
+      if (!interaction.inGuild()) {
+        return interaction.reply({
+          content:
+            "❌ Chức năng Contest chỉ sử dụng trong Server.",
+          flags:
+            MessageFlags.Ephemeral
+        });
+      }
+
+      // Acknowledge ngay để Discord không timeout
       await interaction.deferReply({
         flags:
           MessageFlags.Ephemeral
       });
 
+      const guildId =
+        interaction.guildId;
+
       // =====================================
-      // FIND ACTIVE CONTEST
+      // FIND CONTEST OF THIS GUILD ONLY
       // =====================================
 
       const contest =
         await Contest.findOne({
-          guildId:
-            interaction.guildId,
+          guildId,
 
           status: {
             $in: [
@@ -39,26 +55,29 @@ module.exports = {
               "ENDED"
             ]
           }
-        }).sort({
-          createdAt: -1
-        });
+        })
+          .sort({
+            createdAt: -1
+          });
 
       if (!contest) {
         return interaction.editReply({
           content:
-            "⚠️ Hiện không có Event Contest nào để quản lý bài dự thi."
+            "⚠️ Server này hiện không có Event Contest nào để quản lý bài dự thi.",
+          embeds: [],
+          components: []
         });
       }
 
       // =====================================
-      // FIND PENDING SUBMISSIONS
+      // PENDING SUBMISSIONS
+      // THIS GUILD + THIS CONTEST ONLY
       // =====================================
 
       const submissions =
         await ContestSubmission
           .find({
-            guildId:
-              interaction.guildId,
+            guildId,
 
             contestId:
               contest._id,
@@ -70,6 +89,10 @@ module.exports = {
             createdAt: 1
           })
           .limit(10);
+
+      // =====================================
+      // EMPTY
+      // =====================================
 
       if (
         submissions.length === 0
@@ -88,6 +111,7 @@ module.exports = {
             .addFields({
               name:
                 "📊 Trạng thái",
+
               value:
                 "✅ Không có bài PENDING."
             })
@@ -98,7 +122,11 @@ module.exports = {
             .setTimestamp();
 
         return interaction.editReply({
-          embeds: [embed]
+          content: null,
+          embeds: [
+            embed
+          ],
+          components: []
         });
       }
 
@@ -112,8 +140,7 @@ module.exports = {
       const total =
         await ContestSubmission
           .countDocuments({
-            guildId:
-              interaction.guildId,
+            guildId,
 
             contestId:
               contest._id,
@@ -121,6 +148,41 @@ module.exports = {
             status:
               "PENDING"
           });
+
+      // =====================================
+      // SAFE VALUES
+      // =====================================
+
+      const title =
+        String(
+          submission.title ||
+          "Không có tiêu đề"
+        ).slice(
+          0,
+          200
+        );
+
+      const description =
+        String(
+          submission.description ||
+          "Không có mô tả."
+        ).slice(
+          0,
+          1000
+        );
+
+      const contentUrl =
+        String(
+          submission.contentUrl ||
+          "Không có liên kết."
+        ).slice(
+          0,
+          1000
+        );
+
+      // =====================================
+      // EMBED
+      // =====================================
 
       const embed =
         new EmbedBuilder()
@@ -131,14 +193,16 @@ module.exports = {
             "📥 Bài dự thi đang chờ duyệt"
           )
           .setDescription(
-            `### 🎨 ${submission.title}`
+            `### 🎨 ${title}`
           )
           .addFields(
             {
               name:
                 "👤 Người gửi",
+
               value:
                 `<@${submission.userId}>`,
+
               inline:
                 true
             },
@@ -146,8 +210,10 @@ module.exports = {
             {
               name:
                 "📊 Trạng thái",
+
               value:
                 "⏳ Chờ duyệt",
+
               inline:
                 true
             },
@@ -155,8 +221,10 @@ module.exports = {
             {
               name:
                 "📑 Bài",
+
               value:
                 `1/${total}`,
+
               inline:
                 true
             },
@@ -164,9 +232,10 @@ module.exports = {
             {
               name:
                 "📝 Mô tả",
+
               value:
-                submission.description ||
-                "Không có mô tả.",
+                description,
+
               inline:
                 false
             },
@@ -174,8 +243,10 @@ module.exports = {
             {
               name:
                 "🔗 Tác phẩm",
+
               value:
-                submission.contentUrl,
+                contentUrl,
+
               inline:
                 false
             },
@@ -183,8 +254,10 @@ module.exports = {
             {
               name:
                 "🆔 Submission ID",
+
               value:
                 `\`${submission._id}\``,
+
               inline:
                 false
             }
@@ -194,7 +267,8 @@ module.exports = {
               `Contest • ${contest.name}`
           })
           .setTimestamp(
-            submission.createdAt
+            submission.createdAt ||
+            new Date()
           );
 
       // =====================================
@@ -203,7 +277,7 @@ module.exports = {
 
       if (
         submission.contentUrl &&
-        /\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i.test(
+        /^https?:\/\/.+\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i.test(
           submission.contentUrl
         )
       ) {
@@ -226,7 +300,9 @@ module.exports = {
               .setLabel(
                 "Duyệt"
               )
-              .setEmoji("✅")
+              .setEmoji(
+                "✅"
+              )
               .setStyle(
                 ButtonStyle.Success
               ),
@@ -238,7 +314,9 @@ module.exports = {
               .setLabel(
                 "Từ chối"
               )
-              .setEmoji("❌")
+              .setEmoji(
+                "❌"
+              )
               .setStyle(
                 ButtonStyle.Danger
               ),
@@ -250,7 +328,9 @@ module.exports = {
               .setLabel(
                 "Bài tiếp theo"
               )
-              .setEmoji("➡️")
+              .setEmoji(
+                "➡️"
+              )
               .setStyle(
                 ButtonStyle.Secondary
               )
@@ -259,9 +339,18 @@ module.exports = {
               )
           );
 
-      await interaction.editReply({
-        embeds: [embed],
-        components: [row]
+      // =====================================
+      // RESPONSE
+      // =====================================
+
+      return interaction.editReply({
+        content: null,
+        embeds: [
+          embed
+        ],
+        components: [
+          row
+        ]
       });
     } catch (error) {
       console.error(
@@ -270,13 +359,37 @@ module.exports = {
       );
 
       try {
-        await interaction.editReply({
+        if (
+          interaction.deferred ||
+          interaction.replied
+        ) {
+          return await interaction.editReply({
+            content:
+              "❌ Không thể tải bài dự thi.",
+            embeds: [],
+            components: []
+          });
+        }
+
+        return await interaction.reply({
           content:
             "❌ Không thể tải bài dự thi.",
-          embeds: [],
-          components: []
+          flags:
+            MessageFlags.Ephemeral
         });
-      } catch {}
+      } catch (
+        replyError
+      ) {
+        if (
+          replyError?.code !==
+          10062
+        ) {
+          console.error(
+            "❌ Contest Submissions Reply Error:",
+            replyError
+          );
+        }
+      }
     }
   }
 };

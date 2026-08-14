@@ -13,7 +13,9 @@ const Contest =
 // GET CONTEST ID
 // =====================================
 
-function getContestId(customId) {
+function getContestId(
+  customId
+) {
   return customId.split(":")[1];
 }
 
@@ -21,22 +23,22 @@ function getContestId(customId) {
 // DISCORD TIME
 // =====================================
 
-function discordTime(date) {
+function discordTime(
+  date
+) {
   if (!date) {
     return "Chưa thiết lập";
   }
 
   return `<t:${Math.floor(
-    new Date(date).getTime() / 1000
+    new Date(date).getTime() /
+    1000
   )}:f>`;
 }
 
-// =====================================
-// MODULE
-// =====================================
-
 module.exports = {
-  customId: "contest_announce",
+  customId:
+    "contest_announce",
 
   async execute(interaction) {
     try {
@@ -46,7 +48,7 @@ module.exports = {
       });
 
       // =====================================
-      // CONTEST ID
+      // FIND CONTEST
       // =====================================
 
       const contestId =
@@ -54,13 +56,11 @@ module.exports = {
           interaction.customId
         );
 
-      // =====================================
-      // FIND CONTEST
-      // =====================================
-
       const contest =
         await Contest.findOne({
-          _id: contestId,
+          _id:
+            contestId,
+
           guildId:
             interaction.guildId
         });
@@ -107,7 +107,7 @@ module.exports = {
       }
 
       // =====================================
-      // ANNOUNCEMENT EMBED
+      // EMBED
       // =====================================
 
       const embed =
@@ -120,7 +120,7 @@ module.exports = {
           )
           .setDescription(
             contest.description ||
-              "Một Event Contest mới đã bắt đầu!"
+            "Một Event Contest mới đã bắt đầu!"
           )
           .addFields(
             {
@@ -174,10 +174,22 @@ module.exports = {
           .setTimestamp();
 
       // =====================================
-      // BANNER
+      // EVENT IMAGE
+      // =====================================
+      // Ưu tiên eventImageUrl
+      // Ảnh nguồn khuyến nghị 1920x1080
+      // Discord tự scale khi hiển thị
       // =====================================
 
-      if (contest.bannerUrl) {
+      if (
+        contest.eventImageUrl
+      ) {
+        embed.setImage(
+          contest.eventImageUrl
+        );
+      } else if (
+        contest.bannerUrl
+      ) {
         embed.setImage(
           contest.bannerUrl
         );
@@ -206,7 +218,7 @@ module.exports = {
           );
 
       // =====================================
-      // SEND TO EVENT CHANNEL
+      // SEND
       // =====================================
 
       const message =
@@ -221,14 +233,11 @@ module.exports = {
         });
 
       // =====================================
-      // SAVE ANNOUNCEMENT MESSAGE
+      // SAVE MESSAGE ID
       // =====================================
 
       contest.announcementMessageId =
         message.id;
-
-      // Không ghi đè submissionChannelId.
-      // Channel đã được Admin cấu hình trước.
 
       await contest.save();
 
@@ -250,6 +259,7 @@ module.exports = {
         await interaction.editReply({
           content:
             "❌ Không thể đăng thông báo Contest.",
+
           embeds: [],
           components: []
         });

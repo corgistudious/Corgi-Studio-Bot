@@ -39,6 +39,12 @@ const contestSchema =
         default: null
       },
 
+      // Ảnh Event 16:9 hiển thị cuối Embed
+      eventImageUrl: {
+        type: String,
+        default: null
+      },
+
       // =====================================
       // EVENT STATUS
       // =====================================
@@ -55,7 +61,6 @@ const contestSchema =
         ],
 
         default: "DRAFT",
-
         index: true
       },
 
@@ -97,22 +102,16 @@ const contestSchema =
       // CONTEST CHANNELS
       // =====================================
 
-      // Channel đăng thông báo Event
-      // và nút gửi bài
       submissionChannelId: {
         type: String,
         default: null
       },
 
-      // Channel đăng các bài
-      // đã được Admin APPROVED
       galleryChannelId: {
         type: String,
         default: null
       },
 
-      // Channel công bố
-      // kết quả cuối cùng
       resultChannelId: {
         type: String,
         default: null
@@ -156,9 +155,6 @@ const contestSchema =
       // VOTING SETTINGS
       // =====================================
 
-      // Tổng số lượt Vote
-      // một thành viên được dùng
-      // trong toàn Event.
       maxVotesPerUser: {
         type: Number,
         default: 1,
@@ -166,18 +162,64 @@ const contestSchema =
         max: 100
       },
 
-      // Cho phép thành viên
-      // bấm lại để bỏ Vote.
       allowVoteRemove: {
         type: Boolean,
         default: true
       },
 
-      // Hiển thị Vote công khai
-      // trên Gallery.
       showVoteCount: {
         type: Boolean,
         default: true
+      },
+
+      // =====================================
+      // ANTI FRAUD
+      // =====================================
+
+      antiFraud: {
+        enabled: {
+          type: Boolean,
+          default: true
+        },
+
+        // Tuổi tài khoản Discord tối thiểu
+        // để được phép Vote.
+        minAccountAgeDays: {
+          type: Number,
+          default: 7,
+          min: 0,
+          max: 3650
+        },
+
+        // Thời gian Member phải ở trong Server
+        // trước khi được phép Vote.
+        minGuildJoinHours: {
+          type: Number,
+          default: 24,
+          min: 0,
+          max: 87600
+        },
+
+        // Dùng cho Part 3 sau này.
+        voteCooldownSeconds: {
+          type: Number,
+          default: 3,
+          min: 0,
+          max: 3600
+        },
+
+        // Có thể dùng sau để yêu cầu Role.
+        requireRoleId: {
+          type: String,
+          default: null
+        },
+
+        // Có thể dùng sau để yêu cầu Level.
+        minLevel: {
+          type: Number,
+          default: 0,
+          min: 0
+        }
       },
 
       // =====================================
@@ -191,8 +233,6 @@ const contestSchema =
         max: 20
       },
 
-      // Giữ field này để tương thích
-      // với các bản Contest cũ.
       resultsPublished: {
         type: Boolean,
         default: false
@@ -207,13 +247,11 @@ const contestSchema =
       // DISCORD MESSAGE IDS
       // =====================================
 
-      // Tin nhắn thông báo Event
       announcementMessageId: {
         type: String,
         default: null
       },
 
-      // Tin nhắn công bố kết quả
       resultMessageId: {
         type: String,
         default: null
@@ -238,13 +276,11 @@ const contestSchema =
 // INDEXES
 // =====================================
 
-// Tìm Contest theo Server + Status
 contestSchema.index({
   guildId: 1,
   status: 1
 });
 
-// Tìm Event mới nhất
 contestSchema.index({
   guildId: 1,
   createdAt: -1

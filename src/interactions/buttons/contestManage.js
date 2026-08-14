@@ -19,7 +19,9 @@ const ContestVote =
 // STATUS TEXT
 // =====================================
 
-function getStatusText(status) {
+function getStatusText(
+  status
+) {
   switch (status) {
     case "DRAFT":
       return "⚪ Bản nháp";
@@ -42,28 +44,53 @@ function getStatusText(status) {
 }
 
 // =====================================
-// DISCORD TIMESTAMP
+// DISCORD TIME
 // =====================================
 
-function discordTime(date) {
+function discordTime(
+  date
+) {
   if (!date) {
     return "Chưa thiết lập";
   }
 
   return `<t:${Math.floor(
-    new Date(date).getTime() / 1000
+    new Date(date).getTime() /
+    1000
   )}:f>`;
 }
 
+// =====================================
+// CHANNEL TEXT
+// =====================================
+
+function getChannelText(
+  channelId
+) {
+  return channelId
+    ? `<#${channelId}>`
+    : "❌ Chưa thiết lập";
+}
+
+// =====================================
+// MODULE
+// =====================================
+
 module.exports = {
-  customId: "contest_manage",
+  customId:
+    "contest_manage",
 
   async execute(interaction) {
     try {
+      // =====================================
+      // GUILD ONLY
+      // =====================================
+
       if (!interaction.inGuild()) {
         return interaction.reply({
           content:
             "❌ Chỉ có thể quản lý Contest trong server.",
+
           flags:
             MessageFlags.Ephemeral
         });
@@ -74,14 +101,16 @@ module.exports = {
           MessageFlags.Ephemeral
       });
 
+      const guildId =
+        interaction.guildId;
+
       // =====================================
       // FIND ACTIVE CONTEST
       // =====================================
 
       const contest =
         await Contest.findOne({
-          guildId:
-            interaction.guildId,
+          guildId,
 
           status: {
             $in: [
@@ -91,14 +120,18 @@ module.exports = {
               "ENDED"
             ]
           }
-        }).sort({
-          createdAt: -1
-        });
+        })
+          .sort({
+            createdAt: -1
+          });
 
       if (!contest) {
         return interaction.editReply({
           content:
-            "⚠️ Server hiện không có Event Contest nào đang hoạt động."
+            "⚠️ Server hiện không có Event Contest nào đang hoạt động.",
+
+          embeds: [],
+          components: []
         });
       }
 
@@ -112,31 +145,43 @@ module.exports = {
         pendingSubmissions,
         totalVotes
       ] = await Promise.all([
-        ContestSubmission.countDocuments({
-          contestId:
-            contest._id
-        }),
+        ContestSubmission
+          .countDocuments({
+            guildId,
 
-        ContestSubmission.countDocuments({
-          contestId:
-            contest._id,
+            contestId:
+              contest._id
+          }),
 
-          status:
-            "APPROVED"
-        }),
+        ContestSubmission
+          .countDocuments({
+            guildId,
 
-        ContestSubmission.countDocuments({
-          contestId:
-            contest._id,
+            contestId:
+              contest._id,
 
-          status:
-            "PENDING"
-        }),
+            status:
+              "APPROVED"
+          }),
 
-        ContestVote.countDocuments({
-          contestId:
-            contest._id
-        })
+        ContestSubmission
+          .countDocuments({
+            guildId,
+
+            contestId:
+              contest._id,
+
+            status:
+              "PENDING"
+          }),
+
+        ContestVote
+          .countDocuments({
+            guildId,
+
+            contestId:
+              contest._id
+          })
       ]);
 
       // =====================================
@@ -159,10 +204,12 @@ module.exports = {
             {
               name:
                 "📊 Trạng thái",
+
               value:
                 getStatusText(
                   contest.status
                 ),
+
               inline:
                 true
             },
@@ -170,10 +217,13 @@ module.exports = {
             {
               name:
                 "👑 Số giải",
+
               value:
                 String(
-                  contest.winnerCount
+                  contest.winnerCount ||
+                  3
                 ),
+
               inline:
                 true
             },
@@ -181,8 +231,12 @@ module.exports = {
             {
               name:
                 "👤 Người tạo",
+
               value:
-                `<@${contest.createdBy}>`,
+                contest.createdBy
+                  ? `<@${contest.createdBy}>`
+                  : "Không xác định",
+
               inline:
                 true
             },
@@ -190,12 +244,14 @@ module.exports = {
             {
               name:
                 "📥 Thời gian nhận bài",
+
               value:
                 `${discordTime(
                   contest.submissionStartAt
                 )}\n→ ${discordTime(
                   contest.submissionEndAt
                 )}`,
+
               inline:
                 false
             },
@@ -203,12 +259,14 @@ module.exports = {
             {
               name:
                 "🗳️ Thời gian bình chọn",
+
               value:
                 `${discordTime(
                   contest.votingStartAt
                 )}\n→ ${discordTime(
                   contest.votingEndAt
                 )}`,
+
               inline:
                 false
             },
@@ -216,10 +274,12 @@ module.exports = {
             {
               name:
                 "📨 Tổng bài",
+
               value:
                 String(
                   totalSubmissions
                 ),
+
               inline:
                 true
             },
@@ -227,10 +287,12 @@ module.exports = {
             {
               name:
                 "✅ Đã duyệt",
+
               value:
                 String(
                   approvedSubmissions
                 ),
+
               inline:
                 true
             },
@@ -238,10 +300,12 @@ module.exports = {
             {
               name:
                 "⏳ Chờ duyệt",
+
               value:
                 String(
                   pendingSubmissions
                 ),
+
               inline:
                 true
             },
@@ -249,10 +313,89 @@ module.exports = {
             {
               name:
                 "❤️ Tổng Vote",
+
               value:
                 String(
                   totalVotes
                 ),
+
+              inline:
+                true
+            },
+
+            {
+              name:
+                "🌐 Server",
+
+              value:
+                interaction.guild?.name ||
+                guildId,
+
+              inline:
+                true
+            },
+
+            {
+              name:
+                "📢 Event Channel",
+
+              value:
+                getChannelText(
+                  contest.submissionChannelId
+                ),
+
+              inline:
+                false
+            },
+
+            {
+              name:
+                "🖼️ Gallery Channel",
+
+              value:
+                getChannelText(
+                  contest.galleryChannelId
+                ),
+
+              inline:
+                false
+            },
+
+            {
+              name:
+                "🏆 Result Channel",
+
+              value:
+                getChannelText(
+                  contest.resultChannelId
+                ),
+
+              inline:
+                false
+            },
+
+            {
+              name:
+                "🖼️ Ảnh sự kiện",
+
+              value:
+                contest.eventImageUrl
+                  ? "✅ Đã thiết lập"
+                  : "❌ Chưa thiết lập",
+
+              inline:
+                false
+            },
+
+            {
+              name:
+                "🛡️ Anti-Fraud",
+
+              value:
+                contest.antiFraud?.enabled === false
+                  ? "🔴 Đang tắt"
+                  : "🟢 Đang bật",
+
               inline:
                 true
             }
@@ -264,10 +407,74 @@ module.exports = {
           .setTimestamp();
 
       // =====================================
-      // CONTROL BUTTONS
+      // PREVIEW EVENT IMAGE
+      // =====================================
+
+      if (
+        contest.eventImageUrl
+      ) {
+        embed.setImage(
+          contest.eventImageUrl
+        );
+      }
+
+      // =====================================
+      // ROW 1
+      // CONFIGURATION
       // =====================================
 
       const row1 =
+        new ActionRowBuilder()
+          .addComponents(
+            new ButtonBuilder()
+              .setCustomId(
+                "contest_channel_config"
+              )
+              .setLabel(
+                "Cấu hình Channel"
+              )
+              .setEmoji(
+                "⚙️"
+              )
+              .setStyle(
+                ButtonStyle.Primary
+              ),
+
+            new ButtonBuilder()
+              .setCustomId(
+                "contest_event_image"
+              )
+              .setLabel(
+                "Ảnh sự kiện"
+              )
+              .setEmoji(
+                "🖼️"
+              )
+              .setStyle(
+                ButtonStyle.Secondary
+              ),
+
+            new ButtonBuilder()
+              .setCustomId(
+                "contest_fraud_review"
+              )
+              .setLabel(
+                "Anti-Fraud"
+              )
+              .setEmoji(
+                "🛡️"
+              )
+              .setStyle(
+                ButtonStyle.Secondary
+              )
+          );
+
+      // =====================================
+      // ROW 2
+      // EVENT MANAGEMENT
+      // =====================================
+
+      const row2 =
         new ActionRowBuilder()
           .addComponents(
             new ButtonBuilder()
@@ -277,7 +484,9 @@ module.exports = {
               .setLabel(
                 "Đăng thông báo"
               )
-              .setEmoji("📢")
+              .setEmoji(
+                "📢"
+              )
               .setStyle(
                 ButtonStyle.Primary
               ),
@@ -289,7 +498,9 @@ module.exports = {
               .setLabel(
                 "Bài dự thi"
               )
-              .setEmoji("📥")
+              .setEmoji(
+                "📥"
+              )
               .setStyle(
                 ButtonStyle.Secondary
               ),
@@ -301,13 +512,20 @@ module.exports = {
               .setLabel(
                 "Làm mới"
               )
-              .setEmoji("🔄")
+              .setEmoji(
+                "🔄"
+              )
               .setStyle(
                 ButtonStyle.Secondary
               )
           );
 
-      const row2 =
+      // =====================================
+      // ROW 3
+      // VOTE / END / DELETE
+      // =====================================
+
+      const row3 =
         new ActionRowBuilder()
           .addComponents(
             new ButtonBuilder()
@@ -317,7 +535,9 @@ module.exports = {
               .setLabel(
                 "Mở Vote"
               )
-              .setEmoji("🗳️")
+              .setEmoji(
+                "🗳️"
+              )
               .setStyle(
                 ButtonStyle.Success
               )
@@ -333,13 +553,17 @@ module.exports = {
               .setLabel(
                 "Kết thúc"
               )
-              .setEmoji("🛑")
+              .setEmoji(
+                "🛑"
+              )
               .setStyle(
                 ButtonStyle.Danger
               )
               .setDisabled(
                 contest.status ===
-                  "ENDED"
+                  "ENDED" ||
+                contest.status ===
+                  "PUBLISHED"
               ),
 
             new ButtonBuilder()
@@ -349,17 +573,29 @@ module.exports = {
               .setLabel(
                 "Xóa Event"
               )
-              .setEmoji("🗑️")
+              .setEmoji(
+                "🗑️"
+              )
               .setStyle(
                 ButtonStyle.Danger
               )
           );
 
-      await interaction.editReply({
-        embeds: [embed],
+      // =====================================
+      // RESPONSE
+      // =====================================
+
+      return interaction.editReply({
+        content: null,
+
+        embeds: [
+          embed
+        ],
+
         components: [
           row1,
-          row2
+          row2,
+          row3
         ]
       });
     } catch (error) {
@@ -373,20 +609,22 @@ module.exports = {
           interaction.deferred ||
           interaction.replied
         ) {
-          await interaction.editReply({
+          return await interaction.editReply({
             content:
               "❌ Không thể mở bảng quản lý Contest.",
+
             embeds: [],
             components: []
           });
-        } else {
-          await interaction.reply({
-            content:
-              "❌ Không thể mở bảng quản lý Contest.",
-            flags:
-              MessageFlags.Ephemeral
-          });
         }
+
+        return await interaction.reply({
+          content:
+            "❌ Không thể mở bảng quản lý Contest.",
+
+          flags:
+            MessageFlags.Ephemeral
+        });
       } catch {}
     }
   }
