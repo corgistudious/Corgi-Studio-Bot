@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.10.0",
+  "version": "4.11.0",
   "private": true,
-  "description": "Corgi-Bot V4.9.1 with free Groq AI and complete in-bot/help documentation.",
+  "description": "Corgi-Bot V4.11 with full VI/EN runtime UI sync, short professional games, general Corgi AI, and streamlined moderation commands.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
