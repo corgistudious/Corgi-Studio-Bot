@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const { getGuildSettings } = require('./settings');
+const { getGuildSettings } = require('./guildSettings');
 const { isPremiumGuild } = require('./premium');
 
 const ASSET_DIR = path.join(__dirname, '../../assets/corgi-premium');
