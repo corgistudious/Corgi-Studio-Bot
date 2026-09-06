@@ -1,27 +1,21 @@
 {
-  "name": "corgistudiobot",
-  "version": "1.0.0",
-  "description": "Discord Bot for Corgi Studio",
+  "name": "corgi-bot-new",
+  "version": "4.10.0",
+  "private": true,
+  "description": "Corgi-Bot V4.9.1 with free Groq AI and complete in-bot/help documentation.",
   "main": "src/index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "deploy": "node deploy-commands.js"
+    "dev": "node --watch src/index.js",
+    "deploy:commands": "node scripts/deploy-commands.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "@napi-rs/canvas": "^1.0.5",
-    "chalk": "^5.6.2",
-    "discord.js": "^14.22.1",
-    "dotenv": "^17.2.1",
-    "mongoose": "^8.18.0",
-    "pino": "^9.9.0",
-    "pino-pretty": "^13.1.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10"
+    "discord.js": "^14.27.0",
+    "dotenv": "^16.6.1",
+    "mongoose": "^9.9.5"
   }
 }

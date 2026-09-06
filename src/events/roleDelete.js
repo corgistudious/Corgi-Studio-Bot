@@ -1,0 +1,1 @@
+const {Events}=require('discord.js');const {sendLog}=require('../services/log');module.exports={name:Events.GuildRoleDelete,async execute(role){await sendLog(role.guild,{title:'🗑️ Role Deleted',description:`${role.name}`});}};

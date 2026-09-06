@@ -1,0 +1,1 @@
+const {Events}=require('discord.js');const {sendLog}=require('../services/log');module.exports={name:Events.ChannelDelete,async execute(ch){if(!ch.guild)return;await sendLog(ch.guild,{title:'🗑️ Channel Deleted',description:`#${ch.name}`});}};

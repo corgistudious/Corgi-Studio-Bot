@@ -1,0 +1,1 @@
+const {Events}=require('discord.js');const {sendLog}=require('../services/log');module.exports={name:Events.GuildBanAdd,async execute(ban){await sendLog(ban.guild,{title:'🔨 Member Banned',description:`${ban.user.tag} (${ban.user.id})`});}};
