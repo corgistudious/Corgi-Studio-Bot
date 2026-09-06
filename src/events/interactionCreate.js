@@ -30,6 +30,26 @@ if(i.isChatInputCommand()){const c=client.commands.get(i.commandName);if(c?.prem
 if(i.isButton()&&i.customId==='ticket:create')return createTicket(i);
 if(i.isButton()&&i.customId==='ticket:close')return closeTicket(i);
 if(i.isButton()&&i.customId==='contest:join')return joinContest(i);
+
+if(i.isButton()&&i.customId?.startsWith('spin:')){
+  const { runSpinAgain, cashOutSpin }=require('../modules/games/engine');
+  const parts=i.customId.split(':');
+  const action=parts[1];
+  const bet=Number(parts[2])||0;
+  const ownerId=action==='again'?parts[3]:parts[2];
+  const s=await getGuildSettings(i.guildId);
+  if(i.user.id!==ownerId)return i.reply({content:pick(s.language,'This Spin session belongs to another player.','Phiên Spin này thuộc về người chơi khác.'),flags:64});
+  if(action==='again'){
+    const r=await runSpinAgain({guildId:i.guildId,userId:i.user.id,bet});
+    if(r.error)return i.reply({content:r.error,flags:64});
+    return i.update({embeds:[r.embed],components:r.components});
+  }
+  if(action==='cashout'){
+    const r=await cashOutSpin({guildId:i.guildId,userId:i.user.id});
+    if(r.error)return i.reply({content:r.error,flags:64});
+    return i.update({embeds:[r.embed],components:r.components});
+  }
+}
 if(i.customId?.startsWith('dev:')){
   if(!isDeveloper(i.user.id))return i.reply({content:'Developer access only.',flags:64});
   if(i.isButton()){
@@ -58,10 +78,10 @@ if(i.customId?.startsWith('dev:')){
   if(i.isModalSubmit()){
     if(i.customId==='dev:modal:premiumGrant'){const p=await DevControl.addPremium(i.fields.getTextInputValue('guildId').trim(),i.fields.getTextInputValue('userId').trim(),i.fields.getTextInputValue('duration').trim(),i.user.id);await sendDeveloperLog(client,{title:'💎 Premium Granted / Extended',description:`Developer: ${i.user.id}\nGuild: ${p.guildId}\nUntil: ${p.expiresAt.toISOString()}`});const g=client.guilds.cache.get(p.guildId);if(g)await applyPremiumBranding(g);return i.reply({content:`✅ Premium granted/extended until <t:${Math.floor(p.expiresAt.getTime()/1000)}:F>.`,flags:64});}
     if(i.customId==='dev:modal:premiumRevoke'){const gid=i.fields.getTextInputValue('guildId').trim();const n=await DevControl.revokePremium(gid,i.user.id);const g=client.guilds.cache.get(gid);if(g)await applyPremiumBranding(g);await sendDeveloperLog(client,{title:'💎 Premium Revoked',description:`Developer: ${i.user.id}\nGuild: ${gid}\nRecords removed: ${n}`});return i.reply({content:`✅ Revoked **${n}** Premium record(s).`,flags:64});}
-    if(i.customId==='dev:modal:keyCstar'){const k=await DevControl.createRedeemKey({type:'CSTAR',amount:Number(i.fields.getTextInputValue('amount')),maxUses:Number(i.fields.getTextInputValue('maxUses')),expiresDays:Number(i.fields.getTextInputValue('expiresDays'))});await sendDeveloperLog(client,{title:'🔑 Cstar Key Created',description:`Developer: ${i.user.id}\nKey: ${k.code}\nAmount: ${k.cstarAmount}\nMax uses: ${k.maxUses}`});return i.reply({content:`✅ Cstar key created: \`${k.code}\` • **${k.cstarAmount} Cstar** • max uses **${k.maxUses}**`,flags:64});}
+    if(i.customId==='dev:modal:keyCstar'){const k=await DevControl.createRedeemKey({type:'CSTAR',amount:Number(i.fields.getTextInputValue('amount')),maxUses:Number(i.fields.getTextInputValue('maxUses')),expiresDays:Number(i.fields.getTextInputValue('expiresDays'))});await sendDeveloperLog(client,{title:'🔑 🌟Cstar Key Created',description:`Developer: ${i.user.id}\nKey: ${k.code}\nAmount: ${k.cstarAmount}\nMax uses: ${k.maxUses}`});return i.reply({content:`✅ 🌟Cstar key created: \`${k.code}\` • **${k.cstarAmount} 🌟Cstar** • max uses **${k.maxUses}**`,flags:64});}
     if(i.customId==='dev:modal:keyPremium'){const k=await DevControl.createRedeemKey({type:'PREMIUM',duration:i.fields.getTextInputValue('duration').trim(),maxUses:Number(i.fields.getTextInputValue('maxUses')),expiresDays:Number(i.fields.getTextInputValue('expiresDays'))});await sendDeveloperLog(client,{title:'🔑 Premium Key Created',description:`Developer: ${i.user.id}\nKey: ${k.code}\nDuration: ${k.premiumDuration}\nMax uses: ${k.maxUses}`});return i.reply({content:`✅ Premium key created: \`${k.code}\` • **${k.premiumDuration}** • max uses **${k.maxUses}**`,flags:64});}
     if(i.customId==='dev:modal:keyDisable'){const k=await DevControl.disableKey(i.fields.getTextInputValue('code'));if(k)await sendDeveloperLog(client,{title:'🔑 CD Key Disabled',description:`Developer: ${i.user.id}\nKey: ${k.code}`});return i.reply({content:k?`✅ Disabled \`${k.code}\`.`:'❌ Key not found.',flags:64});}
-    if(i.customId==='dev:modal:cstar'){const gid=i.fields.getTextInputValue('guildId'),uid=i.fields.getTextInputValue('userId'),delta=Number(i.fields.getTextInputValue('delta'));const u=await DevControl.adjustCstar(gid,uid,delta);await sendDeveloperLog(client,{title:'⭐ Cstar Adjusted',description:`Developer: ${i.user.id}\nGuild: ${gid}\nUser: ${uid}\nDelta: ${delta}\nBalance: ${u.cstar}`});return i.reply({content:`✅ New Cstar balance: **${u.cstar} ⭐**.`,flags:64});}
+    if(i.customId==='dev:modal:cstar'){const gid=i.fields.getTextInputValue('guildId'),uid=i.fields.getTextInputValue('userId'),delta=Number(i.fields.getTextInputValue('delta'));const u=await DevControl.adjustCstar(gid,uid,delta);await sendDeveloperLog(client,{title:'⭐ 🌟Cstar Adjusted',description:`Developer: ${i.user.id}\nGuild: ${gid}\nUser: ${uid}\nDelta: ${delta}\nBalance: ${u.cstar}`});return i.reply({content:`✅ New 🌟Cstar balance: **${u.cstar} ⭐**.`,flags:64});}
         if(i.customId.startsWith('dev:modal:blacklist:')){const kind=i.customId.split(':')[3];const r=await DevControl.toggleBlacklist(kind,i.fields.getTextInputValue('id'));await sendDeveloperLog(client,{title:'🛡️ Blacklist Changed',description:`Developer: ${i.user.id}\n${kind}: ${r.id}\nState: ${r.blocked?'BLACKLISTED':'UNBLOCKED'}`});return i.reply({content:`✅ ${kind} \`${r.id}\` is now **${r.blocked?'BLACKLISTED':'UNBLOCKED'}**.`,flags:64});}
   }
   return;
