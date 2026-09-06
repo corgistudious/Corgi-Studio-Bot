@@ -1,3 +1,10 @@
-const {SlashCommandBuilder}=require('discord.js');const UserEconomy=require('../../models/UserEconomy');const {guildLang,pick}=require('../../services/i18n');
-async function row(guildId,userId){return UserEconomy.findOneAndUpdate({guildId,userId},{$setOnInsert:{guildId,userId}},{upsert:true,returnDocument:'after'});}
-module.exports={data:new SlashCommandBuilder().setName('balance').setDescription('View your 🌟Cstar balance').setDescriptionLocalizations({vi:'Xem số dư 🌟Cstar của bạn'}),prefix:['balance','bal'],async execute(i){const lang=await guildLang(i.guildId),r=await row(i.guildId,i.user.id);return i.reply(pick(lang,`⭐ You have **${r.cstar} 🌟Cstar**.`,`⭐ Bạn có **${r.cstar} 🌟Cstar**.`));},async executePrefix(m){const lang=await guildLang(m.guildId),r=await row(m.guildId,m.author.id);return m.reply(pick(lang,`⭐ You have **${r.cstar} 🌟Cstar**.`,`⭐ Bạn có **${r.cstar} 🌟Cstar**.`));}};
+const {SlashCommandBuilder}=require('discord.js');
+const {ensureWallet}=require('../../services/economyWallet');
+const {guildLang,pick}=require('../../services/i18n');
+async function row(userId){return ensureWallet(userId);}
+module.exports={
+  data:new SlashCommandBuilder().setName('balance').setDescription('View your global 🌟Cstar balance').setDescriptionLocalizations({vi:'Xem ví 🌟Cstar liên server'}),
+  prefix:['balance','bal'],
+  async execute(i){const lang=await guildLang(i.guildId),u=i.options?.getUser?.('user')||i.user,x=await row(u.id);return i.reply(pick(lang,`⭐ ${u}'s global balance: **${x.cstar.toLocaleString()} 🌟Cstar**.`,`⭐ Ví liên server của ${u}: **${x.cstar.toLocaleString()} 🌟Cstar**.`));},
+  async executePrefix(m){const lang=await guildLang(m.guildId),u=m.mentions.users.first()||m.author,x=await row(u.id);return m.reply(pick(lang,`⭐ ${u}'s global balance: **${x.cstar.toLocaleString()} 🌟Cstar**.`,`⭐ Ví liên server của ${u}: **${x.cstar.toLocaleString()} 🌟Cstar**.`));}
+};
