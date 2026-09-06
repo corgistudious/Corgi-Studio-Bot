@@ -1,24 +1,3 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-
-function comingSoonEmbed() {
-  return new EmbedBuilder()
-    .setTitle('🐾 Pet Game • Coming Soon')
-    .setDescription(`Pet Game is temporarily unavailable and is planned for a future Corgi-Bot update.
-
-No Cstar will be charged and no Pet data will be changed while this feature is locked.`)
-    .setFooter({ text: 'Corgi Studio • Coming Soon' })
-    .setTimestamp();
-}
-
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('pet')
-    .setDescription('Pet Game • Coming Soon'),
-  prefix: ['pet'],
-  async execute(i) {
-    return i.reply({ embeds: [comingSoonEmbed()], flags: 64 });
-  },
-  async executePrefix(m) {
-    return m.reply({ embeds: [comingSoonEmbed()] });
-  },
-};
+const {SlashCommandBuilder,EmbedBuilder}=require('discord.js');const {guildLang,pick}=require('../../services/i18n');
+function comingSoonEmbed(lang){return new EmbedBuilder().setTitle(pick(lang,'🐾 Pet Game • Coming Soon','🐾 Pet Game • Sắp ra mắt')).setDescription(pick(lang,'Pet Game is temporarily unavailable and is planned for a future Corgi-Bot update.\n\nNo Cstar will be charged and no Pet data will be changed while this feature is locked.','Pet Game hiện đang tạm khóa và sẽ xuất hiện trong bản cập nhật Corgi-Bot tương lai.\n\nKhông Cstar nào bị trừ và dữ liệu Pet không bị thay đổi khi tính năng đang khóa.')).setFooter({text:pick(lang,'Corgi Studio • Coming Soon','Corgi Studio • Sắp ra mắt')}).setTimestamp();}
+module.exports={data:new SlashCommandBuilder().setName('pet').setDescription('Pet Game • Coming Soon').setDescriptionLocalizations({vi:'Pet Game • Sắp ra mắt'}),prefix:['pet'],async execute(i){const lang=await guildLang(i.guildId);return i.reply({embeds:[comingSoonEmbed(lang)],flags:64});},async executePrefix(m){const lang=await guildLang(m.guildId);return m.reply({embeds:[comingSoonEmbed(lang)]});}};
