@@ -61,14 +61,16 @@ async function applyPremiumBranding(guild) {
   if (!s?.premiumBranding) return;
   if (!active) {
     if (guild.members.me?.nickname) await guild.members.me.setNickname(null, 'Corgi Premium expired').catch(() => null);
-    const { removeCorgiGuildEmojis } = require('./corgiPremiumEmoji');
-    await removeCorgiGuildEmojis(guild).catch(e => console.warn('Premium guild emoji cleanup:', e.message));
+    const { removeLegacyCorgiGuildEmojis } = require('./corgiPremiumEmoji');
+    await removeLegacyCorgiGuildEmojis(guild).catch(e => console.warn('Legacy Premium guild emoji cleanup:', e.message));
     return;
   }
   const name = s.premiumBranding.botName?.trim();
   if (name && guild.members.me?.nickname !== name) await guild.members.me.setNickname(name, 'Corgi Premium branding').catch(() => null);
-  const { reconcileCorgiGuildEmojis } = require('./corgiPremiumEmoji');
-  await reconcileCorgiGuildEmojis(guild).catch(e => console.warn('Premium guild emoji sync:', e.message));
+  // V4.10.2: Premium Corgi emojis stay application-owned and are gated by guild Premium.
+  // Remove any guild copies installed by V4.10.1 so Nitro cannot reuse those copies elsewhere.
+  const { removeLegacyCorgiGuildEmojis } = require('./corgiPremiumEmoji');
+  await removeLegacyCorgiGuildEmojis(guild).catch(e => console.warn('Legacy Premium guild emoji cleanup:', e.message));
 }
 
 function startPremiumService(client) {
