@@ -75,16 +75,48 @@ async function applyPremiumBranding(guild) {
 
 function startPremiumService(client) {
   let running = false;
-  setInterval(async () => {
+  let legacyCleanupSeeded = false;
+  const pendingLegacyCleanup = new Set();
+
+  const seedLegacyCleanup = () => {
+    if (legacyCleanupSeeded || !client.isReady()) return;
+    legacyCleanupSeeded = true;
+    for (const guildId of client.guilds.cache.keys()) pendingLegacyCleanup.add(guildId);
+  };
+
+  const runCycle = async () => {
     if (running || !client.isReady()) return;
     running = true;
     try {
+      // V4.10.2.1 migration: every guild the bot is currently in gets one
+      // cleanup attempt, independent of Premium/branding query state. The
+      // cleanup function itself only deletes IDs previously tracked by
+      // Corgi-Bot, so unrelated server emojis are never touched.
+      seedLegacyCleanup();
+      if (pendingLegacyCleanup.size) {
+        const { removeLegacyCorgiGuildEmojis } = require('./corgiPremiumEmoji');
+        for (const guildId of [...pendingLegacyCleanup]) {
+          const guild = client.guilds.cache.get(guildId);
+          if (!guild) {
+            pendingLegacyCleanup.delete(guildId);
+            continue;
+          }
+          try {
+            await removeLegacyCorgiGuildEmojis(guild);
+            pendingLegacyCleanup.delete(guildId);
+          } catch (e) {
+            console.warn(`[${guildId}] Legacy Premium guild emoji cleanup:`, e.message);
+          }
+        }
+      }
+
       const expired = await Premium.find({ expiresAt: { $lte: new Date() }, expiredProcessedAt: { $exists: false } });
       for (const p of expired) {
         p.expiredProcessedAt = new Date(); await p.save();
         await audit({ guildId:p.guildId,userId:p.userId,action:'EXPIRE',source:'system',expiresAt:p.expiresAt });
         await sendDeveloperLog(client,{title:'💎 Premium Expired',description:`Guild: ${p.guildId}\nUser: ${p.userId}\nExpired: ${p.expiresAt.toISOString()}`});
       }
+
       const branded = await GuildSettings.find({ $or: [
         { 'premiumBranding.botName': { $exists: true, $nin: [null, ''] } },
         { 'premiumBranding.useCorgiStudioEmoji': true }
@@ -93,9 +125,19 @@ function startPremiumService(client) {
         const guild = client.guilds.cache.get(s.guildId);
         if (guild) await applyPremiumBranding(guild);
       }
-    } catch (e) { console.error('Premium service:', e.message); }
-    finally { running = false; }
-  }, 60000).unref();
+    } catch (e) {
+      console.error('Premium service:', e.message);
+    } finally {
+      running = false;
+    }
+  };
+
+  // Run migration/service immediately after Discord is ready instead of
+  // waiting for the first 60-second interval.
+  if (client.isReady()) void runCycle();
+  else client.once('ready', () => void runCycle());
+
+  setInterval(() => void runCycle(), 60000).unref();
 }
 
 module.exports = { grantPremium, getActivePremium, isPremiumGuild, getPremiumStatus, revokePremium, recentPremiumHistory, recordPremiumAudit, applyPremiumBranding, startPremiumService, DURATIONS, PREMIUM_COMMANDS, PREMIUM_MODULES };
