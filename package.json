@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.11.2",
+  "version": "4.12.0",
   "private": true,
-  "description": "Corgi-Bot V4.11.2 with a single global 🌟Cstar wallet shared across every server.",
+  "description": "Corgi-Bot V4.12.0 with Professional Giveaway System and Global 🌟Cstar Wallet.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
