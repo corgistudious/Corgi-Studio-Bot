@@ -6,6 +6,8 @@ const {checkAccess}=require('../services/accessControl');
 const {sendDeveloperLog}=require('../services/developerLog');
 const Ticket=require('../models/Ticket');
 const Contest=require('../models/Contest');
+const Giveaway=require('../models/Giveaway');
+const {buildGiveawayMessage,eligibility}=require('../modules/giveaway');
 const {AttachmentBuilder}=require('discord.js');
 const {sendLog}=require('../services/log');
 const UI=require('../ui/setup');
@@ -30,6 +32,19 @@ if(i.isChatInputCommand()){const c=client.commands.get(i.commandName);if(c?.prem
 if(i.isButton()&&i.customId==='ticket:create')return createTicket(i);
 if(i.isButton()&&i.customId==='ticket:close')return closeTicket(i);
 if(i.isButton()&&i.customId==='contest:join')return joinContest(i);
+if(i.isButton()&&(i.customId==='giveaway:join'||i.customId==='giveaway:leave')){
+  await i.deferReply({flags:64});
+  const g=await Giveaway.findOne({messageId:i.message.id});
+  const s=await getGuildSettings(i.guildId),lang=s.language;
+  if(!g||g.status!=='active'||new Date(g.endsAt)<=new Date())return i.editReply(pick(lang,'This Giveaway is no longer accepting entries.','Giveaway này không còn nhận lượt tham gia.'));
+  if(i.customId==='giveaway:leave'){
+    if(!g.participants.includes(i.user.id))return i.editReply(pick(lang,'You are not in this Giveaway.','Bạn chưa tham gia Giveaway này.'));
+    g.participants.pull(i.user.id);await g.save();await i.message.edit(buildGiveawayMessage(g,lang)).catch(()=>{});return i.editReply(pick(lang,'↩️ You left the Giveaway.','↩️ Bạn đã rời Giveaway.'));
+  }
+  if(g.participants.includes(i.user.id))return i.editReply(pick(lang,'🔥 You already joined this Giveaway.','🔥 Bạn đã tham gia Giveaway này rồi.'));
+  const check=await eligibility(g,i.member);if(!check.ok)return i.editReply(`❌ ${check.reason}`);
+  g.participants.push(i.user.id);await g.save();await i.message.edit(buildGiveawayMessage(g,lang)).catch(()=>{});return i.editReply(pick(lang,'🔥 Entry confirmed. Good luck!','🔥 Tham gia thành công. Chúc bạn may mắn!'));
+}
 
 if(i.isButton()&&i.customId?.startsWith('spin:')){
   const { runSpinAgain, cashOutSpin }=require('../modules/games/engine');
