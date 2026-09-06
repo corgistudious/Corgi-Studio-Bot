@@ -5,18 +5,15 @@ const {
   ButtonStyle,
 } = require('discord.js');
 const UserEconomy = require('../../models/UserEconomy');
+const { ensureWallet: ensureGlobalWallet, walletFilter } = require('../../services/economyWallet');
 const { guildLang, pick } = require('../../services/i18n');
 
 const MIN_BET = 10;
 const MAX_BET = 1_000_000;
 const CURRENCY = '🌟Cstar';
 
-async function ensureWallet(guildId, userId) {
-  return UserEconomy.findOneAndUpdate(
-    { guildId, userId },
-    { $setOnInsert: { guildId, userId } },
-    { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
-  );
+async function ensureWallet(_guildId, userId) {
+  return ensureGlobalWallet(userId);
 }
 
 async function settle(guildId, userId, bet, net) {
@@ -176,7 +173,7 @@ async function performSpin({guildId,userId,bet}){
   const board=spinBoard();
   const {wins,payout}=evaluateSpin(board,bet);
   const row=await UserEconomy.findOneAndUpdate(
-    {guildId,userId,cstar:{$gte:bet}},
+    {...walletFilter(userId),cstar:{$gte:bet}},
     {$inc:{cstar:-bet,spinPending:payout}},
     {returnDocument:'after'},
   );
@@ -192,7 +189,7 @@ async function cashOutSpin({guildId,userId}){
   const lang=await guildLang(guildId);
   await ensureWallet(guildId,userId);
   const before=await UserEconomy.findOneAndUpdate(
-    {guildId,userId,spinPending:{$gt:0}},
+    {...walletFilter(userId),spinPending:{$gt:0}},
     [{$set:{cstar:{$add:['$cstar','$spinPending']},spinPending:0}}],
     {returnDocument:'before'},
   );
