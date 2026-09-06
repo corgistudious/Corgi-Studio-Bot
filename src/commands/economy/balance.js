@@ -1,14 +1,3 @@
-const { SlashCommandBuilder } = require('discord.js');
-const UserEconomy = require('../../models/UserEconomy');
-module.exports = {
-  data: new SlashCommandBuilder().setName('balance').setDescription('View your Cstar balance'),
-  prefix: ['balance','bal'],
-  async execute(interaction) {
-    const row = await UserEconomy.findOneAndUpdate({ guildId:interaction.guildId,userId:interaction.user.id },{$setOnInsert:{guildId:interaction.guildId,userId:interaction.user.id}},{upsert:true,returnDocument:'after'});
-    return interaction.reply(`⭐ You have **${row.cstar} Cstar**.`);
-  },
-  async executePrefix(message) {
-    const row = await UserEconomy.findOneAndUpdate({ guildId:message.guildId,userId:message.author.id },{$setOnInsert:{guildId:message.guildId,userId:message.author.id}},{upsert:true,returnDocument:'after'});
-    return message.reply(`⭐ You have **${row.cstar} Cstar**.`);
-  }
-};
+const {SlashCommandBuilder}=require('discord.js');const UserEconomy=require('../../models/UserEconomy');const {guildLang,pick}=require('../../services/i18n');
+async function row(guildId,userId){return UserEconomy.findOneAndUpdate({guildId,userId},{$setOnInsert:{guildId,userId}},{upsert:true,returnDocument:'after'});}
+module.exports={data:new SlashCommandBuilder().setName('balance').setDescription('View your 🌟Cstar balance').setDescriptionLocalizations({vi:'Xem số dư 🌟Cstar của bạn'}),prefix:['balance','bal'],async execute(i){const lang=await guildLang(i.guildId),r=await row(i.guildId,i.user.id);return i.reply(pick(lang,`⭐ You have **${r.cstar} 🌟Cstar**.`,`⭐ Bạn có **${r.cstar} 🌟Cstar**.`));},async executePrefix(m){const lang=await guildLang(m.guildId),r=await row(m.guildId,m.author.id);return m.reply(pick(lang,`⭐ You have **${r.cstar} 🌟Cstar**.`,`⭐ Bạn có **${r.cstar} 🌟Cstar**.`));}};
