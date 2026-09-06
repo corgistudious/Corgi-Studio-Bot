@@ -7,5 +7,5 @@ module.exports = {
   dailyClaimed: 'Daily reward claimed: +{amount} Cstar ⭐.',
   dailyWait: 'Daily reward already claimed. Try again later.',
   invalidKey: 'This redeem key is invalid, expired, disabled, or already exhausted.',
-  redeemed: 'Redeem successful: {reward}.'
+  redeemed: 'Redeem successful: {reward}.',
 };

@@ -7,5 +7,5 @@ module.exports = {
   dailyClaimed: 'Đã nhận thưởng ngày: +{amount} Cstar ⭐.',
   dailyWait: 'Bạn đã nhận thưởng ngày. Hãy thử lại sau.',
   invalidKey: 'Redeem key không hợp lệ, hết hạn, bị tắt hoặc đã hết lượt dùng.',
-  redeemed: 'Đổi key thành công: {reward}.'
+  redeemed: 'Đổi key thành công: {reward}.',
 };
