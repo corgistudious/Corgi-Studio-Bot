@@ -28,6 +28,7 @@ async function grantPremium(guildId, userId, duration, meta = {}) {
   } else {
     doc = await Premium.create({ guildId, userId, expiresAt });
   }
+  await GuildSettings.findOneAndUpdate({ guildId }, { $set: { 'premiumBranding.useCorgiStudioEmoji': true } }, { upsert: true, setDefaultsOnInsert: true });
   await audit({ guildId, userId, actorId: meta.actorId, action: wasActive ? 'EXTEND' : (meta.source === 'redeem' ? 'REDEEM' : 'GRANT'), source: meta.source || 'developer', duration, expiresAt });
   return doc;
 }
@@ -60,10 +61,14 @@ async function applyPremiumBranding(guild) {
   if (!s?.premiumBranding) return;
   if (!active) {
     if (guild.members.me?.nickname) await guild.members.me.setNickname(null, 'Corgi Premium expired').catch(() => null);
+    const { removeCorgiGuildEmojis } = require('./corgiPremiumEmoji');
+    await removeCorgiGuildEmojis(guild).catch(e => console.warn('Premium guild emoji cleanup:', e.message));
     return;
   }
   const name = s.premiumBranding.botName?.trim();
   if (name && guild.members.me?.nickname !== name) await guild.members.me.setNickname(name, 'Corgi Premium branding').catch(() => null);
+  const { reconcileCorgiGuildEmojis } = require('./corgiPremiumEmoji');
+  await reconcileCorgiGuildEmojis(guild).catch(e => console.warn('Premium guild emoji sync:', e.message));
 }
 
 function startPremiumService(client) {
