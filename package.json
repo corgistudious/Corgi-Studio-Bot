@@ -1,6 +1,6 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.15.0",
+  "version": "4.16.1",
   "private": true,
   "description": "Corgi-Bot V4.15.0 with Global Level/EXP, Weekly Ranking Rewards, Gaming Profiles, and VIP Profiles.",
   "main": "src/index.js",
