@@ -5,7 +5,8 @@ const schema = new Schema({
   cstar: { type: Number, default: 0, min: 0 },
   spinPending: { type: Number, default: 0, min: 0 },
   lastDailyAt: Date,
-  inventory: { type: Map, of: Number, default: {} }
+  inventory: { type: Map, of: Number, default: {} },
+  claimedGlobalMailIds: { type: [String], default: [] }
 }, { timestamps: true });
 schema.index({ guildId: 1, userId: 1 }, { unique: true });
 module.exports = model('UserEconomy', schema);

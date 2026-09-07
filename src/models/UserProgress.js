@@ -6,6 +6,14 @@ const titleHistorySchema = new Schema({
   lastEarnedAt: { type: Date, default: Date.now }
 }, { _id: false });
 
+
+const customTitleGrantSchema = new Schema({
+  titleKey: { type: String, required: true, uppercase: true, trim: true },
+  grantedAt: { type: Date, default: Date.now },
+  expiresAt: Date,
+  grantedBy: { type: String, default: '' }
+}, { _id: false });
+
 const schema = new Schema({
   userId: { type: String, unique: true, index: true, required: true },
   level: { type: Number, default: 1, min: 1, max: 100000 },
@@ -16,6 +24,8 @@ const schema = new Schema({
   activeTitle: { type: String, default: '' },
   activeTitleExpiresAt: Date,
   titleHistory: { type: [titleHistorySchema], default: [] },
+  customTitles: { type: [customTitleGrantSchema], default: [] },
+  activeCustomTitleKey: { type: String, default: '', uppercase: true, trim: true },
   weeklyWins: { type: Number, default: 0, min: 0 },
   bestWeeklyRank: { type: Number, default: null },
   vipTier: { type: String, enum: ['', 'VIP', 'VIP+', 'VVIP', 'SVIP', 'SSVIP', 'SSSVIP'], default: '' },
