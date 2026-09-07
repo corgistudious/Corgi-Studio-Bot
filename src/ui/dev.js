@@ -35,6 +35,8 @@ async function home(client) {
     {label:'Level & EXP',value:'leveling',emoji:'⚔️',description:'Global EXP curve and cooldown'},
     {label:'Global Ranking',value:'ranking',emoji:'🏆',description:'Weekly rewards and Approve Reward'},
     {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🌟Cstar prices'},
+    {label:'Custom Profile Titles',value:'titles',emoji:'🏷️',description:'Create, grant and revoke profile titles'},
+    {label:'Global Mail',value:'globalmail',emoji:'📬',description:'Broadcast announcements + optional 🌟Cstar'},
     {label:'Blacklist',value:'blacklist',emoji:'🛡️',description:'Block/unblock guilds or users'}
   );
   return { embeds:[e], components:[new ActionRowBuilder().addComponents(menu), backRow()] };
@@ -112,4 +114,36 @@ function keyDisableModal(){return new ModalBuilder().setCustomId('dev:modal:keyD
 function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Global 🌟Cstar').addComponents(input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
 function blacklistModal(kind){return new ModalBuilder().setCustomId(`dev:modal:blacklist:${kind}`).setTitle(`Toggle ${kind} blacklist`).addComponents(input('id',`${kind==='guild'?'Guild':'User'} ID`,'123456789012345678'));}
 
-module.exports={home,system,servers,premium,keys,cstar,blacklist,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal};
+
+async function titles(){
+  const T=require('../services/customTitles');const rows=await T.list(15);
+  const desc=rows.length?rows.map(t=>`${t.enabled?'✅':'⛔'} ${t.emoji||'🏷️'} **${t.name}** • \`${t.key}\`${t.durationDays?` • ${t.durationDays}d`:' • permanent'}`).join('\n'):'No custom titles yet.';
+  const e=footer(new EmbedBuilder().setTitle('🏷️ Custom Profile Titles').setDescription(`${desc}\n\nDeveloper-only catalog. Granting a title makes it the member’s active custom profile title without deleting Weekly Ranking title history.`));
+  const row=new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('dev:title:create').setLabel('Create Title').setEmoji('➕').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('dev:title:grant').setLabel('Grant to User').setEmoji('🎁').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('dev:title:revoke').setLabel('Revoke from User').setStyle(ButtonStyle.Danger),
+    new ButtonBuilder().setCustomId('dev:title:toggle').setLabel('Enable / Disable').setStyle(ButtonStyle.Secondary)
+  );
+  return {embeds:[e],components:[row,backRow()]};
+}
+async function globalMail(actorId){
+  const M=require('../services/globalMail');const [draft,recent]=await Promise.all([M.latestDraft(actorId),M.latest(5)]);
+  const draftText=draft?`**${draft.title}**\n🌟Cstar: **${Number(draft.cstarAmount||0).toLocaleString()}**\nExpires: ${draft.expiresAt?`<t:${Math.floor(new Date(draft.expiresAt).getTime()/1000)}:R>`:'Never'}\nDraft ID: \`${draft._id}\``:'No active draft.';
+  const hist=recent.length?recent.map(x=>`• **${x.title}** — ${x.deliverySummary?.sent||0} sent / ${x.deliverySummary?.failed||0} failed / ${x.deliverySummary?.skipped||0} skipped`).join('\n'):'No broadcasts yet.';
+  const e=footer(new EmbedBuilder().setTitle('📬 Global Mail Center').setDescription('Developer-only broadcast panel. One message is posted to every server where Corgi-Bot can find a writable text/announcement channel. 🌟Cstar attachments can be claimed only once per Discord account, even if the same user is in multiple servers.').addFields({name:'Current Draft',value:draftText.slice(0,1024)},{name:'Recent Broadcasts',value:hist.slice(0,1024)}));
+  const row=new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('dev:mail:compose').setLabel(draft?'Replace Draft':'Compose Mail').setEmoji('✍️').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('dev:mail:preview').setLabel('Preview').setEmoji('👁️').setStyle(ButtonStyle.Secondary).setDisabled(!draft),
+    new ButtonBuilder().setCustomId('dev:mail:send').setLabel('Broadcast All Servers').setEmoji('📨').setStyle(ButtonStyle.Success).setDisabled(!draft),
+    new ButtonBuilder().setCustomId('dev:mail:discard').setLabel('Discard').setStyle(ButtonStyle.Danger).setDisabled(!draft)
+  );
+  return {embeds:[e],components:[row,backRow()]};
+}
+function titleCreateModal(){return new ModalBuilder().setCustomId('dev:modal:titleCreate').setTitle('Create Custom Profile Title').addComponents(input('key','Unique Key','FOUNDER'),input('name','Display Name','Founder'),input('emoji','Emoji / icon','👑',false),input('durationDays','Duration days (0 = permanent)','0'),input('description','Description','Optional title description',false,TextInputStyle.Paragraph));}
+function titleGrantModal(){return new ModalBuilder().setCustomId('dev:modal:titleGrant').setTitle('Grant Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
+function titleRevokeModal(){return new ModalBuilder().setCustomId('dev:modal:titleRevoke').setTitle('Revoke Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
+function titleToggleModal(){return new ModalBuilder().setCustomId('dev:modal:titleToggle').setTitle('Enable / Disable Title').addComponents(input('key','Title Key','FOUNDER'));}
+function mailComposeModal(){return new ModalBuilder().setCustomId('dev:modal:mailCompose').setTitle('Compose Global Mail').addComponents(input('title','Mail Title','System Announcement'),input('body','Message','Write the announcement...',true,TextInputStyle.Paragraph),input('cstar','🌟Cstar attachment (0 = none)','1000'),input('expiresDays','Claim expiry days (0 = never)','7'),input('imageUrl','Image URL (HTTPS, optional)','https://...',false));}
+
+module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,globalMail,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal};
