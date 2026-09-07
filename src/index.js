@@ -8,8 +8,11 @@ const { startGiveawayService } = require('./modules/giveaway');
 const { startContestService } = require('./modules/contest');
 const { startPremiumService } = require('./services/premium');
 
+const intents=[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMembers,GatewayIntentBits.GuildMessages,GatewayIntentBits.MessageContent,GatewayIntentBits.GuildModeration,GatewayIntentBits.GuildMessageReactions];
+// Online Stats needs the privileged Presence Intent. Keep startup safe unless explicitly enabled.
+if(process.env.ENABLE_PRESENCE_STATS==='true')intents.push(GatewayIntentBits.GuildPresences);
 const client = new Client({
-  intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMembers,GatewayIntentBits.GuildMessages,GatewayIntentBits.MessageContent,GatewayIntentBits.GuildModeration,GatewayIntentBits.GuildMessageReactions],
+  intents,
   partials:[Partials.Message,Partials.Channel,Partials.Reaction]
 });
 loadCommands(client); loadEvents(client);
