@@ -114,6 +114,14 @@ if(i.customId?.startsWith('globalmail:claim:')&&i.isButton()){
   const s=i.guildId?await getGuildSettings(i.guildId).catch(()=>({language:'en'})):{language:'en'},lang=s?.language||'en';
   try{const r=await require('../services/globalMail').claim(i.customId.split(':')[2],i.user.id);return i.editReply(pick(lang,`🎁 Claimed **${Number(r.mail.cstarAmount).toLocaleString()} 🌟Cstar**!\nGlobal balance: **${Number(r.wallet.cstar).toLocaleString()} 🌟Cstar**.`,`🎁 Đã nhận **${Number(r.mail.cstarAmount).toLocaleString()} 🌟Cstar**!\nSố dư toàn cầu: **${Number(r.wallet.cstar).toLocaleString()} 🌟Cstar**.`));}catch(e){return i.editReply(`❌ ${e.message}`);}
 }
+if(i.customId?.startsWith('redeem:')){
+  const Redeem=require('../commands/premium/redeem');const s=i.guildId?await getGuildSettings(i.guildId):{language:'en'},lang=s?.language==='vi'?'vi':'en';const parts=i.customId.split(':'),action=parts[1],ownerId=parts[2];
+  if(i.user.id!==ownerId)return i.reply({content:pick(lang,'❌ This Redeem panel belongs to another member. Use `/redeem` or `?redeem` to open your own panel.','❌ Bảng Redeem này thuộc về thành viên khác. Hãy dùng `/redeem` hoặc `?redeem` để mở bảng của riêng bạn.'),flags:64});
+  if(action==='open'&&i.isButton())return i.showModal(Redeem.modal(lang,ownerId));
+  if(action==='submit'&&i.isModalSubmit()){await i.deferReply({flags:64});const r=await Redeem.redeem(i.guildId,i.user.id,i.fields.getTextInputValue('key'),client,i.guild,lang);return i.editReply(r.ok?pick(lang,`✅ **CD Key redeemed successfully!**
+${r.msg}`,`✅ **Đổi CD Key thành công!**
+${r.msg}`):`❌ ${r.msg}`);}return;
+}
 if(i.customId?.startsWith('progdev:')){if(!isDeveloper(i.user.id))return i.reply({content:'Developer access only.',flags:64});return ProgressionDev.handle(i,client);}
 if(i.customId?.startsWith('dev:')){
   if(!isDeveloper(i.user.id))return i.reply({content:'Developer access only.',flags:64});
