@@ -1,6 +1,6 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.13.0",
+  "version": "4.14.0",
   "private": true,
   "description": "Corgi-Bot V4.13.0 with Professional Contest System, EN/VI Giveaway sync, and Global 🌟Cstar Wallet.",
   "main": "src/index.js",
