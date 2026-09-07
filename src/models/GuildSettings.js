@@ -6,7 +6,7 @@ const schema = new Schema({
   modules: {
     giveaway:{type:Boolean,default:true}, reactionRole:{type:Boolean,default:true}, stats:{type:Boolean,default:true}, welcome:{type:Boolean,default:true},
     ticket:{type:Boolean,default:true}, moderation:{type:Boolean,default:true}, poll:{type:Boolean,default:true}, logs:{type:Boolean,default:true},
-    contest:{type:Boolean,default:true}, economy:{type:Boolean,default:true}, premium:{type:Boolean,default:true}, pet:{type:Boolean,default:false}, ai:{type:Boolean,default:true}, games:{type:Boolean,default:true}
+    contest:{type:Boolean,default:true}, economy:{type:Boolean,default:true}, leveling:{type:Boolean,default:true}, premium:{type:Boolean,default:true}, pet:{type:Boolean,default:false}, ai:{type:Boolean,default:true}, games:{type:Boolean,default:true}
   },
   channels: { welcome:String, leave:String, logs:String, ticketCategory:String, stats:String },
   messages: { welcome:{type:String,default:'Welcome {user} to **{server}**! You are member **#{count}**.'}, leave:{type:String,default:'{username} left **{server}**.'} },
