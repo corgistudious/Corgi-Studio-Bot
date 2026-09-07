@@ -1,6 +1,6 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.18.2",
+  "version": "4.18.3",
   "private": true,
   "description": "Corgi-Bot V4.18.0 with Developer Custom Profile Titles and Global Mail broadcasts with one-time global Cstar attachments.",
   "main": "src/index.js",
