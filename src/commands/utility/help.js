@@ -148,9 +148,9 @@ function lines(lang, category) {
       'Không thể tự chuyển cho chính mình hoặc bot.',
       '',
       '**CD Key**',
-      'Slash: `/redeem key:<KEY>`',
-      'Prefix: `?redeem KEY`',
-      'Ví dụ: `?redeem CORGI-ABCD-1234`.'
+      '`/redeem` • `?redeem` — mở Panel Redeem CD Key.',
+      'Nhấn **🔑 Nhập CD Key** → nhập key trong Modal riêng → xác nhận.',
+      'CD Key không cần gõ trực tiếp vào kênh chat.'
     ] : [
       '**⭐ 🌟Cstar Economy**',
       '`/balance` • `?balance` / `?bal` — global wallet balance.',
@@ -165,9 +165,9 @@ function lines(lang, category) {
       'You cannot transfer to yourself or a bot.',
       '',
       '**CD Key**',
-      'Slash: `/redeem key:<KEY>`',
-      'Prefix: `?redeem KEY`',
-      'Example: `?redeem CORGI-ABCD-1234`.'
+      '`/redeem` • `?redeem` — open the CD Key Redeem panel.',
+      'Press **🔑 Enter CD Key** → enter the key in the private modal → confirm.',
+      'The CD Key does not need to be typed directly into chat.'
     ],
 
     games: vi ? [
@@ -336,7 +336,7 @@ function lines(lang, category) {
       '`?premium` — xem nhanh trạng thái.',
       '',
       '**🎟️ Redeem CD Key**',
-      '`/redeem key:<KEY>` • `?redeem KEY`',
+      '`/redeem` • `?redeem` — mở Panel → nhấn **🔑 Nhập CD Key** → nhập key trong Modal riêng.',
       '',
       '**💎 VIP Profile cá nhân**',
       '`/vip shop` • `?vip shop` — bảng giá.',
@@ -354,7 +354,7 @@ function lines(lang, category) {
       '`?premium` — quick status.',
       '',
       '**🎟️ Redeem CD Key**',
-      '`/redeem key:<KEY>` • `?redeem KEY`',
+      '`/redeem` • `?redeem` — open Panel → press **🔑 Enter CD Key** → enter the key privately.',
       '',
       '**💎 Personal VIP Profile**',
       '`/vip shop` • `?vip shop` — pricing.',
