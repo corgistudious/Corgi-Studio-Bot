@@ -31,7 +31,10 @@ async function home(client) {
     {label:'Servers',value:'servers',emoji:'🌐',description:'View guilds using Corgi-Bot'},
     {label:'Premium',value:'premium',emoji:'💎',description:'Grant, revoke and inspect Premium'},
     {label:'CD Keys',value:'keys',emoji:'🔑',description:'Create, list and disable redeem keys'},
-    {label:'Cstar Economy',value:'cstar',emoji:'⭐',description:'Add or subtract Cstar'},
+    {label:'🌟Cstar Economy',value:'cstar',emoji:'⭐',description:'Add or subtract 🌟Cstar'},
+    {label:'Level & EXP',value:'leveling',emoji:'⚔️',description:'Global EXP curve and cooldown'},
+    {label:'Global Ranking',value:'ranking',emoji:'🏆',description:'Weekly rewards and Approve Reward'},
+    {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🌟Cstar prices'},
     {label:'Blacklist',value:'blacklist',emoji:'🛡️',description:'Block/unblock guilds or users'}
   );
   return { embeds:[e], components:[new ActionRowBuilder().addComponents(menu), backRow()] };
@@ -74,10 +77,10 @@ async function premium() {
 
 async function keys() {
   const rows = await Dev.listRecentKeys(10);
-  const desc = rows.length ? rows.map(k=>`🔑 \`${k.code}\` • **${k.type}** • ${k.enabled?'✅':'⛔'} • ${k.uses}/${k.maxUses}${k.type==='PREMIUM'?` • ${k.premiumDuration}`:` • ${k.cstarAmount} ⭐`}`).join('\n') : 'No redeem keys.';
+  const desc = rows.length ? rows.map(k=>`🔑 \`${k.code}\` • **${k.type}** • ${k.enabled?'✅':'⛔'} • ${k.uses}/${k.maxUses}${k.type==='PREMIUM'?` • ${k.premiumDuration}`:k.type==='VIP'?` • ${k.vipTier} ${k.vipDuration}`:` • ${k.cstarAmount} 🌟Cstar`}`).join('\n') : 'No redeem keys.';
   const e = footer(new EmbedBuilder().setTitle('🔑 CD Key Administration').setDescription(desc));
   const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('dev:key:cstar').setLabel('Create Cstar Key').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('dev:key:cstar').setLabel('Create 🌟Cstar Key').setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId('dev:key:premium').setLabel('Create Premium Key').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId('dev:key:disable').setLabel('Disable Key').setStyle(ButtonStyle.Danger)
   );
@@ -85,8 +88,8 @@ async function keys() {
 }
 
 function cstar() {
-  const e = footer(new EmbedBuilder().setTitle('⭐ Cstar Economy Control').setDescription('Adjust a member’s Cstar balance by Guild ID + User ID. Negative values subtract Cstar; balance can never go below 0.'));
-  const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:cstar:adjust').setLabel('Adjust Cstar').setEmoji('⭐').setStyle(ButtonStyle.Primary));
+  const e = footer(new EmbedBuilder().setTitle('⭐ 🌟Cstar Economy Control').setDescription('Adjust a member’s GLOBAL 🌟Cstar wallet by User ID. The same balance is used in every server. Negative values subtract 🌟Cstar; balance can never go below 0.'));
+  const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:cstar:adjust').setLabel('Adjust 🌟Cstar').setEmoji('⭐').setStyle(ButtonStyle.Primary));
   return {embeds:[e],components:[row,backRow()]};
 }
 
@@ -103,10 +106,10 @@ async function blacklist() {
 function input(id,label,placeholder,required=true,style=TextInputStyle.Short){return new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId(id).setLabel(label).setPlaceholder(placeholder).setRequired(required).setStyle(style));}
 function premiumGrantModal(){return new ModalBuilder().setCustomId('dev:modal:premiumGrant').setTitle('Grant / Extend Premium').addComponents(input('guildId','Guild ID','123456789012345678'),input('userId','User ID / purchaser ID','123456789012345678'),input('duration','Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'));}
 function premiumRevokeModal(){return new ModalBuilder().setCustomId('dev:modal:premiumRevoke').setTitle('Revoke Guild Premium').addComponents(input('guildId','Guild ID','123456789012345678'));}
-function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCstar').setTitle('Create Cstar Key').addComponents(input('amount','Cstar Amount','1000'),input('maxUses','Maximum Uses','1'),input('expiresDays','Expires After Days (0 = never)','0'));}
+function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCstar').setTitle('Create 🌟Cstar Key').addComponents(input('amount','🌟Cstar Amount','1000'),input('maxUses','Maximum Uses','1'),input('expiresDays','Expires After Days (0 = never)','0'));}
 function keyPremiumModal(){return new ModalBuilder().setCustomId('dev:modal:keyPremium').setTitle('Create Premium Key').addComponents(input('duration','Premium Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'),input('maxUses','Maximum Uses','1'),input('expiresDays','Key Expires After Days (0 = never)','0'));}
 function keyDisableModal(){return new ModalBuilder().setCustomId('dev:modal:keyDisable').setTitle('Disable CD Key').addComponents(input('code','CD Key','PREM-XXXXXX-XXXXXX-XXXXXX'));}
-function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Cstar').addComponents(input('guildId','Guild ID','123456789012345678'),input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
+function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Global 🌟Cstar').addComponents(input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
 function blacklistModal(kind){return new ModalBuilder().setCustomId(`dev:modal:blacklist:${kind}`).setTitle(`Toggle ${kind} blacklist`).addComponents(input('id',`${kind==='guild'?'Guild':'User'} ID`,'123456789012345678'));}
 
 module.exports={home,system,servers,premium,keys,cstar,blacklist,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal};
