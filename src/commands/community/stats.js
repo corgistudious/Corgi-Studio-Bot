@@ -1,33 +1,24 @@
-const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-} = require('discord.js');
-const { getGuildSettings } = require('../../services/guildSettings');
-const { ensureStatsBoard } = require('../../modules/stats');
+const {SlashCommandBuilder,PermissionFlagsBits}=require('discord.js');
+const {getGuildSettings}=require('../../services/guildSettings');
+const {ensureStatsBoard}=require('../../modules/stats');
+const {pick}=require('../../services/i18n');
 
-module.exports = {
-  data: new SlashCommandBuilder()
+module.exports={
+  data:new SlashCommandBuilder()
     .setName('stats')
-    .setDescription('Create/repair the locked voice-channel server stats board')
+    .setDescription('Create or repair the server stats board')
+    .setDescriptionLocalizations({vi:'Tạo hoặc sửa bảng thống kê server'})
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
-
-  async execute(interaction) {
-    await interaction.deferReply({ flags: 64 });
-
-    const me = interaction.guild.members.me;
-    if (!me?.permissions.has(PermissionFlagsBits.ManageChannels)) {
-      return interaction.editReply('❌ I need **Manage Channels** permission to create the locked voice stats board.');
-    }
-
-    const settings = await getGuildSettings(interaction.guildId);
-    settings.modules.stats = true;
-    await settings.save();
-
-    const result = await ensureStatsBoard(interaction.guild, settings);
-    return interaction.editReply(
-      `✅ Voice Stats Board is ready in **${result.category.name}**.\n` +
-      '🔒 All stat voice channels are locked: members can see them but cannot connect.\n' +
-      '⚡ Values are checked every 3 seconds and channel names are only edited when a number changes.'
-    );
-  },
+  async execute(i){
+    await i.deferReply({flags:64});
+    const s=await getGuildSettings(i.guildId),lang=s.language;
+    const me=i.guild.members.me;
+    if(!me?.permissions.has(PermissionFlagsBits.ManageChannels))return i.editReply(pick(lang,'❌ I need **Manage Channels** permission to create the Stats Board.','❌ Bot cần quyền **Quản lý kênh** để tạo Stats Board.'));
+    s.modules.stats=true;await s.save();
+    const r=await ensureStatsBoard(i.guild,s);
+    return i.editReply(pick(lang,
+      `✅ Stats Board is ready in **${r.category.name}**.\n🆓 Free: Members, Humans, Bots, Roles.\n💎 Premium: advanced Stats can be customized in **/setup → Server Stats**.\n⚡ Data is checked every 3 seconds and channel names change only when the value changes.`,
+      `✅ Stats Board đã sẵn sàng tại **${r.category.name}**.\n🆓 Miễn phí: Thành viên, Người dùng, Bot, Vai trò.\n💎 Premium: có thể tùy chỉnh Stats nâng cao trong **/setup → Thống kê Server**.\n⚡ Dữ liệu được kiểm tra mỗi 3 giây và chỉ đổi tên kênh khi số liệu thay đổi.`
+    ));
+  }
 };
