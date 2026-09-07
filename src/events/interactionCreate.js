@@ -103,9 +103,16 @@ if(i.isButton()&&i.customId?.startsWith('spin:')){
     return i.update({embeds:[r.embed],components:r.components});
   }
 }
+if(i.customId?.startsWith('globalmail:view:')&&i.isButton()){
+  const parts=i.customId.split(':'),lang=parts[2]==='vi'?'vi':'en',mailId=parts[3],M=require('../services/globalMail'),GlobalMail=require('../models/GlobalMail');
+  const mail=await GlobalMail.findById(mailId).lean();
+  if(!mail||mail.status!=='PUBLISHED')return i.reply({content:pick(lang,'❌ This mail is no longer available.','❌ Thư này hiện không còn khả dụng.'),flags:64});
+  return i.reply({...M.messagePayload(mail,lang,{hideLanguageButtons:true}),flags:64});
+}
 if(i.customId?.startsWith('globalmail:claim:')&&i.isButton()){
   await i.deferReply({flags:64});
-  try{const r=await require('../services/globalMail').claim(i.customId.split(':')[2],i.user.id);return i.editReply(`🎁 Claimed **${Number(r.mail.cstarAmount).toLocaleString()} 🌟Cstar**!\nGlobal balance: **${Number(r.wallet.cstar).toLocaleString()} 🌟Cstar**.`);}catch(e){return i.editReply(`❌ ${e.message}`);}
+  const s=i.guildId?await getGuildSettings(i.guildId).catch(()=>({language:'en'})):{language:'en'},lang=s?.language||'en';
+  try{const r=await require('../services/globalMail').claim(i.customId.split(':')[2],i.user.id);return i.editReply(pick(lang,`🎁 Claimed **${Number(r.mail.cstarAmount).toLocaleString()} 🌟Cstar**!\nGlobal balance: **${Number(r.wallet.cstar).toLocaleString()} 🌟Cstar**.`,`🎁 Đã nhận **${Number(r.mail.cstarAmount).toLocaleString()} 🌟Cstar**!\nSố dư toàn cầu: **${Number(r.wallet.cstar).toLocaleString()} 🌟Cstar**.`));}catch(e){return i.editReply(`❌ ${e.message}`);}
 }
 if(i.customId?.startsWith('progdev:')){if(!isDeveloper(i.user.id))return i.reply({content:'Developer access only.',flags:64});return ProgressionDev.handle(i,client);}
 if(i.customId?.startsWith('dev:')){
@@ -128,7 +135,7 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:title:revoke')return i.showModal(DevUI.titleRevokeModal());
     if(i.customId==='dev:title:toggle')return i.showModal(DevUI.titleToggleModal());
     if(i.customId==='dev:mail:compose')return i.showModal(DevUI.mailComposeModal());
-    if(i.customId==='dev:mail:preview'){const d=await require('../services/globalMail').latestDraft(i.user.id);if(!d)return i.reply({content:'❌ No active draft.',flags:64});return i.reply({...require('../services/globalMail').messagePayload(d,'en'),flags:64});}
+    if(i.customId==='dev:mail:preview'){const M=require('../services/globalMail'),d=await M.latestDraft(i.user.id);if(!d)return i.reply({content:'❌ No active draft.',flags:64});const en=M.messagePayload(d,'en',{hideLanguageButtons:true}),vi=M.messagePayload(d,'vi',{hideLanguageButtons:true});return i.reply({embeds:[...en.embeds,...vi.embeds],flags:64});}
     if(i.customId==='dev:mail:discard'){const M=require('../services/globalMail'),d=await M.latestDraft(i.user.id);if(!d)return i.reply({content:'❌ No active draft.',flags:64});await M.cancelDraft(d._id,i.user.id);return i.update(await DevUI.globalMail(i.user.id));}
     if(i.customId==='dev:mail:send'){await i.deferUpdate();const M=require('../services/globalMail'),d=await M.latestDraft(i.user.id);if(!d)return i.editReply(await DevUI.globalMail(i.user.id));const sent=await M.publish(client,d._id,i.user.id);await sendDeveloperLog(client,{title:'📬 Global Mail Broadcast',description:`Developer: ${i.user.id}\nMail: ${sent.title}\nSent: ${sent.deliverySummary.sent}\nFailed: ${sent.deliverySummary.failed}\nSkipped: ${sent.deliverySummary.skipped}\n🌟Cstar: ${sent.cstarAmount}`});return i.editReply(await DevUI.globalMail(i.user.id));}
   }
@@ -157,7 +164,7 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:modal:titleGrant'){const uid=i.fields.getTextInputValue('userId').trim();if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});const r=await require('../services/customTitles').grant(uid,i.fields.getTextInputValue('key'),i.user.id);await sendDeveloperLog(client,{title:'🏷️ Custom Title Granted',description:`Developer: ${i.user.id}\nUser: ${uid}\nTitle: ${r.title.key}`});return i.reply({content:`✅ Granted ${r.title.emoji} **${r.title.name}** to <@${uid}>${r.expiresAt?` until <t:${Math.floor(r.expiresAt.getTime()/1000)}:F>`:' permanently'}.`,flags:64});}
     if(i.customId==='dev:modal:titleRevoke'){const uid=i.fields.getTextInputValue('userId').trim();if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});const key=i.fields.getTextInputValue('key').trim().toUpperCase();await require('../services/customTitles').revoke(uid,key);await sendDeveloperLog(client,{title:'🏷️ Custom Title Revoked',description:`Developer: ${i.user.id}\nUser: ${uid}\nTitle: ${key}`});return i.reply({content:`✅ Revoked \`${key}\` from <@${uid}>.`,flags:64});}
     if(i.customId==='dev:modal:titleToggle'){const t=await require('../services/customTitles').toggle(i.fields.getTextInputValue('key'),i.user.id);return i.reply({content:`✅ ${t.emoji} **${t.name}** is now **${t.enabled?'ENABLED':'DISABLED'}**.`,flags:64});}
-    if(i.customId==='dev:modal:mailCompose'){const M=require('../services/globalMail');const d=await M.createDraft({actorId:i.user.id,title:i.fields.getTextInputValue('title'),body:i.fields.getTextInputValue('body'),cstarAmount:i.fields.getTextInputValue('cstar'),expiresDays:i.fields.getTextInputValue('expiresDays'),imageUrl:i.fields.getTextInputValue('imageUrl')});return i.reply({content:`✅ Global Mail draft saved: **${d.title}**\n🌟Cstar attachment: **${Number(d.cstarAmount).toLocaleString()}**\nReturn to the panel to Preview or Broadcast.`,flags:64});}
+    if(i.customId==='dev:modal:mailCompose'){const M=require('../services/globalMail');const raw=i.fields.getTextInputValue('options').trim(),parts=raw?raw.split('|').map(x=>x.trim()):[],cstar=parts[0]||'0',expiresDays=parts[1]||'0',imageUrl=parts.slice(2).join('|').trim();const d=await M.createDraft({actorId:i.user.id,titleEn:i.fields.getTextInputValue('titleEn'),bodyEn:i.fields.getTextInputValue('bodyEn'),titleVi:i.fields.getTextInputValue('titleVi'),bodyVi:i.fields.getTextInputValue('bodyVi'),cstarAmount:cstar,expiresDays,imageUrl});return i.reply({content:`✅ Global Mail draft saved in **EN + VI**.\n🇺🇸 **${d.titleEn}**\n🇻🇳 **${d.titleVi}**\n🌟Cstar attachment: **${Number(d.cstarAmount).toLocaleString()}**\nReturn to the panel to Preview or Broadcast.`,flags:64});}
         if(i.customId.startsWith('dev:modal:blacklist:')){const kind=i.customId.split(':')[3];const r=await DevControl.toggleBlacklist(kind,i.fields.getTextInputValue('id'));await sendDeveloperLog(client,{title:'🛡️ Blacklist Changed',description:`Developer: ${i.user.id}\n${kind}: ${r.id}\nState: ${r.blocked?'BLACKLISTED':'UNBLOCKED'}`});return i.reply({content:`✅ ${kind} \`${r.id}\` is now **${r.blocked?'BLACKLISTED':'UNBLOCKED'}**.`,flags:64});}
   }
   return;
