@@ -19,6 +19,7 @@ const DevControl=require('../services/devControl');
 const EventControl=require('../modules/eventControl');
 const {isDeveloper}=require('../services/permissions');
 const {pick}=require('../services/i18n');
+const ProgressionDev=require('../modules/progressionDev');
 async function guard(i){const s=i.guildId?await getGuildSettings(i.guildId):null;if(!i.guildId||!canSetup(i.member)){if(i.isRepliable())await i.reply({content:pick(s?.language,'You need Manage Server or Administrator.','Bạn cần quyền Quản lý Server hoặc Administrator.'),flags:64});return false;}return true;}
 async function createTicket(i){const s=await getGuildSettings(i.guildId);const lang=s.language;if(!s.modules.ticket)return i.reply({content:pick(lang,'🎫 Ticket module is disabled.','🎫 Tính năng Ticket đang tắt.'),flags:64});const existing=await Ticket.findOne({guildId:i.guildId,ownerId:i.user.id,status:'open'}).lean();if(existing){const ch=await i.guild.channels.fetch(existing.channelId).catch(()=>null);if(ch)return i.reply({content:pick(lang,`You already have an open ticket: ${ch}`,`Bạn đã có một Ticket đang mở: ${ch}`),flags:64});}
  const perms=[{id:i.guild.roles.everyone.id,deny:[PermissionFlagsBits.ViewChannel]},{id:i.user.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles]},{id:i.guild.members.me.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ManageChannels,PermissionFlagsBits.ReadMessageHistory]}];
@@ -90,6 +91,7 @@ if(i.isButton()&&i.customId?.startsWith('spin:')){
     return i.update({embeds:[r.embed],components:r.components});
   }
 }
+if(i.customId?.startsWith('progdev:')){if(!isDeveloper(i.user.id))return i.reply({content:'Developer access only.',flags:64});return ProgressionDev.handle(i,client);}
 if(i.customId?.startsWith('dev:')){
   if(!isDeveloper(i.user.id))return i.reply({content:'Developer access only.',flags:64});
   if(i.isButton()){
@@ -113,6 +115,9 @@ if(i.customId?.startsWith('dev:')){
     if(p==='premium')return i.update(await DevUI.premium());
     if(p==='keys')return i.update(await DevUI.keys());
     if(p==='cstar')return i.update(DevUI.cstar());
+    if(p==='leveling')return i.update(await require('../services/progressionDev').levelPage());
+    if(p==='ranking')return i.update(await require('../services/progressionDev').rankingPage());
+    if(p==='vipprofile')return i.update(await require('../services/progressionDev').vipPage());
     if(p==='blacklist')return i.update(await DevUI.blacklist());
   }
   if(i.isModalSubmit()){
