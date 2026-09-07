@@ -3,6 +3,8 @@ const Contest = require('../../models/Contest');
 const ContestSubmission = require('../../models/ContestSubmission');
 const ContestVote = require('../../models/ContestVote');
 const { guildLang, pick } = require('../../services/i18n');
+const { getGuildSettings } = require('../../services/guildSettings');
+const EventUI = require('../../ui/events');
 const {
   makeContestId, findContest, buildContestMessage, checkEligibility, mediaType,
   postOrRefreshSubmission, refreshContestMessage, refreshGallery, ranking,
@@ -19,24 +21,7 @@ function imageOk(att) { const t = att?.contentType || ''; return !att || t.start
 function validShape(att, shape) { if (!att?.width || !att?.height) return true; const ratio = att.width / att.height, target = shape === '1:1' ? 1 : 16 / 9; return Math.abs(ratio - target) <= 0.12; }
 
 const data = new SlashCommandBuilder().setName('contest').setDescription('Professional Contest / Event system').setDescriptionLocalizations({ vi: 'Hệ thống Cuộc thi / Sự kiện chuyên nghiệp' })
-.addSubcommand(s => s.setName('create').setDescription('Create a professional contest').setDescriptionLocalizations({ vi: 'Tạo cuộc thi chuyên nghiệp' })
-  .addStringOption(o => o.setName('title').setDescription('Contest title').setDescriptionLocalizations({ vi: 'Tiêu đề cuộc thi' }).setRequired(true).setMaxLength(200))
-  .addStringOption(o => o.setName('description').setDescription('Contest description / rules').setDescriptionLocalizations({ vi: 'Mô tả / thể lệ cuộc thi' }).setRequired(true).setMaxLength(1500))
-  .addStringOption(o => o.setName('submission_time').setDescription('Submission time: 30m, 2h, 3d, 1w').setDescriptionLocalizations({ vi: 'Thời gian nhận bài: 30m, 2h, 3d, 1w' }).setRequired(true))
-  .addStringOption(o => o.setName('voting_time').setDescription('Voting time after opened: 30m, 2h, 3d').setDescriptionLocalizations({ vi: 'Thời gian bình chọn sau khi mở: 30m, 2h, 3d' }).setRequired(true))
-  .addAttachmentOption(o => o.setName('banner').setDescription('Upload contest banner/photo directly').setDescriptionLocalizations({ vi: 'Upload banner/ảnh cuộc thi trực tiếp' }))
-  .addStringOption(o => o.setName('banner_shape').setDescription('Banner ratio').setDescriptionLocalizations({ vi: 'Tỷ lệ banner' }).addChoices({ name: '16:9 Banner', value: '16:9' }, { name: '1:1 Square', value: '1:1' }))
-  .addChannelOption(o => o.setName('gallery_channel').setDescription('Channel for approved entries').setDescriptionLocalizations({ vi: 'Kênh hiển thị bài đã duyệt' }).addChannelTypes(ChannelType.GuildText))
-  .addChannelOption(o => o.setName('result_channel').setDescription('Channel for final results').setDescriptionLocalizations({ vi: 'Kênh công bố kết quả' }).addChannelTypes(ChannelType.GuildText))
-  .addRoleOption(o => o.setName('required_role').setDescription('Optional role required to participate').setDescriptionLocalizations({ vi: 'Role bắt buộc để tham gia (tùy chọn)' }))
-  .addIntegerOption(o => o.setName('entries_per_user').setDescription('Maximum entries per member').setDescriptionLocalizations({ vi: 'Số bài tối đa mỗi thành viên' }).setMinValue(1).setMaxValue(10))
-  .addIntegerOption(o => o.setName('votes_per_user').setDescription('Maximum votes per voter').setDescriptionLocalizations({ vi: 'Số phiếu tối đa mỗi người' }).setMinValue(1).setMaxValue(20))
-  .addBooleanOption(o => o.setName('allow_self_vote').setDescription('Allow voting for your own entry').setDescriptionLocalizations({ vi: 'Cho phép tự bình chọn bài của mình' }))
-  .addBooleanOption(o => o.setName('review_required').setDescription('Require admin approval before Gallery').setDescriptionLocalizations({ vi: 'Yêu cầu Admin duyệt trước khi lên Gallery' }))
-  .addBooleanOption(o => o.setName('hide_vote_count').setDescription('Hide vote counts while voting is open').setDescriptionLocalizations({ vi: 'Ẩn số phiếu khi đang bình chọn' }))
-  .addIntegerOption(o => o.setName('account_age').setDescription('Minimum Discord account age (days)').setDescriptionLocalizations({ vi: 'Tuổi tài khoản Discord tối thiểu (ngày)' }).setMinValue(0).setMaxValue(3650))
-  .addIntegerOption(o => o.setName('server_age').setDescription('Minimum time in server (days)').setDescriptionLocalizations({ vi: 'Thời gian trong server tối thiểu (ngày)' }).setMinValue(0).setMaxValue(3650))
-  .addIntegerOption(o => o.setName('top_count').setDescription('Number of ranked winners to publish').setDescriptionLocalizations({ vi: 'Số hạng đầu sẽ công bố' }).setMinValue(1).setMaxValue(10)))
+.addSubcommand(s => s.setName('panel').setDescription('Open Contest Builder').setDescriptionLocalizations({ vi: 'Mở bảng cấu hình Contest' }))
 .addSubcommand(s => idOpt(s.setName('submit').setDescription('Submit an image/video/file entry').setDescriptionLocalizations({ vi: 'Gửi bài dự thi bằng ảnh/video/file' }))
   .addAttachmentOption(o => o.setName('file').setDescription('Upload your contest file directly').setDescriptionLocalizations({ vi: 'Upload file dự thi trực tiếp' }).setRequired(true))
   .addStringOption(o => o.setName('caption').setDescription('Entry caption / description').setDescriptionLocalizations({ vi: 'Mô tả bài dự thi' }).setMaxLength(1000)))
@@ -57,32 +42,10 @@ module.exports = {
   data, prefix: ['contest'],
   async execute(i, client) {
     const lang = await guildLang(i.guildId), sub = i.options.getSubcommand();
-    const adminSubs = new Set(['create', 'approve', 'reject', 'approve_all', 'close_submissions', 'open_vote', 'end_vote', 'publish', 'cancel']);
+    const adminSubs = new Set(['panel', 'approve', 'reject', 'approve_all', 'close_submissions', 'open_vote', 'end_vote', 'publish', 'cancel']);
     if (adminSubs.has(sub) && !admin(i)) return i.reply({ content: pick(lang, 'You need Manage Server or Administrator for this action.', 'Bạn cần quyền Quản lý Server hoặc Administrator để thực hiện thao tác này.'), flags: 64 });
 
-    if (sub === 'create') {
-      const submissionMs = parseDuration(i.options.getString('submission_time')), votingMs = parseDuration(i.options.getString('voting_time'));
-      if (!submissionMs || submissionMs < 60000 || !votingMs || votingMs < 60000) return i.reply({ content: pick(lang, 'Submission and voting time must be at least 1m. Example: 30m, 2h, 3d, 1w.', 'Thời gian nhận bài và bình chọn tối thiểu 1m. Ví dụ: 30m, 2h, 3d, 1w.'), flags: 64 });
-      const banner = i.options.getAttachment('banner'), shape = i.options.getString('banner_shape') || '16:9';
-      if (!imageOk(banner)) return i.reply({ content: pick(lang, 'Contest banner must be an image file.', 'Banner cuộc thi phải là file ảnh.'), flags: 64 });
-      if (!validShape(banner, shape)) return i.reply({ content: pick(lang, `Please upload a banner close to ${shape}.`, `Hãy upload banner gần tỷ lệ ${shape}.`), flags: 64 });
-      await i.deferReply();
-      let contestId = makeContestId(); while (await Contest.exists({ contestId })) contestId = makeContestId();
-      const c = await Contest.create({
-        contestId, guildId: i.guildId, eventChannelId: i.channelId, channelId: i.channelId,
-        galleryChannelId: i.options.getChannel('gallery_channel')?.id || i.channelId,
-        resultChannelId: i.options.getChannel('result_channel')?.id || i.channelId,
-        title: i.options.getString('title'), description: i.options.getString('description'), bannerUrl: banner?.url, bannerShape: shape,
-        status: 'SUBMISSION', submissionEndsAt: new Date(Date.now() + submissionMs), votingDurationMs: votingMs,
-        createdBy: i.user.id, requiredRoleId: i.options.getRole('required_role')?.id,
-        maxEntriesPerUser: i.options.getInteger('entries_per_user') || 1, votesPerUser: i.options.getInteger('votes_per_user') || 1,
-        allowSelfVote: i.options.getBoolean('allow_self_vote') ?? false, reviewRequired: i.options.getBoolean('review_required') ?? true,
-        hideVoteCount: i.options.getBoolean('hide_vote_count') ?? false, minAccountAgeDays: i.options.getInteger('account_age') || 0,
-        minServerAgeDays: i.options.getInteger('server_age') || 0, topCount: i.options.getInteger('top_count') || 3
-      });
-      const msg = await i.editReply(await buildContestMessage(c, lang)); c.messageId = msg.id; await c.save(); await msg.edit(await buildContestMessage(c, lang));
-      return i.followUp({ content: pick(lang, `✅ Contest created • ID: \`${contestId}\`\nMembers submit with \`/contest submit\`.`, `✅ Đã tạo cuộc thi • ID: \`${contestId}\`\nThành viên gửi bài bằng \`/contest submit\`.`), flags: 64 });
-    }
+    if (sub === 'panel') { const settings = await getGuildSettings(i.guildId); return i.reply({ ...(await EventUI.buildContestBuilder(i.guildId, settings.language)), flags: 64 }); }
 
     const c = await findContest(i.guildId, i.options.getString('contest_id'));
     if (!c) return i.reply({ content: pick(lang, 'Contest not found.', 'Không tìm thấy cuộc thi.'), flags: 64 });
@@ -134,5 +97,5 @@ module.exports = {
 
     if (sub === 'cancel') { c.status = 'CANCELLED'; await c.save(); await refreshContestMessage(client, c, lang); await refreshGallery(client, c, lang); return i.reply({ content: pick(lang, '❌ Contest cancelled.', '❌ Đã hủy cuộc thi.'), flags: 64 }); }
   },
-  async executePrefix(m) { const lang = await guildLang(m.guildId); return m.reply(pick(lang, 'Use `/contest` for the professional Contest system, including direct file uploads and voting.', 'Dùng `/contest` cho hệ thống Cuộc thi chuyên nghiệp, gồm upload file trực tiếp và bình chọn.')); }
+  async executePrefix(m) { const lang = await guildLang(m.guildId); return m.reply(pick(lang, '🏆 Use `/setup` → **Events** → **Contest Builder** to configure a Contest. Members still submit with `/contest submit`.', '🏆 Dùng `/setup` → **Sự kiện** → **Tạo Contest** để cấu hình. Thành viên vẫn gửi bài bằng `/contest submit`.')); }
 };
