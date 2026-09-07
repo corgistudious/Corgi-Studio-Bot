@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.17.0",
+  "version": "4.18.0",
   "private": true,
-  "description": "Corgi-Bot V4.17.0 with Premium Server Stats customization and complete Reaction Role Builder.",
+  "description": "Corgi-Bot V4.18.0 with Developer Custom Titles, Global Mail + Cstar, and automatic per-guild Premium identity branding.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
