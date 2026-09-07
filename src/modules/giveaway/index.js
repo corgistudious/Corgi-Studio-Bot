@@ -1,4 +1,5 @@
 const {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle}=require('discord.js');
+const {AMBER}=require('../../ui/theme');
 const Giveaway=require('../../models/Giveaway');
 const {isGuildOperational}=require('../../services/accessControl');
 const {getGuildSettings}=require('../../services/guildSettings');
@@ -11,7 +12,7 @@ function buildGiveawayMessage(g,lang='en'){
  const active=g.status==='active',paused=g.status==='paused',ended=g.status==='ended';
  const state=active?pick(lang,'🟢 ACTIVE','🟢 ĐANG DIỄN RA'):paused?pick(lang,'⏸️ PAUSED','⏸️ TẠM DỪNG'):ended?pick(lang,'🏁 ENDED','🏁 ĐÃ KẾT THÚC'):pick(lang,'❌ CANCELLED','❌ ĐÃ HỦY');
  const end=active?`<t:${Math.floor(new Date(g.endsAt).getTime()/1000)}:R> • <t:${Math.floor(new Date(g.endsAt).getTime()/1000)}:F>`:state;
- const e=new EmbedBuilder().setTitle('🎉 CORGI GIVEAWAY').setDescription(g.description||pick(lang,'Join for a chance to win!','Tham gia để có cơ hội nhận thưởng!')).addFields(
+ const e=new EmbedBuilder().setColor(AMBER).setTitle('🎉 CORGI GIVEAWAY').setDescription(g.description||pick(lang,'Join for a chance to win!','Tham gia để có cơ hội nhận thưởng!')).addFields(
  {name:`🎁 ${pick(lang,'Prize','Phần thưởng')}`,value:`**${g.prize}**`,inline:false},{name:`👑 ${pick(lang,'Winners','Số người thắng')}`,value:`**${g.winnerCount}**`,inline:true},{name:`👥 ${pick(lang,'Entries','Đã tham gia')}`,value:`**${g.participants.length.toLocaleString()}**`,inline:true},{name:`⏰ ${pick(lang,'Ends','Kết thúc')}`,value:end,inline:false},{name:`📋 ${pick(lang,'Requirements','Điều kiện')}`,value:conditionLines(g,lang).join('\n'),inline:false});
  if(g.imageUrl)e.setImage(g.imageUrl);if(g.winners?.length)e.addFields({name:`🏆 ${pick(lang,'Winners','Người thắng')}`,value:g.winners.map(x=>`<@${x}>`).join(', ')});
  e.setFooter({text:`Corgi Studio • Giveaway • ${g.messageId||pick(lang,'Creating…','Đang tạo…')}`}).setTimestamp();
