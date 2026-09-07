@@ -6,7 +6,8 @@ async function build(user,lang){
   let p=await P.activeVip(user.id);p=await P.clearExpiredTitle(p);const r=await P.ranks(user.id),dev=await P.settings(),wallet=await ensureWallet(user.id),need=P.xpNeeded(p.level,dev.progression);
   const pct=need?Math.min(100,Math.floor(p.xp/need*100)):100,filled=Math.round(pct/10),bar='▰'.repeat(filled)+'▱'.repeat(10-filled);
   const vip=p.vipTier&&p.vipExpiresAt?`💎 **${p.vipTier}** • <t:${Math.floor(p.vipExpiresAt.getTime()/1000)}:R>`:pick(lang,'No active VIP','Chưa có VIP');
-  const title=p.activeTitle?`👑 **${p.activeTitle}**${p.activeTitleExpiresAt?` • <t:${Math.floor(p.activeTitleExpiresAt.getTime()/1000)}:R>`:''}`:pick(lang,'No active title','Chưa có danh hiệu');
+  const custom=await require('../../services/customTitles').resolveActive(p);
+  const title=custom?`${custom.title.emoji||'🏷️'} **${custom.title.name}**${custom.grant.expiresAt?` • <t:${Math.floor(new Date(custom.grant.expiresAt).getTime()/1000)}:R>`:''}`:p.activeTitle?`👑 **${p.activeTitle}**${p.activeTitleExpiresAt?` • <t:${Math.floor(p.activeTitleExpiresAt.getTime()/1000)}:R>`:''}`:pick(lang,'No active title','Chưa có danh hiệu');
   const colors={'VIP':0x3498DB,'VIP+':0x9B59B6,'VVIP':0xE91E63,'SVIP':0xE67E22,'SSVIP':0x2ECC71,'SSSVIP':0xF1C40F};return new EmbedBuilder().setColor(colors[p.vipTier]||0xF59E0B).setAuthor({name:pick(lang,'CORGI GAMING PROFILE','HỒ SƠ GAMING CORGI'),iconURL:user.displayAvatarURL()}).setTitle(`🎮 ${user.globalName||user.username}`).setThumbnail(user.displayAvatarURL({size:256})).setDescription(`${title}\n${vip}`).addFields(
     {name:pick(lang,'⚔️ Level & EXP','⚔️ Cấp độ & EXP'),value:`**Lv.${p.level.toLocaleString()}** / ${dev.progression.maxLevel.toLocaleString()}\n${bar} **${pct}%**\n${p.xp.toLocaleString()} / ${need.toLocaleString()} EXP`,inline:false},
     {name:pick(lang,'🌐 Global Rank','🌐 Hạng liên server'),value:`**#${r.globalRank.toLocaleString()}**\n${p.totalXp.toLocaleString()} Total EXP`,inline:true},
