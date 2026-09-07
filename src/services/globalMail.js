@@ -8,20 +8,30 @@ const {getGuildSettings}=require('./guildSettings');
 const {pick}=require('./i18n');
 
 function validHttps(v){if(!v)return '';try{const u=new URL(v);if(u.protocol!=='https:')throw 0;return v;}catch{throw new Error('Image URL must be HTTPS.');}}
-async function createDraft({actorId,title,body,imageUrl,cstarAmount,expiresDays}){
-  title=String(title||'').trim();body=String(body||'').trim();if(!title||!body)throw new Error('Title and message are required.');
+async function createDraft({actorId,title,titleEn,bodyEn,titleVi,bodyVi,imageUrl,cstarAmount,expiresDays}){
+  titleEn=String(titleEn||title||'').trim();bodyEn=String(bodyEn||'').trim();titleVi=String(titleVi||'').trim();bodyVi=String(bodyVi||'').trim();
+  if(!titleEn||!bodyEn||!titleVi||!bodyVi)throw new Error('Both English and Vietnamese title/message are required.');
   const amount=Math.max(0,Math.min(1e12,Math.floor(Number(cstarAmount)||0)));const days=Math.max(0,Math.min(3650,Math.floor(Number(expiresDays)||0)));
   await GlobalMail.updateMany({createdBy:String(actorId),status:'DRAFT'},{$set:{status:'CANCELLED'}});
-  return GlobalMail.create({createdBy:String(actorId),title,body,imageUrl:validHttps(String(imageUrl||'').trim()),cstarAmount:amount,expiresAt:days?new Date(Date.now()+days*86400000):undefined});
+  return GlobalMail.create({createdBy:String(actorId),title:titleEn,body:bodyEn,titleEn,bodyEn,titleVi,bodyVi,imageUrl:validHttps(String(imageUrl||'').trim()),cstarAmount:amount,expiresAt:days?new Date(Date.now()+days*86400000):undefined});
 }
 async function latestDraft(actorId){return GlobalMail.findOne({createdBy:String(actorId),status:'DRAFT'}).sort({createdAt:-1});}
 async function latest(limit=8){return GlobalMail.find({status:'PUBLISHED'}).sort({publishedAt:-1}).limit(limit).lean();}
-function messagePayload(mail,lang='en'){
-  const e=new EmbedBuilder().setColor(0xF59E0B).setTitle(`📬 ${mail.title}`).setDescription(mail.body).setFooter({text:'Corgi-Bot • Global Mail'}).setTimestamp(mail.publishedAt||mail.createdAt||new Date());
+function localizedContent(mail,lang='en'){
+  const vi=lang==='vi';
+  return {title:String((vi?mail.titleVi:mail.titleEn)||mail.title||'Global Mail'),body:String((vi?mail.bodyVi:mail.bodyEn)||mail.body||'')};
+}
+function messagePayload(mail,lang='en',options={}){
+  const content=localizedContent(mail,lang);
+  const e=new EmbedBuilder().setColor(0xF59E0B).setTitle(`📬 ${content.title}`).setDescription(content.body).setFooter({text:'Corgi-Bot • Global Mail'}).setTimestamp(mail.publishedAt||mail.createdAt||new Date());
   if(mail.imageUrl)e.setImage(mail.imageUrl);
-  if(mail.cstarAmount>0)e.addFields({name:'🌟Cstar',value:pick(lang,`Attachment: **${Number(mail.cstarAmount).toLocaleString()} 🌟Cstar**\nClaim once per Discord account.`,`Đính kèm: **${Number(mail.cstarAmount).toLocaleString()} 🌟Cstar**\nMỗi tài khoản Discord chỉ nhận 1 lần.`)});
+  if(mail.cstarAmount>0)e.addFields({name:'🌟Cstar',value:pick(lang,`Attachment: **${Number(mail.cstarAmount).toLocaleString()} 🌟Cstar**
+Claim once per Discord account.`,`Đính kèm: **${Number(mail.cstarAmount).toLocaleString()} 🌟Cstar**
+Mỗi tài khoản Discord chỉ nhận 1 lần.`)});
   if(mail.expiresAt)e.addFields({name:pick(lang,'⏳ Claim deadline','⏳ Hạn nhận'),value:`<t:${Math.floor(new Date(mail.expiresAt).getTime()/1000)}:F>`});
-  const components=mail.cstarAmount>0?[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`globalmail:claim:${mail._id}`).setLabel(pick(lang,'Claim 🌟Cstar','Nhận 🌟Cstar')).setEmoji('🎁').setStyle(ButtonStyle.Success))]:[];
+  const components=[];
+  if(!options.hideLanguageButtons)components.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`globalmail:view:vi:${mail._id}`).setLabel('Tiếng Việt').setEmoji('🇻🇳').setStyle(lang==='vi'?ButtonStyle.Primary:ButtonStyle.Secondary),new ButtonBuilder().setCustomId(`globalmail:view:en:${mail._id}`).setLabel('English').setEmoji('🇺🇸').setStyle(lang==='en'?ButtonStyle.Primary:ButtonStyle.Secondary)));
+  if(mail.cstarAmount>0)components.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`globalmail:claim:${mail._id}`).setLabel(pick(lang,'Claim 🌟Cstar','Nhận 🌟Cstar')).setEmoji('🎁').setStyle(ButtonStyle.Success)));
   return {embeds:[e],components};
 }
 function canSend(ch,guild){if(!ch?.isTextBased?.()||ch.type===ChannelType.GuildVoice)return false;const me=guild.members.me;const p=ch.permissionsFor(me);return p?.has([PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.EmbedLinks]);}
@@ -53,4 +63,4 @@ async function claim(mailId,userId){
   return {mail,wallet};
 }
 async function stats(mailId){const [deliveries,claims]=await Promise.all([Delivery.find({mailId}).lean(),Claim.countDocuments({mailId})]);return{deliveries,claims};}
-module.exports={createDraft,latestDraft,latest,messagePayload,publish,cancelDraft,claim,stats};
+module.exports={createDraft,latestDraft,latest,localizedContent,messagePayload,publish,cancelDraft,claim,stats};
