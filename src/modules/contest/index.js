@@ -1,4 +1,5 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { AMBER } = require('../../ui/theme');
 const mongoose = require('mongoose');
 const Contest = require('../../models/Contest');
 const ContestSubmission = require('../../models/ContestSubmission');
@@ -46,7 +47,7 @@ async function buildContestMessage(c, lang = 'en') {
   let timing = statusLabel(c.status, lang);
   if (c.status === 'SUBMISSION' && c.submissionEndsAt) timing = `<t:${Math.floor(c.submissionEndsAt.getTime() / 1000)}:R> • <t:${Math.floor(c.submissionEndsAt.getTime() / 1000)}:F>`;
   if (c.status === 'VOTING' && c.votingEndsAt) timing = `<t:${Math.floor(c.votingEndsAt.getTime() / 1000)}:R> • <t:${Math.floor(c.votingEndsAt.getTime() / 1000)}:F>`;
-  const e = new EmbedBuilder().setTitle(`🏆 ${c.title}`).setDescription(c.description || pick(lang, 'Submit your best entry and compete for the top ranking.', 'Gửi tác phẩm tốt nhất và cạnh tranh vị trí xếp hạng cao nhất.')).addFields(
+  const e = new EmbedBuilder().setColor(AMBER).setTitle(`🏆 ${c.title}`).setDescription(c.description || pick(lang, 'Submit your best entry and compete for the top ranking.', 'Gửi tác phẩm tốt nhất và cạnh tranh vị trí xếp hạng cao nhất.')).addFields(
     { name: `📌 ${pick(lang, 'Status', 'Trạng thái')}`, value: `**${statusLabel(c.status, lang)}**`, inline: true },
     { name: `📥 ${pick(lang, 'Approved entries', 'Bài đã duyệt')}`, value: `**${n.approved}**`, inline: true },
     { name: `🕒 ${pick(lang, c.status === 'VOTING' ? 'Voting ends' : 'Stage ends', c.status === 'VOTING' ? 'Kết thúc bình chọn' : 'Kết thúc giai đoạn')}`, value: timing, inline: false },
@@ -74,7 +75,7 @@ async function checkEligibility(c, member, lang) {
 function mediaType(att) { const t = att?.contentType || ''; if (t.startsWith('image/')) return 'image'; if (t.startsWith('video/')) return 'video'; return 'file'; }
 async function buildSubmissionMessage(c, s, lang = 'en') {
   const voteLabel = pick(lang, 'Vote', 'Bình chọn');
-  const e = new EmbedBuilder().setTitle(`🎨 ${pick(lang, 'Contest Entry', 'Bài dự thi')} #${String(s.entryNo).padStart(3, '0')}`).setDescription(s.caption || pick(lang, 'No caption provided.', 'Không có mô tả.')).addFields(
+  const e = new EmbedBuilder().setColor(AMBER).setTitle(`🎨 ${pick(lang, 'Contest Entry', 'Bài dự thi')} #${String(s.entryNo).padStart(3, '0')}`).setDescription(s.caption || pick(lang, 'No caption provided.', 'Không có mô tả.')).addFields(
     { name: `👤 ${pick(lang, 'Author', 'Tác giả')}`, value: `<@${s.userId}>`, inline: true },
     { name: '🆔 Entry ID', value: `\`${s.entryId}\``, inline: true },
     { name: `❤️ ${pick(lang, 'Votes', 'Bình chọn')}`, value: c.hideVoteCount && c.status === 'VOTING' ? `**${pick(lang, 'Hidden', 'Đang ẩn')}**` : `**${s.voteCount || 0}**`, inline: true }
@@ -103,7 +104,7 @@ function buildResultsEmbed(c, rows, lang = 'en') {
   const medals = ['🥇', '🥈', '🥉'];
   let prev = null, rank = 0, shown = 0;
   const lines = rows.map((s, idx) => { if (prev === null || s.voteCount < prev) rank = idx + 1; prev = s.voteCount; shown++; return `${medals[rank - 1] || `**#${rank}**`} <@${s.userId}> • **${s.voteCount}** ❤️ • \`${s.entryId}\``; });
-  const e = new EmbedBuilder().setTitle(`🏆 ${pick(lang, 'Contest Results', 'Kết quả Cuộc thi')} • ${c.title}`).setDescription(lines.length ? lines.join('\n') : pick(lang, 'No approved entries were available for ranking.', 'Không có bài đã duyệt để xếp hạng.')).addFields({ name: `📊 ${pick(lang, 'Ranking', 'Xếp hạng')}`, value: pick(lang, `Top ${shown} by verified votes`, `Top ${shown} theo số phiếu hợp lệ`) }).setFooter({ text: `Corgi Studio • ${c.contestId}` }).setTimestamp();
+  const e = new EmbedBuilder().setColor(AMBER).setTitle(`🏆 ${pick(lang, 'Contest Results', 'Kết quả Cuộc thi')} • ${c.title}`).setDescription(lines.length ? lines.join('\n') : pick(lang, 'No approved entries were available for ranking.', 'Không có bài đã duyệt để xếp hạng.')).addFields({ name: `📊 ${pick(lang, 'Ranking', 'Xếp hạng')}`, value: pick(lang, `Top ${shown} by verified votes`, `Top ${shown} theo số phiếu hợp lệ`) }).setFooter({ text: `Corgi Studio • ${c.contestId}` }).setTimestamp();
   if (c.bannerUrl) e.setThumbnail(c.bannerUrl); return e;
 }
 async function endVoting(client, c, { publish = false } = {}) {
