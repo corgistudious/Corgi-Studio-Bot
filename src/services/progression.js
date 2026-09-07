@@ -36,14 +36,15 @@ function xpNeeded(level,cfg){
 async function ensureProgress(userId){
   return UserProgress.findOneAndUpdate({userId:String(userId)},{$setOnInsert:{userId:String(userId)}},{upsert:true,returnDocument:'after',setDefaultsOnInsert:true});
 }
-async function awardMessageXp(userId){
+async function awardMessageXp(userId,multiplier=1){
   const cfg=(await settings()).progression;
   const p=await ensureProgress(userId);
   const now=new Date();
   if(p.lastXpAt && now-p.lastXpAt < Math.max(5,cfg.cooldownSeconds)*1000)return {awarded:0,profile:p};
   if(p.level>=cfg.maxLevel)return {awarded:0,profile:p};
   const min=Math.max(1,Math.floor(cfg.xpMin));const max=Math.max(min,Math.floor(cfg.xpMax));
-  const gained=Math.floor(Math.random()*(max-min+1))+min;
+  const baseGained=Math.floor(Math.random()*(max-min+1))+min;
+  const gained=baseGained*Math.max(1,Math.min(5,Math.floor(Number(multiplier)||1)));
   p.xp+=gained;p.totalXp+=gained;p.totalMessages+=1;p.lastXpAt=now;
   let leveled=0;
   while(p.level<cfg.maxLevel){const need=xpNeeded(p.level,cfg);if(p.xp<need)break;p.xp-=need;p.level+=1;leveled+=1;}
