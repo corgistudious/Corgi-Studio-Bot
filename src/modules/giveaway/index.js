@@ -14,7 +14,7 @@ function buildGiveawayMessage(g,lang='en'){
  const e=new EmbedBuilder().setTitle('🎉 CORGI GIVEAWAY').setDescription(g.description||pick(lang,'Join for a chance to win!','Tham gia để có cơ hội nhận thưởng!')).addFields(
  {name:`🎁 ${pick(lang,'Prize','Phần thưởng')}`,value:`**${g.prize}**`,inline:false},{name:`👑 ${pick(lang,'Winners','Số người thắng')}`,value:`**${g.winnerCount}**`,inline:true},{name:`👥 ${pick(lang,'Entries','Đã tham gia')}`,value:`**${g.participants.length.toLocaleString()}**`,inline:true},{name:`⏰ ${pick(lang,'Ends','Kết thúc')}`,value:end,inline:false},{name:`📋 ${pick(lang,'Requirements','Điều kiện')}`,value:conditionLines(g,lang).join('\n'),inline:false});
  if(g.imageUrl)e.setImage(g.imageUrl);if(g.winners?.length)e.addFields({name:`🏆 ${pick(lang,'Winners','Người thắng')}`,value:g.winners.map(x=>`<@${x}>`).join(', ')});
- e.setFooter({text:`Corgi Studio • Giveaway • ${g.messageId||'Creating…'}`}).setTimestamp();
+ e.setFooter({text:`Corgi Studio • Giveaway • ${g.messageId||pick(lang,'Creating…','Đang tạo…')}`}).setTimestamp();
  const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('giveaway:join').setLabel(pick(lang,'Join Giveaway','Tham gia Giveaway')).setEmoji(g.joinEmoji||'🔥').setStyle(ButtonStyle.Success).setDisabled(!active),new ButtonBuilder().setCustomId('giveaway:leave').setLabel(pick(lang,'Leave','Rời Giveaway')).setStyle(ButtonStyle.Secondary).setDisabled(!active));
  return {embeds:[e],components:[row]};
 }
