@@ -1,7 +1,6 @@
 const { ChannelType, PermissionFlagsBits, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const Premium = require('../models/Premium');
 const PremiumAudit = require('../models/PremiumAudit');
 const GuildSettings = require('../models/GuildSettings');
@@ -84,30 +83,12 @@ async function imageToDataUri(source) {
   return `data:${type};base64,${buf.toString('base64')}`;
 }
 
-const brandingAvatarCache = new Map();
-
-function avatarSignature(source) {
-  if (!source) return 'GLOBAL';
-  if (/^https:\/\//i.test(source)) return `URL:${source}`;
-  const buf = fs.readFileSync(source);
-  return `FILE:${crypto.createHash('sha256').update(buf).digest('hex')}`;
-}
-
 async function setGuildBotAvatar(guild, source) {
   if (!guild?.client?.rest) return false;
-
-  const guildId = String(guild.id);
-  const desiredSignature = avatarSignature(source);
-
-  // Avoid PATCHing the same guild avatar every Premium service cycle.
-  if (brandingAvatarCache.get(guildId) === desiredSignature) return false;
-
   const avatar = source ? await imageToDataUri(source) : null;
-  // Discord guild-member profile avatar: affects only this guild, never the bot's global account avatar.
+  // Event-based only: this function is called when Premium/branding actually changes,
+  // not from the 60-second maintenance cycle.
   await guild.client.rest.patch(Routes.guildMember(guild.id, '@me'), { body: { avatar } });
-
-  // Cache only after Discord accepts the change. Failed/rate-limited requests remain retryable.
-  brandingAvatarCache.set(guildId, desiredSignature);
   return true;
 }
 
@@ -199,18 +180,20 @@ function startPremiumService(client) {
         await audit({ guildId:p.guildId,userId:p.userId,action:'EXPIRE',source:'system',expiresAt:p.expiresAt });
         await sendDeveloperLog(client,{title:'💎 Premium Expired',description:`Guild: ${p.guildId}\nUser: ${p.userId}\nExpired: ${p.expiresAt.toISOString()}`});
         await syncSupportEntitlement(client,p.userId,p.tier,p.expiresAt,p).catch(()=>{});
+
+        // Expiration is processed only once. Reset the per-guild Premium identity here,
+        // instead of retrying avatar changes every 60 seconds.
+        const expiredGuild = client.guilds.cache.get(String(p.guildId));
+        if (expiredGuild) {
+          await applyPremiumBranding(expiredGuild)
+            .catch(e => console.warn(`[${p.guildId}] Premium branding expiry:`, e.message));
+        }
       }
 
-      const premiumRows = await Premium.find({ expiresAt: { $gt: new Date() } }).select('guildId').lean();
-      const brandingGuildIds = await GuildSettings.distinct('guildId', { $or: [
-        { 'premiumBranding.botName': { $exists: true, $nin: [null, ''] } },
-        { 'premiumBranding.avatarUrl': { $exists: true, $nin: [null, ''] } },
-        { 'premiumBranding.useCorgiStudioEmoji': true }
-      ] });
-      for (const guildId of new Set([...premiumRows.map(x => x.guildId), ...brandingGuildIds])) {
-        const guild = client.guilds.cache.get(guildId);
-        if (guild) await applyPremiumBranding(guild);
-      }
+      // IMPORTANT: do not re-apply Premium avatar/branding here.
+      // Guild nickname/avatar persist on Discord across bot restarts.
+      // Branding is applied only on grant/redeem/custom-branding changes,
+      // revoke, or the one-time expiration handling above.
     } catch (e) {
       console.error('Premium service:', e.message);
     } finally {
@@ -218,8 +201,8 @@ function startPremiumService(client) {
     }
   };
 
-  // Run migration/service immediately after Discord is ready instead of
-  // waiting for the first 60-second interval.
+  // Run maintenance immediately after Discord is ready instead of waiting
+  // for the first 60-second interval. This does not re-upload Premium avatars.
   if (client.isReady()) void runCycle();
   else client.once('clientReady', () => void runCycle());
 
