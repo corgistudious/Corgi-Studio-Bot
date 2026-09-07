@@ -15,6 +15,7 @@ const menu=new StringSelectMenuBuilder().setCustomId('setup:page').setPlaceholde
 {label:L(s,'Modules','Tính năng'),value:'modules',emoji:'🧩',description:L(s,'Enable or disable bot systems','Bật hoặc tắt các hệ thống của bot')},
 {label:L(s,'Channels','Kênh'),value:'channels',emoji:'📡',description:L(s,'Welcome, logs, stats and ticket channels','Kênh chào mừng, log, thống kê và ticket')},
 {label:L(s,'Events','Sự kiện'),value:'events',emoji:'🟠',description:L(s,'Giveaway & Contest control center','Trung tâm Giveaway & Contest')},
+{label:L(s,'Community Panels','Panel cộng đồng'),value:'community',emoji:'🧡',description:L(s,'Welcome, Ticket & Reaction Role builders','Builder Welcome, Ticket & Reaction Role')},
 {label:L(s,'Premium & Branding','Premium & Thương hiệu'),value:'premium',emoji:'💎',description:L(s,'Premium status and customization','Trạng thái Premium và tùy chỉnh')},
 {label:L(s,'Language','Ngôn ngữ'),value:'language',emoji:'🌐',description:'English / Tiếng Việt'}]);
 return {embeds:[e],components:[new ActionRowBuilder().addComponents(menu),new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('setup:refresh').setLabel(L(s,'Refresh','Làm mới')).setEmoji('🔄').setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId('setup:close').setLabel(L(s,'Close','Đóng')).setEmoji('✖️').setStyle(ButtonStyle.Danger))]};}
