@@ -1,0 +1,28 @@
+Corgi-Bot V4.18.2
+CHANGES
+1) /setup -> Channels now includes a dedicated Global Mail channel.
+   - Global Mail prefers the configured channel.
+   - Existing fallback behavior remains: System -> Logs -> Welcome -> first writable text channel.
+
+2) /help rewritten as a detailed EN/VI usage guide.
+   Categories:
+   - all
+   - setup
+   - member
+   - economy
+   - games
+   - community
+   - moderation
+   - premium
+   - ai
+   Prefix also works, e.g. ?help games, ?help moderation.
+
+3) Help documents exact Slash / Prefix syntax and aliases implemented in source.
+   It does not claim Prefix support for commands that are Slash-only.
+
+DEPLOY
+- This patch changes /help slash option choices, so run npm run deploy:commands after git pull.
+- Then restart PM2.
+
+VALIDATION
+- All src/scripts JavaScript passed node --check.
