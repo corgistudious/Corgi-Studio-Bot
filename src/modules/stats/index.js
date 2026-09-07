@@ -15,6 +15,18 @@ const PREMIUM_STAT_KEYS = [
   'announcements', 'threads', 'events',
 ];
 
+function isStatsOwnedChannel(channel, guild) {
+  const settings = guild.__corgiStatsSettings;
+  const categoryId = settings?.channels?.stats;
+  const statIds = settings?.statsVoiceChannels?.toObject?.() || settings?.statsVoiceChannels || {};
+  const ownedIds = new Set([categoryId, ...Object.values(statIds)].filter(Boolean).map(String));
+  return ownedIds.has(String(channel.id)) || (categoryId && String(channel.parentId) === String(categoryId));
+}
+
+function countNonStatsChannels(guild, predicate) {
+  return guild.channels.cache.filter(c => !isStatsOwnedChannel(c, guild) && predicate(c)).size;
+}
+
 const STAT_DEFINITIONS = [
   { key:'members', emoji:'👥', free:true, en:'Members', vi:'Thành viên', value:g=>g.memberCount },
   { key:'humans', emoji:'👤', free:true, en:'Humans', vi:'Người dùng', value:g=>Math.max(0,g.memberCount-g.members.cache.filter(m=>m.user.bot).size) },
@@ -28,13 +40,13 @@ const STAT_DEFINITIONS = [
   { key:'boostLevel', emoji:'💎', en:'Boost Level', vi:'Cấp Boost', value:g=>g.premiumTier??0 },
   { key:'emojis', emoji:'😀', en:'Emojis', vi:'Emoji', value:g=>g.emojis.cache.size },
   { key:'stickers', emoji:'🎨', en:'Stickers', vi:'Sticker', value:g=>g.stickers.cache.size },
-  { key:'categories', emoji:'📁', en:'Categories', vi:'Danh mục', value:g=>g.channels.cache.filter(c=>c.type===ChannelType.GuildCategory).size },
-  { key:'textChannels', emoji:'💬', en:'Text Channels', vi:'Kênh chữ', value:g=>g.channels.cache.filter(c=>c.type===ChannelType.GuildText).size },
-  { key:'voiceChannels', emoji:'🔊', en:'Voice Channels', vi:'Kênh thoại', value:g=>g.channels.cache.filter(c=>c.type===ChannelType.GuildVoice).size },
-  { key:'stageChannels', emoji:'🎙️', en:'Stage Channels', vi:'Kênh sân khấu', value:g=>g.channels.cache.filter(c=>c.type===ChannelType.GuildStageVoice).size },
-  { key:'forums', emoji:'📝', en:'Forums', vi:'Diễn đàn', value:g=>g.channels.cache.filter(c=>c.type===ChannelType.GuildForum).size },
-  { key:'announcements', emoji:'📢', en:'Announcements', vi:'Kênh thông báo', value:g=>g.channels.cache.filter(c=>c.type===ChannelType.GuildAnnouncement).size },
-  { key:'threads', emoji:'🧵', en:'Threads', vi:'Chủ đề', value:g=>g.channels.cache.filter(c=>[ChannelType.PublicThread,ChannelType.PrivateThread,ChannelType.AnnouncementThread].includes(c.type)).size },
+  { key:'categories', emoji:'📁', en:'Categories', vi:'Danh mục', value:g=>countNonStatsChannels(g,c=>c.type===ChannelType.GuildCategory) },
+  { key:'textChannels', emoji:'💬', en:'Text Channels', vi:'Kênh chữ', value:g=>countNonStatsChannels(g,c=>c.type===ChannelType.GuildText) },
+  { key:'voiceChannels', emoji:'🔊', en:'Voice Channels', vi:'Kênh thoại', value:g=>countNonStatsChannels(g,c=>c.type===ChannelType.GuildVoice) },
+  { key:'stageChannels', emoji:'🎙️', en:'Stage Channels', vi:'Kênh sân khấu', value:g=>countNonStatsChannels(g,c=>c.type===ChannelType.GuildStageVoice) },
+  { key:'forums', emoji:'📝', en:'Forums', vi:'Diễn đàn', value:g=>countNonStatsChannels(g,c=>c.type===ChannelType.GuildForum) },
+  { key:'announcements', emoji:'📢', en:'Announcements', vi:'Kênh thông báo', value:g=>countNonStatsChannels(g,c=>c.type===ChannelType.GuildAnnouncement) },
+  { key:'threads', emoji:'🧵', en:'Threads', vi:'Chủ đề', value:g=>countNonStatsChannels(g,c=>[ChannelType.PublicThread,ChannelType.PrivateThread,ChannelType.AnnouncementThread].includes(c.type)) },
   { key:'events', emoji:'📅', en:'Events', vi:'Sự kiện', value:g=>g.scheduledEvents.cache.size },
 ];
 
@@ -78,6 +90,7 @@ async function warmMembers(guild){
 }
 
 async function ensureStatsBoard(guild, settings, options={}) {
+  guild.__corgiStatsSettings = settings;
   await warmMembers(guild);
   const premiumActive = options.premiumActive ?? await isPremiumGuild(guild.id);
   const wantedKeys = await activeStatKeys(settings,premiumActive);
@@ -133,6 +146,7 @@ async function ensureStatsBoard(guild, settings, options={}) {
 }
 
 async function updateStatsBoard(guild, settings, options={}) {
+  guild.__corgiStatsSettings = settings;
   const ids=settings.statsVoiceChannels?.toObject?.()||settings.statsVoiceChannels||{};
   if(!settings.channels?.stats||!Object.keys(ids).length)return false;
   await warmMembers(guild);
