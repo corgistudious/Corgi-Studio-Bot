@@ -39,5 +39,5 @@ module.exports={
   await i.deferReply();const g=new Giveaway({guildId:i.guildId,channelId:i.channelId,prize:i.options.getString('prize'),description:i.options.getString('description')||'',winnerCount:i.options.getInteger('winners')||1,endsAt:new Date(Date.now()+ms),hostId:i.user.id,requiredRoleId:i.options.getRole('required_role')?.id,minAccountAgeDays:i.options.getInteger('account_age')||0,minServerAgeDays:i.options.getInteger('server_age')||0,minCstar:i.options.getInteger('min_cstar')||0,joinEmoji:emoji,imageUrl:photo?.url,imageShape:shape});
   const msg=await i.editReply(buildGiveawayMessage(g,lang));g.messageId=msg.id;await g.save();await msg.edit(buildGiveawayMessage(g,lang));
  },
- async executePrefix(message,args){return message.reply('ℹ️ Professional Giveaway creation uses `/giveaway create` so you can select roles and upload a photo file directly.');}
+ async executePrefix(message,args){const lang=await guildLang(message.guildId);return message.reply(pick(lang,'ℹ️ Professional Giveaway creation uses `/giveaway create` so you can select roles and upload a photo file directly.','ℹ️ Hệ thống Giveaway chuyên nghiệp dùng `/giveaway create` để bạn chọn role và upload ảnh trực tiếp.'));}
 };
