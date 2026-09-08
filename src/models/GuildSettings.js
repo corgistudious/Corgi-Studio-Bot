@@ -27,6 +27,7 @@ const schema = new Schema({
   },
   statsMessageId: String,
   statsConfig: {
+    freeEnabled: { type: [String], default: ['members','humans','bots','roles'] },
     premiumEnabled: { type: [String], default: [] }
   },
   statsVoiceChannels: {
