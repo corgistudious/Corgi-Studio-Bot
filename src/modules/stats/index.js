@@ -66,6 +66,10 @@ function lang(settings){ return settings?.language==='vi'?'vi':'en'; }
 function label(def, settings){ return lang(settings)==='vi'?def.vi:def.en; }
 function categoryName(settings){ return lang(settings)==='vi'?'📊 THỐNG KÊ SERVER':'📊 SERVER STATS'; }
 function statName(def, guild, settings){ return `${def.emoji} ${label(def,settings)}: ${def.value(guild)}`; }
+function freeConfiguredKeys(settings){
+  const raw = Array.isArray(settings?.statsConfig?.freeEnabled) ? settings.statsConfig.freeEnabled : FREE_STAT_KEYS;
+  return raw.filter(k=>FREE_STAT_KEYS.includes(k));
+}
 function premiumConfiguredKeys(settings){
   const raw = Array.isArray(settings?.statsConfig?.premiumEnabled) ? settings.statsConfig.premiumEnabled : [];
   return raw.filter(k=>PREMIUM_STAT_KEYS.includes(k));
@@ -80,7 +84,7 @@ async function premiumActiveCached(guildId){
 function clearPremiumCache(guildId){ premiumCache.delete(String(guildId)); }
 
 async function activeStatKeys(settings, premiumActive){
-  return [...FREE_STAT_KEYS, ...(premiumActive?premiumConfiguredKeys(settings):[])];
+  return [...freeConfiguredKeys(settings), ...(premiumActive?premiumConfiguredKeys(settings):[])];
 }
 
 async function warmMembers(guild){
@@ -131,12 +135,12 @@ async function ensureStatsBoard(guild, settings, options={}) {
     nextIds[key]=channel.id;
   }
 
-  // Premium-only channels are removed when disabled or when Premium expires.
+  // Remove any Stats channel that the server has disabled. Premium-only channels are also removed when Premium expires.
   for(const key of Object.keys(ids)){
     if(wantedKeys.includes(key))continue;
-    if(!PREMIUM_STAT_KEYS.includes(key))continue;
+    if(!DEF_BY_KEY.has(key))continue;
     const channel=await guild.channels.fetch(ids[key]).catch(()=>null);
-    if(channel?.type===ChannelType.GuildVoice)await channel.delete('Corgi-Bot Premium stat disabled or expired').catch(()=>null);
+    if(channel?.type===ChannelType.GuildVoice)await channel.delete('Corgi-Bot stat disabled or unavailable').catch(()=>null);
   }
 
   settings.statsVoiceChannels=nextIds;
@@ -197,5 +201,5 @@ function startStatsService(client){
 
 module.exports={
   startStatsService,ensureStatsBoard,updateStatsBoard,clearPremiumCache,
-  FREE_STAT_KEYS,PREMIUM_STAT_KEYS,STAT_DEFINITIONS,DEF_BY_KEY,
+  FREE_STAT_KEYS,PREMIUM_STAT_KEYS,STAT_DEFINITIONS,DEF_BY_KEY,freeConfiguredKeys,premiumConfiguredKeys,
 };
