@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.19.1",
+  "version": "4.19.2",
   "private": true,
-  "description": "Corgi-Bot V4.19.1 with Discord Store Premium and safe in-panel Premium visual identity.",
+  "description": "Corgi-Bot V4.19.2 with dynamic code-rendered Level Up cards.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
@@ -17,6 +17,7 @@
   "dependencies": {
     "discord.js": "^14.27.0",
     "dotenv": "^16.6.1",
-    "mongoose": "^9.9.5"
+    "mongoose": "^9.9.5",
+    "sharp": "^0.34.1"
   }
 }
