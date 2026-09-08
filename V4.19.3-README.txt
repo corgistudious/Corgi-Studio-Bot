@@ -1,0 +1,35 @@
+Corgi-Bot V4.19.3 — Custom CD Keys, Profile Verification, Flexible Server Stats
+
+1) Custom CD Keys
+- Developer may enter an optional custom CD Key such as Corgi2026 or CorgiTanThu.
+- Custom keys are normalized case-insensitively and stored uppercase.
+- Allowed characters: letters, numbers, hyphen, underscore; 3-48 characters.
+- Works for Cstar, Server Premium, and VIP Profile CD Keys.
+- Empty custom field keeps the existing random key generator.
+
+2) Profile Verification
+- New Developer-only Profile Verification review panel in /dev.
+- Stages: PENDING -> REVIEW -> APPROVED, plus REJECTED and REVOKED.
+- Badge types:
+  BLUE   = verified real-account identity
+  RED    = Developer
+  YELLOW = Administration / management
+  PURPLE = Corgi-Bot Partner
+- /profile shows the public verification state/badge.
+- The bot stores review status/type/note only. Raw identity documents should not be stored in the bot database.
+
+3) Fully Configurable Server Stats
+- Free Stats are now individually toggleable: Members, Humans, Bots, Roles.
+- Premium Stats remain individually toggleable and Premium-gated.
+- Enable All / Disable All controls exist separately for Free and Premium Stats.
+- Disabling any stat removes only that stat voice channel; enabling it creates/repairs it again.
+- Existing guilds default to all four Free Stats enabled for backward compatibility.
+
+Version: 4.19.3
+
+Verification badge assets:
+- BLUE: assets/verification/verified-blue.gif
+- RED: assets/verification/verified-red.gif
+- YELLOW: assets/verification/verified-yellow.gif
+- PURPLE: assets/verification/verified-purple.gif
+Approved profiles show the supplied animated badge in the profile thumbnail area while the member avatar remains in the embed author icon.

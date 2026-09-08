@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.19.2",
+  "version": "4.19.3",
   "private": true,
-  "description": "Corgi-Bot V4.19.2 with dynamic code-rendered Level Up cards.",
+  "description": "Corgi-Bot V4.19.3 with custom CD Keys, profile verification badges, and fully configurable Server Stats.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
