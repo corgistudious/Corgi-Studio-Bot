@@ -1,6 +1,4 @@
-const { ChannelType, PermissionFlagsBits, Routes } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
+const { ChannelType, PermissionFlagsBits } = require('discord.js');
 const Premium = require('../models/Premium');
 const PremiumAudit = require('../models/PremiumAudit');
 const GuildSettings = require('../models/GuildSettings');
@@ -38,8 +36,6 @@ async function grantPremium(guildId, userId, duration, meta = {}) {
   await GuildSettings.findOneAndUpdate({ guildId }, { $set: { 'premiumBranding.useCorgiStudioEmoji': true } }, { upsert: true, setDefaultsOnInsert: true });
   await audit({ guildId, userId, actorId: meta.actorId, action: wasActive ? 'EXTEND' : (meta.source === 'redeem' ? 'REDEEM' : 'GRANT'), source: meta.source || 'developer', duration, expiresAt });
   await syncSupportEntitlement(meta.client,userId,tier,expiresAt,doc).catch(()=>{});
-  const guild = meta.client?.guilds?.cache?.get(guildId);
-  if (guild) await applyPremiumBranding(guild).catch(e => console.warn(`[${guildId}] Premium branding activation:`, e.message));
   return doc;
 }
 
@@ -70,8 +66,6 @@ async function revokePremium(guildId, meta = {}) {
   const current = await Premium.find({ guildId }).lean();
   const r = await Premium.deleteMany({ guildId });
   if (current.length) await audit({ guildId, actorId: meta.actorId, action: 'REVOKE', source: meta.source || 'developer', details: `Removed ${r.deletedCount || 0} record(s)` });
-  const guild = meta.client?.guilds?.cache?.get(guildId);
-  if (guild) await applyPremiumBranding(guild).catch(e => console.warn(`[${guildId}] Premium branding revoke:`, e.message));
   return r.deletedCount || 0;
 }
 async function recordPremiumAudit(data){return audit(data);}
@@ -80,51 +74,20 @@ async function recentPremiumHistory(guildId, limit = 10) {
   return PremiumAudit.find(q).sort({ createdAt: -1 }).limit(limit).lean();
 }
 
-async function imageToDataUri(source) {
-  if (!source) return null;
-  if (/^https:\/\//i.test(source)) {
-    const res = await fetch(source, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) throw new Error(`Avatar download failed (${res.status})`);
-    const type = res.headers.get('content-type') || 'image/png';
-    if (!type.startsWith('image/')) throw new Error('Avatar URL is not an image');
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > 8 * 1024 * 1024) throw new Error('Avatar image is too large');
-    return `data:${type};base64,${buf.toString('base64')}`;
-  }
-  const buf = fs.readFileSync(source);
-  const ext = path.extname(source).toLowerCase();
-  const type = ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : ext === '.webp' ? 'image/webp' : 'image/png';
-  return `data:${type};base64,${buf.toString('base64')}`;
-}
-
-async function setGuildBotAvatar(guild, source) {
-  if (!guild?.client?.rest) return false;
-  const avatar = source ? await imageToDataUri(source) : null;
-  // Event-based only: this function is called when Premium/branding actually changes,
-  // not from the 60-second maintenance cycle.
-  await guild.client.rest.patch(Routes.guildMember(guild.id, '@me'), { body: { avatar } });
-  return true;
-}
-
 async function applyPremiumBranding(guild) {
   if (!guild) return;
   const active = await isPremiumGuild(guild.id);
   const s = await GuildSettings.findOne({ guildId: guild.id }).lean();
   const branding = s?.premiumBranding || {};
+
+  // V4.19.1: Premium visual identity lives inside embeds/panels only.
+  // Never PATCH the per-guild bot avatar, preventing Discord AVATAR_RATE_LIMIT.
   if (!active) {
     if (guild.members.me?.nickname) await guild.members.me.setNickname(null, 'Corgi Premium expired').catch(() => null);
-    await setGuildBotAvatar(guild, null).catch(e => console.warn(`[${guild.id}] Reset guild avatar:`, e.message));
-    const { removeLegacyCorgiGuildEmojis } = require('./corgiPremiumEmoji');
-    await removeLegacyCorgiGuildEmojis(guild).catch(e => console.warn('Legacy Premium guild emoji cleanup:', e.message));
-    return;
+  } else {
+    const name = branding.botName?.trim();
+    if (name && guild.members.me?.nickname !== name) await guild.members.me.setNickname(name, 'Corgi Premium branding').catch(() => null);
   }
-  const name = branding.botName?.trim();
-  if (name && guild.members.me?.nickname !== name) await guild.members.me.setNickname(name, 'Corgi Premium branding').catch(() => null);
-
-  // Custom Premium avatar has priority. Otherwise every active Premium guild automatically uses the official Premium logo.
-  const premiumLogo = path.join(__dirname, '../../assets/branding/corgi-premium.png');
-  const avatarSource = branding.avatarUrl?.trim() || premiumLogo;
-  await setGuildBotAvatar(guild, avatarSource).catch(e => console.warn(`[${guild.id}] Premium guild avatar:`, e.message));
 
   const { removeLegacyCorgiGuildEmojis } = require('./corgiPremiumEmoji');
   await removeLegacyCorgiGuildEmojis(guild).catch(e => console.warn('Legacy Premium guild emoji cleanup:', e.message));
