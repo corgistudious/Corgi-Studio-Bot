@@ -59,7 +59,7 @@ async function buildLevelCard({ user, profile, lang='en' }) {
   const msgLabel = isVi ? 'TIN NHẮN' : 'MESSAGES';
   const rankLabel = isVi ? 'HẠNG GLOBAL' : 'GLOBAL RANK';
   const weeklyLabel = isVi ? 'HẠNG TUẦN' : 'WEEKLY RANK';
-  const footer = isVi ? 'CORGI BOT • HỆ THỐNG XP & LEVEL' : 'CORGI BOT • XP & LEVEL SYSTEM';
+  const footer = esc(isVi ? 'CORGI BOT • HỆ THỐNG XP & LEVEL' : 'CORGI BOT • XP & LEVEL SYSTEM');
 
   const overlay = Buffer.from(`
   <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
