@@ -66,8 +66,8 @@ module.exports={name:Events.InteractionCreate,async execute(i){
 
   if(!i.member?.permissions?.has(PermissionFlagsBits.ManageGuild))return i.reply({content:pick(s.language,'❌ Manage Server required.','❌ Cần quyền Quản lý Server.'),flags:64});
 
-  if(i.isButton()&&p[1]==='home')return i.update(CUI.home(s));
-  if(i.isButton()&&['welcome','ticket','reaction'].includes(p[1])&&!p[2])return i.update(CUI.page(p[1],s,c));
+  if(i.isButton()&&p[1]==='home')return i.update(await CUI.home(i.guildId,s));
+  if(i.isButton()&&['welcome','ticket','reaction'].includes(p[1])&&!p[2])return i.update(await CUI.page(i.guildId,p[1],s,c));
 
   if(i.isButton()&&p[2]==='edit'){
     if(p[1]==='welcome')return i.showModal(CUI.modal('welcome',c,s));
