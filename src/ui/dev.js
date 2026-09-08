@@ -36,6 +36,7 @@ async function home(client) {
     {label:'Global Ranking',value:'ranking',emoji:'🏆',description:'Weekly rewards and Approve Reward'},
     {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🌟Cstar prices'},
     {label:'Custom Profile Titles',value:'titles',emoji:'🏷️',description:'Create, grant and revoke profile titles'},
+    {label:'Profile Verification',value:'verification',emoji:'✅',description:'Review and assign verification badges'},
     {label:'Global Mail',value:'globalmail',emoji:'📬',description:'Broadcast announcements + optional 🌟Cstar'},
     {label:'Blacklist',value:'blacklist',emoji:'🛡️',description:'Block/unblock guilds or users'}
   );
@@ -108,8 +109,8 @@ async function blacklist() {
 function input(id,label,placeholder,required=true,style=TextInputStyle.Short){return new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId(id).setLabel(label).setPlaceholder(placeholder).setRequired(required).setStyle(style));}
 function premiumGrantModal(){return new ModalBuilder().setCustomId('dev:modal:premiumGrant').setTitle('Grant / Extend Premium').addComponents(input('guildId','Guild ID','123456789012345678'),input('userId','User ID / purchaser ID','123456789012345678'),input('premiumTier','Tier: STANDARD / STAR / PLUS / PRO / ULTRA','STANDARD'),input('duration','Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'));}
 function premiumRevokeModal(){return new ModalBuilder().setCustomId('dev:modal:premiumRevoke').setTitle('Revoke Guild Premium').addComponents(input('guildId','Guild ID','123456789012345678'));}
-function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCstar').setTitle('Create 🌟Cstar Key').addComponents(input('amount','🌟Cstar Amount','1000'),input('maxUses','Maximum Uses','1'),input('expiresDays','Expires After Days (0 = never)','0'));}
-function keyPremiumModal(){return new ModalBuilder().setCustomId('dev:modal:keyPremium').setTitle('Create Premium Key').addComponents(input('premiumTier','Tier: STANDARD / STAR / PLUS / PRO / ULTRA','STANDARD'),input('duration','Premium Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'),input('maxUses','Maximum Uses','1'),input('expiresDays','Key Expires After Days (0 = never)','0'));}
+function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCstar').setTitle('Create 🌟Cstar Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('amount','🌟Cstar Amount','1000'),input('maxUses','Maximum Uses','1'),input('expiresDays','Expires After Days (0 = never)','0'));}
+function keyPremiumModal(){return new ModalBuilder().setCustomId('dev:modal:keyPremium').setTitle('Create Premium Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('premiumTier','Tier: STANDARD / STAR / PLUS / PRO / ULTRA','STANDARD'),input('duration','Premium Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'),input('maxUses','Maximum Uses','1'),input('expiresDays','Key Expires After Days (0 = never)','0'));}
 function keyDisableModal(){return new ModalBuilder().setCustomId('dev:modal:keyDisable').setTitle('Disable CD Key').addComponents(input('code','CD Key','PREM-XXXXXX-XXXXXX-XXXXXX'));}
 function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Global 🌟Cstar').addComponents(input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
 function blacklistModal(kind){return new ModalBuilder().setCustomId(`dev:modal:blacklist:${kind}`).setTitle(`Toggle ${kind} blacklist`).addComponents(input('id',`${kind==='guild'?'Guild':'User'} ID`,'123456789012345678'));}
@@ -140,10 +141,32 @@ async function globalMail(actorId){
   );
   return {embeds:[e],components:[row,backRow()]};
 }
+
+async function verification(){
+  const V=require('../services/profileVerification');
+  const rows=await V.recent(12);
+  const labels={PENDING:'🕓 PENDING',REVIEW:'🔎 REVIEW',APPROVED:'✅ APPROVED',REJECTED:'❌ REJECTED',REVOKED:'⛔ REVOKED'};
+  const desc=rows.length?rows.map(x=>{const b=V.BADGES[x.badgeType];return `${labels[x.status]||x.status} • <@${x.userId}>${b?` • ${b.icon} ${b.en}`:''}\n\`${x.userId}\``;}).join('\n'):'No verification records yet.';
+  const e=footer(new EmbedBuilder().setTitle('✅ Profile Verification Review').setDescription(`${desc}\n\nVerification is Developer-reviewed in stages. Corgi-Bot stores only review status/type/note — do not store raw identity documents in the bot database.`).addFields(
+    {name:'🔵 Blue',value:'Verified real-account identity',inline:true},
+    {name:'🔴 Red',value:'Corgi-Bot Developer',inline:true},
+    {name:'🟡 Yellow',value:'Administration / management',inline:true},
+    {name:'🟣 Purple',value:'Corgi-Bot Partner',inline:true}
+  ));
+  const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:verification:manage').setLabel('Review / Update Verification').setEmoji('✅').setStyle(ButtonStyle.Primary));
+  return {embeds:[e],components:[row,backRow()]};
+}
+function verificationModal(){return new ModalBuilder().setCustomId('dev:modal:verification').setTitle('Profile Verification Review').addComponents(
+  input('userId','Discord User ID','123456789012345678'),
+  input('action','Action: PENDING / REVIEW / APPROVE / REJECT / REVOKE','APPROVE'),
+  input('badgeType','Badge: BLUE / RED / YELLOW / PURPLE','BLUE',false),
+  input('note','Internal review note (optional)','Reviewed by Developer',false,TextInputStyle.Paragraph)
+);}
+
 function titleCreateModal(){return new ModalBuilder().setCustomId('dev:modal:titleCreate').setTitle('Create Custom Profile Title').addComponents(input('key','Unique Key','FOUNDER'),input('name','Display Name','Founder'),input('emoji','Emoji / icon','👑',false),input('durationDays','Duration days (0 = permanent)','0'),input('description','Description','Optional title description',false,TextInputStyle.Paragraph));}
 function titleGrantModal(){return new ModalBuilder().setCustomId('dev:modal:titleGrant').setTitle('Grant Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
 function titleRevokeModal(){return new ModalBuilder().setCustomId('dev:modal:titleRevoke').setTitle('Revoke Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
 function titleToggleModal(){return new ModalBuilder().setCustomId('dev:modal:titleToggle').setTitle('Enable / Disable Title').addComponents(input('key','Title Key','FOUNDER'));}
 function mailComposeModal(){return new ModalBuilder().setCustomId('dev:modal:mailCompose').setTitle('Compose Global Mail • EN + VI').addComponents(input('titleEn','English Title','System Announcement'),input('bodyEn','English Message','Write the English announcement...',true,TextInputStyle.Paragraph),input('titleVi','Tiêu đề Tiếng Việt','Thông báo hệ thống'),input('bodyVi','Nội dung Tiếng Việt','Nhập nội dung Tiếng Việt...',true,TextInputStyle.Paragraph),input('options','Options: Cstar | days | image URL','1000 | 7 | https://... (image optional)',false));}
 
-module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,globalMail,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal};
+module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal};
