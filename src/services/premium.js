@@ -43,13 +43,27 @@ async function grantPremium(guildId, userId, duration, meta = {}) {
   return doc;
 }
 
-async function getActivePremium(guildId) { return Premium.findOne({ guildId: String(guildId), expiresAt: { $gt: new Date() } }).sort({ expiresAt: -1 }); }
+async function getActivePremium(guildId) {
+  guildId = String(guildId);
+  const manual = await Premium.findOne({ guildId, expiresAt: { $gt: new Date() } }).sort({ expiresAt: -1 });
+  if (manual) return manual;
+  const { getActiveStoreEntitlement } = require('./discordStorePremium');
+  const store = await getActiveStoreEntitlement(guildId);
+  if (!store) return null;
+  return { guildId, userId: store.userId, tier: 'STANDARD', expiresAt: store.endsAt || null, source: 'discord_store', entitlementId: store.entitlementId, skuId: store.skuId };
+}
 async function isPremiumGuild(guildId) { return Boolean(guildId && await getActivePremium(guildId)); }
 async function getPremiumStatus(guildId) {
-  const row = await Premium.findOne({ guildId: String(guildId) }).sort({ expiresAt: -1 }).lean();
-  if (!row) return { active: false, record: null, remainingMs: 0 };
-  const remainingMs = Math.max(0, new Date(row.expiresAt).getTime() - Date.now());
-  return { active: remainingMs > 0, record: row, remainingMs };
+  guildId = String(guildId);
+  const active = await getActivePremium(guildId);
+  if (active) {
+    const store = active.source === 'discord_store';
+    const remainingMs = active.expiresAt ? Math.max(0, new Date(active.expiresAt).getTime() - Date.now()) : null;
+    return { active: true, record: active, remainingMs, source: store ? 'discord_store' : 'manual' };
+  }
+  const row = await Premium.findOne({ guildId }).sort({ expiresAt: -1 }).lean();
+  if (row) return { active: false, record: row, remainingMs: 0, source: 'manual' };
+  return { active: false, record: null, remainingMs: 0, source: null };
 }
 async function revokePremium(guildId, meta = {}) {
   guildId = String(guildId);
