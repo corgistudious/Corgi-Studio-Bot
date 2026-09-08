@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.19.0",
+  "version": "4.19.1",
   "private": true,
-  "description": "Corgi-Bot V4.19.0 with Discord Store Guild Subscription entitlement integration.",
+  "description": "Corgi-Bot V4.19.1 with Discord Store Premium and safe in-panel Premium visual identity.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
