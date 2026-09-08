@@ -158,7 +158,7 @@ async function verification(){
 }
 function verificationModal(){return new ModalBuilder().setCustomId('dev:modal:verification').setTitle('Profile Verification Review').addComponents(
   input('userId','Discord User ID','123456789012345678'),
-  input('action','Action: PENDING / REVIEW / APPROVE / REJECT / REVOKE','APPROVE'),
+  input('action','Action','PENDING / REVIEW / APPROVE / REJECT / REVOKE'),
   input('badgeType','Badge: BLUE / RED / YELLOW / PURPLE','BLUE',false),
   input('note','Internal review note (optional)','Reviewed by Developer',false,TextInputStyle.Paragraph)
 );}
