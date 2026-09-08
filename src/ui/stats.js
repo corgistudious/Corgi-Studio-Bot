@@ -2,6 +2,7 @@ const {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuB
 const {AMBER}=require('./theme');
 const {getActivePremium}=require('../services/premium');
 const {PREMIUM_STAT_KEYS,DEF_BY_KEY}=require('../modules/stats');
+const {premiumPanelVisual}=require('../services/premiumVisual');
 
 function L(s,en,vi){return s?.language==='vi'?vi:en;}
 
@@ -37,7 +38,7 @@ async function buildStatsPage(guild,s){
     new ButtonBuilder().setCustomId('statscfg:refresh').setLabel(L(s,'Refresh','Làm mới')).setEmoji('🔄').setStyle(ButtonStyle.Secondary),
     new ButtonBuilder().setCustomId('statscfg:back').setLabel(L(s,'Back','Quay lại')).setEmoji('⬅️').setStyle(ButtonStyle.Secondary)
   );
-  return {embeds:[e],components:[row1,row2,row3]};
+  const v=await premiumPanelVisual(guild.id,e); return {embeds:[v.embed],components:[row1,row2,row3],files:v.files};
 }
 
 module.exports={buildStatsPage};

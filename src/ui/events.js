@@ -8,6 +8,8 @@ const { pick } = require('../services/i18n');
 const { getDraft } = require('../services/eventDraft');
 const Giveaway = require('../models/Giveaway');
 const Contest = require('../models/Contest');
+const { premiumPanelVisual } = require('../services/premiumVisual');
+async function panelPayload(guildId,e,components=[]){const x=await premiumPanelVisual(guildId,e);return {embeds:[x.embed],components,files:x.files};}
 
 function L(lang, en, vi) { return pick(lang, en, vi); }
 function v(x, fallback = '—') { return x === undefined || x === null || x === '' ? fallback : String(x); }
@@ -44,7 +46,7 @@ async function buildEventCenter(guild, s) {
     new ButtonBuilder().setCustomId('eventcfg:contest').setEmoji('🏆').setLabel(L(lang, 'Contest Builder', 'Tạo Contest')).setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId('eventcfg:active').setEmoji('📋').setLabel(L(lang, 'Active Events', 'Sự kiện đang chạy')).setStyle(ButtonStyle.Secondary)
   );
-  return { embeds: [e], components: [row, backSetup(lang)] };
+  return panelPayload(guild.id,e,[row, backSetup(lang)]);
 }
 
 async function buildGiveawayBuilder(guildId, lang) {
@@ -73,7 +75,7 @@ async function buildGiveawayBuilder(guildId, lang) {
     new ButtonBuilder().setCustomId('eventcfg:gw:publish').setEmoji('🚀').setLabel(L(lang, 'Publish', 'Phát hành')).setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId('eventcfg:gw:reset').setEmoji('🗑️').setLabel(L(lang, 'Reset Draft', 'Xóa bản nháp')).setStyle(ButtonStyle.Danger)
   );
-  return { embeds: [e], components: [controls, new ActionRowBuilder().addComponents(channel), new ActionRowBuilder().addComponents(role), actions, backEvents(lang)] };
+  return panelPayload(guildId,e,[controls, new ActionRowBuilder().addComponents(channel), new ActionRowBuilder().addComponents(role), actions, backEvents(lang)]);
 }
 
 function text(id, label, value = '', style = TextInputStyle.Short, required = true, max = 100) {
@@ -129,7 +131,7 @@ async function buildContestBuilder(guildId, lang) {
     new ButtonBuilder().setCustomId('eventcfg:ct:publish').setEmoji('🚀').setLabel(L(lang, 'Publish', 'Phát hành')).setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId('eventcfg:ct:reset').setEmoji('🗑️').setLabel(L(lang, 'Reset Draft', 'Xóa bản nháp')).setStyle(ButtonStyle.Danger)
   );
-  return { embeds: [e], components: [row1, row2, row3, backEvents(lang)] };
+  return panelPayload(guildId,e,[row1, row2, row3, backEvents(lang)]);
 }
 async function contestGeneralModal(guildId, lang) {
   const d = (await getDraft(guildId)).contest;
@@ -157,7 +159,7 @@ async function buildContestChannels(guildId, lang) {
     .addFields({ name: 'Event', value: d.eventChannelId ? `<#${d.eventChannelId}>` : '—', inline: true }, { name: 'Gallery', value: d.galleryChannelId ? `<#${d.galleryChannelId}>` : '—', inline: true }, { name: L(lang, 'Results', 'Kết quả'), value: d.resultChannelId ? `<#${d.resultChannelId}>` : '—', inline: true }, { name: L(lang, 'Required role', 'Role bắt buộc'), value: d.requiredRoleId ? `<@&${d.requiredRoleId}>` : L(lang, 'None', 'Không') });
   const picker = (id, ph) => new ActionRowBuilder().addComponents(new ChannelSelectMenuBuilder().setCustomId(id).setPlaceholder(ph).setMinValues(1).setMaxValues(1).setChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement));
   const role = new ActionRowBuilder().addComponents(new RoleSelectMenuBuilder().setCustomId('eventcfg:ct:role').setPlaceholder(L(lang, 'Required role (optional)', 'Role bắt buộc (tùy chọn)')).setMinValues(0).setMaxValues(1));
-  return { embeds: [e], components: [picker('eventcfg:ct:eventchannel', L(lang, 'Select Event channel', 'Chọn kênh Sự kiện')), picker('eventcfg:ct:gallerychannel', L(lang, 'Select Gallery channel', 'Chọn kênh Gallery')), picker('eventcfg:ct:resultchannel', L(lang, 'Select Result channel', 'Chọn kênh Kết quả')), role, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('eventcfg:contest').setEmoji('⬅️').setLabel(L(lang, 'Back to Contest Builder', 'Quay lại Contest Builder')).setStyle(ButtonStyle.Secondary))] };
+  return panelPayload(guildId,e,[picker('eventcfg:ct:eventchannel', L(lang, 'Select Event channel', 'Chọn kênh Sự kiện')), picker('eventcfg:ct:gallerychannel', L(lang, 'Select Gallery channel', 'Chọn kênh Gallery')), picker('eventcfg:ct:resultchannel', L(lang, 'Select Result channel', 'Chọn kênh Kết quả')), role, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('eventcfg:contest').setEmoji('⬅️').setLabel(L(lang, 'Back to Contest Builder', 'Quay lại Contest Builder')).setStyle(ButtonStyle.Secondary))]);
 }
 async function buildContestVisual(guildId, lang) {
   const d = (await getDraft(guildId)).contest;
@@ -167,7 +169,7 @@ async function buildContestVisual(guildId, lang) {
     new ButtonBuilder().setCustomId('eventcfg:ct:shape').setEmoji('📐').setLabel(d.bannerShape === '1:1' ? '1:1' : '16:9').setStyle(ButtonStyle.Secondary),
     new ButtonBuilder().setCustomId('eventcfg:contest').setEmoji('⬅️').setLabel(L(lang, 'Back', 'Quay lại')).setStyle(ButtonStyle.Secondary)
   );
-  return { embeds: [e], components: [row] };
+  return panelPayload(guildId,e,[row]);
 }
 async function buildActiveEvents(guildId, lang) {
   const [gs, cs] = await Promise.all([
@@ -177,7 +179,7 @@ async function buildActiveEvents(guildId, lang) {
   const gl = gs.length ? gs.map(g => '• **' + g.prize + '** • ' + g.status.toUpperCase() + ' • <#' + g.channelId + '> • `' + (g.messageId || '—') + '`').join('\n') : L(lang, 'No active Giveaway.', 'Không có Giveaway đang chạy.');
   const cl = cs.length ? cs.map(c => '• **' + c.title + '** • ' + c.status + ' • `' + (c.contestId || c.id) + '`').join('\n') : L(lang, 'No active Contest.', 'Không có Contest đang chạy.');
   const e = new EmbedBuilder().setColor(AMBER).setTitle(L(lang, '📋 Active Events', '📋 Sự kiện đang hoạt động')).addFields({ name: '🎁 Giveaway', value: gl.slice(0, 1024) }, { name: '🏆 Contest', value: cl.slice(0, 1024) }).setFooter({ text: 'Corgi Studio • Amber Event Center' });
-  return { embeds: [e], components: [backEvents(lang)] };
+  return panelPayload(guildId,e,[backEvents(lang)]);
 }
 
 function giveawayPreview(d, lang) {
