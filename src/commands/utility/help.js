@@ -19,6 +19,7 @@ function lines(lang, category) {
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Premium Server, VIP Profile, Redeem CD Key.',
       '🤖 `ai` — Corgi AI.',
+      '🧑‍💻 `developer` — CD Key tùy chỉnh, xác minh Profile và công cụ Developer.',
       '',
       '**Ký hiệu trong hướng dẫn**',
       '• `<...>` = bắt buộc nhập.',
@@ -42,6 +43,7 @@ function lines(lang, category) {
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Server Premium, VIP Profile, CD Key redemption.',
       '🤖 `ai` — Corgi AI.',
+      '🧑‍💻 `developer` — CD Key tùy chỉnh, xác minh Profile và công cụ Developer.',
       '',
       '**Guide notation**',
       '• `<...>` = required.',
@@ -60,7 +62,7 @@ function lines(lang, category) {
       '**Các mục chính trong `/setup`**',
       '• **Modules** — bật/tắt hệ thống.',
       '• **Channels** — Welcome, Leave, Logs, Stats, Ticket và **Global Mail**.',
-      '• **Server Stats** — cấu hình Stats.',
+      '• **Server Stats** — bật/tắt từng mục Stats riêng; có nút bật/tắt toàn bộ Free và Premium Stats.',
       '• **Events** — Giveaway / Contest Builder.',
       '• **Community Panels** — Welcome, Ticket, Reaction Role.',
       '• **Premium & Branding** — tùy chỉnh Premium.',
@@ -81,7 +83,7 @@ function lines(lang, category) {
       '**Main `/setup` pages**',
       '• **Modules** — enable/disable systems.',
       '• **Channels** — Welcome, Leave, Logs, Stats, Ticket and **Global Mail**.',
-      '• **Server Stats** — configure Stats.',
+      '• **Server Stats** — enable/disable each stat individually; bulk enable/disable Free and Premium Stats.',
       '• **Events** — Giveaway / Contest Builder.',
       '• **Community Panels** — Welcome, Ticket, Reaction Role.',
       '• **Premium & Branding** — Premium customization.',
@@ -106,6 +108,15 @@ function lines(lang, category) {
       '→ `weekly` = BXH tuần, `global` = BXH tổng EXP.',
       'Ví dụ: `/ranking type:global` hoặc `?rank global`.',
       '',
+      '**✅ Xác minh Profile**',
+      'Profile có thể được Developer xét duyệt theo từng giai đoạn.',
+      '• 🔵 Identity — định danh tài khoản thật.',
+      '• 🔴 Developer — tài khoản Developer.',
+      '• 🟡 Admin — quản trị chung.',
+      '• 🟣 Partner — đối tác Corgi-Bot.',
+      'Khi APPROVED, badge Application Emoji hiển thị nhỏ ngay cạnh tên Discord trên `/profile`.',
+      'Góc phải Profile dùng logo Corgi-Bot thường; server có Premium active sẽ tự đổi sang logo Corgi-Bot Premium.',
+      '',
       '**⭐ Lệnh nhanh Member**',
       '`/balance` • `?balance` / `?bal` — xem 🌟Cstar.',
       '`/daily` • `?daily` — nhận Daily.',
@@ -123,6 +134,15 @@ function lines(lang, category) {
       '`/ranking [type]` • `?ranking [weekly|global]` • alias `?rank`',
       '→ `weekly` = weekly ranking, `global` = all-time EXP.',
       'Example: `/ranking type:global` or `?rank global`.',
+      '',
+      '**✅ Profile Verification**',
+      'Profiles can be reviewed by a Developer through staged verification.',
+      '• 🔵 Identity — real-account identity verification.',
+      '• 🔴 Developer — Developer account.',
+      '• 🟡 Admin — general administration.',
+      '• 🟣 Partner — Corgi-Bot partner.',
+      'When APPROVED, the Application Emoji badge appears inline next to the Discord name on `/profile`.',
+      'The Profile thumbnail uses the normal Corgi-Bot logo; an active Premium server automatically uses the Premium logo.',
       '',
       '**⭐ Common member commands**',
       '`/balance` • `?balance` / `?bal` — view 🌟Cstar.',
@@ -150,7 +170,8 @@ function lines(lang, category) {
       '**CD Key**',
       '`/redeem` • `?redeem` — mở Panel Redeem CD Key.',
       'Nhấn **🔑 Nhập CD Key** → nhập key trong Modal riêng → xác nhận.',
-      'CD Key không cần gõ trực tiếp vào kênh chat.'
+      'CD Key không cần gõ trực tiếp vào kênh chat.',
+      'Developer có thể tạo key tên tùy chỉnh như `Corgi2026`, `CorgiTanThu` hoặc để bot tạo key tự động.'
     ] : [
       '**⭐ 🌟Cstar Economy**',
       '`/balance` • `?balance` / `?bal` — global wallet balance.',
@@ -167,7 +188,8 @@ function lines(lang, category) {
       '**CD Key**',
       '`/redeem` • `?redeem` — open the CD Key Redeem panel.',
       'Press **🔑 Enter CD Key** → enter the key in the private modal → confirm.',
-      'The CD Key does not need to be typed directly into chat.'
+      'The CD Key does not need to be typed directly into chat.',
+      'Developers can create custom key names such as `Corgi2026`, `CorgiTanThu`, or let the bot generate a key automatically.'
     ],
 
     games: vi ? [
@@ -255,6 +277,8 @@ function lines(lang, category) {
       '**🎫 Ticket / 📊 Stats**',
       '`/ticket panel` — đăng panel tạo Ticket.',
       '`/stats` — tạo/sửa Stats Board.',
+      'Trong Stats Config có thể bật/tắt riêng từng mục: Members, Humans, Bots, Roles và các Premium Stats nếu server đủ quyền.',
+      'Có nút **Bật tất cả / Tắt tất cả** để dọn các Stats không sử dụng.',
       'Hai lệnh này hiện dùng Slash.'
     ] : [
       '**🧡 Giveaway**',
@@ -283,6 +307,8 @@ function lines(lang, category) {
       '**🎫 Ticket / 📊 Stats**',
       '`/ticket panel` — post Ticket panel.',
       '`/stats` — create/repair Stats Board.',
+      'Stats Config can toggle Members, Humans, Bots, Roles and unlocked Premium Stats individually.',
+      'Bulk **Enable All / Disable All** controls are available for unused stats.',
       'These currently use Slash.'
     ],
 
@@ -334,6 +360,7 @@ function lines(lang, category) {
       '`/premium benefits` — quyền lợi/tier.',
       '`/premium history` — lịch sử Premium gần đây.',
       '`?premium` — xem nhanh trạng thái.',
+      'Discord Store hiện bán **Corgi Premium Standard** theo Guild Subscription; CD Key/manual Premium vẫn hoạt động song song.',
       '',
       '**🎟️ Redeem CD Key**',
       '`/redeem` • `?redeem` — mở Panel → nhấn **🔑 Nhập CD Key** → nhập key trong Modal riêng.',
@@ -352,6 +379,7 @@ function lines(lang, category) {
       '`/premium benefits` — benefits/tier information.',
       '`/premium history` — recent Premium activity.',
       '`?premium` — quick status.',
+      'Discord Store currently provides **Corgi Premium Standard** as a Guild Subscription; CD Key/manual Premium continues to work alongside it.',
       '',
       '**🎟️ Redeem CD Key**',
       '`/redeem` • `?redeem` — open Panel → press **🔑 Enter CD Key** → enter the key privately.',
@@ -364,6 +392,46 @@ function lines(lang, category) {
       '🌟Cstar purchases last 30 days.',
       '',
       'Note: **Server Premium** and **personal VIP Profile** are separate systems.'
+    ],
+
+    developer: vi ? [
+      '**🧑‍💻 Developer Control — chỉ Developer**',
+      '`/dev` — mở Developer Control Center.',
+      '',
+      '**🔑 Custom CD Key**',
+      'Developer có thể tạo CD Key với tên tự chọn hoặc để trống để bot tạo tự động.',
+      'Ví dụ key tùy chỉnh: `Corgi2026`, `CorgiTanThu`.',
+      'Loại phần thưởng hiện hỗ trợ: 🌟Cstar, Server Premium và VIP Profile.',
+      'Có thể đặt số lượt dùng, thời hạn key và tắt key khi cần.',
+      '',
+      '**✅ Profile Verification**',
+      'Vào `/dev` → **Profile Verification** → Review / Update Verification.',
+      'Các trạng thái: `PENDING`, `REVIEW`, `APPROVE`, `REJECT`, `REVOKE`.',
+      'Loại badge: `IDENTITY` 🔵, `DEVELOPER` 🔴, `ADMIN` 🟡, `PARTNER` 🟣.',
+      'Chỉ badge được APPROVE mới hiển thị công khai, nằm ngay cạnh tên Discord trên Profile.',
+      'Thumbnail Profile luôn dành cho logo Corgi-Bot; Premium active sẽ dùng logo Premium.',
+      '',
+      '**Lưu ý**',
+      'Các công cụ Developer được khóa theo Developer allowlist; member/admin server bình thường không dùng được.'
+    ] : [
+      '**🧑‍💻 Developer Control — Developer only**',
+      '`/dev` — open the Developer Control Center.',
+      '',
+      '**🔑 Custom CD Keys**',
+      'Developers can choose a custom key name or leave it blank for automatic generation.',
+      'Examples: `Corgi2026`, `CorgiTanThu`.',
+      'Current reward types include 🌟Cstar, Server Premium and VIP Profile.',
+      'Maximum uses, expiry and key disabling are supported.',
+      '',
+      '**✅ Profile Verification**',
+      'Open `/dev` → **Profile Verification** → Review / Update Verification.',
+      'Statuses: `PENDING`, `REVIEW`, `APPROVE`, `REJECT`, `REVOKE`.',
+      'Badge types: `IDENTITY` 🔵, `DEVELOPER` 🔴, `ADMIN` 🟡, `PARTNER` 🟣.',
+      'Only APPROVED badges are shown publicly, inline next to the Discord name on the Profile.',
+      'The Profile thumbnail is reserved for Corgi-Bot branding; active Premium uses the Premium logo.',
+      '',
+      '**Note**',
+      'Developer controls are protected by the Developer allowlist and are not available to normal members/server admins.'
     ],
 
     ai: vi ? [
@@ -404,6 +472,7 @@ function title(lang, category) {
     community: vi ? '🧡 Hướng dẫn Community' : '🧡 Community Guide',
     moderation: vi ? '🛡️ Hướng dẫn Moderation' : '🛡️ Moderation Guide',
     premium: vi ? '💎 Hướng dẫn Premium & VIP' : '💎 Premium & VIP Guide',
+    developer: vi ? '🧑‍💻 Hướng dẫn Developer' : '🧑‍💻 Developer Guide',
     ai: '🤖 Corgi AI • FREE'
   };
   return map[category] || map.all;
@@ -427,6 +496,7 @@ const choices = [
   ['Community','Cộng đồng','community'],
   ['Moderation','Kiểm duyệt','moderation'],
   ['Premium & VIP','Premium & VIP','premium'],
+  ['Developer','Developer','developer'],
   ['AI','AI','ai']
 ];
 
@@ -450,7 +520,7 @@ module.exports = {
   },
   async executePrefix(m,args) {
     const lang = await guildLang(m.guildId);
-    const aliases = { commands:'all', command:'all', config:'setup', profile:'member', cstar:'economy', game:'games', event:'community', admin:'moderation', mod:'moderation', vip:'premium' };
+    const aliases = { commands:'all', command:'all', config:'setup', profile:'member', cstar:'economy', game:'games', event:'community', admin:'moderation', mod:'moderation', vip:'premium', dev:'developer', developer:'developer' };
     const raw = String(args[0] || 'all').toLowerCase();
     const category = aliases[raw] || raw;
     return m.reply({ embeds:[embedFor(lang,category)] });
