@@ -458,6 +458,8 @@ function lines(lang, category) {
       '`?ai giúp mình viết thông báo sự kiện gaming`',
       '',
       'Corgi AI có thể hỗ trợ kiến thức chung, code, Discord, viết nội dung, gaming, ý tưởng và hướng dẫn dùng bot.',
+      '💬 Khi tán gẫu, AI hiểu slang/từ tục theo đúng ngữ cảnh, có thể cà khịa hoặc đáp lại hơi “láo” khi đang đùa; không tự đổi nghĩa các từ như `cút` thành từ khác.',
+      '🧠 Khi hỏi code, lỗi bot, hướng dẫn, Moderation, Premium, bảo mật hoặc nội dung cần độ chính xác, AI tự giảm độ “láo” và ưu tiên câu trả lời rõ ràng/chính xác.',
       'Ngôn ngữ phản hồi theo cấu hình `/setup → Language` của server.'
     ] : [
       '**🤖 Corgi AI — Free**',
@@ -469,6 +471,8 @@ function lines(lang, category) {
       '`?ai help me write a gaming event announcement`',
       '',
       'Corgi AI can help with general knowledge, coding, Discord, writing, gaming, ideas and bot usage.',
+      '💬 In casual chat, AI understands slang/profanity as written and may use light swearing, teasing or playful clapbacks when the context invites it.',
+      '🧠 For coding, troubleshooting, moderation, Premium, security or accuracy-sensitive help, AI turns the chaos down and prioritizes clear, correct answers.',
       'Response language follows the server `/setup → Language` setting.'
     ]
   };
