@@ -1,0 +1,7 @@
+V4.19.3 Corgi AI Casual Banter Hotfix
+- Vietnamese casual chat understands profanity/slang literally; no cút -> cứu sanitizing.
+- Allows context-appropriate light profanity, teasing and playful clapbacks.
+- Does not force profanity into every reply.
+- Technical/serious/accuracy-sensitive topics remain clear and competent.
+- English gets equivalent slang/profanity-aware casual behavior.
+- /help and ?help AI documentation updated.
