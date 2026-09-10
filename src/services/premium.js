@@ -3,6 +3,7 @@ const Premium = require('../models/Premium');
 const PremiumAudit = require('../models/PremiumAudit');
 const GuildSettings = require('../models/GuildSettings');
 const { sendDeveloperLog } = require('./developerLog');
+const { getTopggReviewPremium } = require('./topggReview');
 const DURATIONS = {'7d':7,'14d':14,'21d':21,'30d':30,'1y':365,'2y':730,'5y':1825,'10y':3650};
 const PREMIUM_COMMANDS = new Set();
 const PREMIUM_MODULES = new Set();
@@ -41,6 +42,10 @@ async function grantPremium(guildId, userId, duration, meta = {}) {
 
 async function getActivePremium(guildId) {
   guildId = String(guildId);
+  // Top.gg Verification Center receives temporary Premium review access only.
+  // This is intentionally isolated from Developer permissions and does not write to MongoDB.
+  const review = getTopggReviewPremium(guildId);
+  if (review) return review;
   const manual = await Premium.findOne({ guildId, expiresAt: { $gt: new Date() } }).sort({ expiresAt: -1 });
   if (manual) return manual;
   const { getActiveStoreEntitlement } = require('./discordStorePremium');
@@ -55,7 +60,7 @@ async function getPremiumStatus(guildId) {
   if (active) {
     const store = active.source === 'discord_store';
     const remainingMs = active.expiresAt ? Math.max(0, new Date(active.expiresAt).getTime() - Date.now()) : null;
-    return { active: true, record: active, remainingMs, source: store ? 'discord_store' : 'manual' };
+    return { active: true, record: active, remainingMs, source: active.source === 'topgg_review' ? 'topgg_review' : (store ? 'discord_store' : 'manual') };
   }
   const row = await Premium.findOne({ guildId }).sort({ expiresAt: -1 }).lean();
   if (row) return { active: false, record: row, remainingMs: 0, source: 'manual' };
@@ -93,7 +98,7 @@ async function applyPremiumBranding(guild) {
   await removeLegacyCorgiGuildEmojis(guild).catch(e => console.warn('Legacy Premium guild emoji cleanup:', e.message));
 }
 
-async function premiumMultiplier(guildId){const p=await getActivePremium(guildId);return p?TIER_MULTIPLIER[p.tier||'STANDARD']||1:1;}
+async function premiumMultiplier(guildId){const p=await getActivePremium(guildId);if(!p)return 1;if(p.source==='topgg_review')return 1;return TIER_MULTIPLIER[p.tier||'STANDARD']||1;}
 async function syncSupportEntitlement(client,userId,tier,expiresAt,premiumDoc=null){
   if(!client||!process.env.CORGI_SUPPORT_GUILD_ID)return {ok:false};
   const eligible=['STAR','PLUS','PRO','ULTRA'].includes(String(tier||'STANDARD').toUpperCase())&&new Date(expiresAt)>new Date();
