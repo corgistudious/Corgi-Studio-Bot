@@ -54,13 +54,14 @@ module.exports={name:Events.InteractionCreate,async execute(i){
     const existing=await Ticket.findOne({guildId:i.guildId,ownerId:i.user.id,status:{$in:['open','reopened']}}).lean();
     if(existing){const x=await i.guild.channels.fetch(existing.channelId).catch(()=>null);if(x)return i.reply({content:pick(s.language,`You already have an open ticket: ${x}`,`Bạn đã có một Ticket đang mở: ${x}`),flags:64});}
     const last=await Ticket.findOne({guildId:i.guildId}).sort({ticketNo:-1}).lean(),no=(last?.ticketNo||0)+1;
+    const staffRoleId=type.staffRoleId||c.ticket.staffRoleId||null;
     const perms=[{id:i.guild.roles.everyone.id,deny:[PermissionFlagsBits.ViewChannel]},{id:i.user.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles]},{id:i.guild.members.me.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ManageChannels,PermissionFlagsBits.ReadMessageHistory]}];
-    if(type.staffRoleId)perms.push({id:type.staffRoleId,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory]});
+    if(staffRoleId)perms.push({id:staffRoleId,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles]});
     const ch=await i.guild.channels.create({name:`${type.prefix||'TKT'}-${String(no).padStart(6,'0')}`,type:ChannelType.GuildText,parent:type.categoryId||s.channels?.ticketCategory||null,permissionOverwrites:perms});
     await Ticket.create({guildId:i.guildId,channelId:ch.id,ownerId:i.user.id,ticketNo:no,typeKey:type.key,typeName:type.name});
     const e=new EmbedBuilder().setColor(0xF59E0B).setTitle(`${type.emoji||'🎫'} ${type.name} • #${String(no).padStart(6,'0')}`).setDescription(`Owner: ${i.user}\nType: **${type.name}**\n\n${pick(s.language,'Please describe your request clearly.','Hãy mô tả yêu cầu của bạn thật rõ ràng.')}`).setTimestamp();
     const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('ticket:close').setLabel(pick(s.language,'Close','Đóng')).setEmoji('🔒').setStyle(ButtonStyle.Danger));
-    await ch.send({content:`${i.user}${type.staffRoleId?` <@&${type.staffRoleId}>`:''}`,embeds:[e],components:[row]});
+    await ch.send({content:`${i.user}${staffRoleId?` <@&${staffRoleId}>`:''}`,embeds:[e],components:[row],allowedMentions:{users:[i.user.id],roles:staffRoleId?[staffRoleId]:[]}});
     return i.reply({content:pick(s.language,`✅ Ticket created: ${ch}`,`✅ Đã tạo Ticket: ${ch}`),flags:64});
   }
 
@@ -68,6 +69,14 @@ module.exports={name:Events.InteractionCreate,async execute(i){
 
   if(i.isButton()&&p[1]==='home')return i.update(await CUI.home(i.guildId,s));
   if(i.isButton()&&['welcome','ticket','reaction'].includes(p[1])&&!p[2])return i.update(await CUI.page(i.guildId,p[1],s,c));
+
+  if(i.isButton()&&i.customId==='community:ticket:staff')return i.reply({content:pick(s.language,'Choose the Staff Role that should be added and mentioned when a ticket opens:','Chọn Role Staff sẽ được thêm vào Ticket và được tag khi Ticket mở:'),components:[CUI.ticketStaffRolePicker(s)],flags:64});
+  if(i.isRoleSelectMenu()&&i.customId==='community:ticket:staffpick'){
+    const role=await i.guild.roles.fetch(i.values[0]).catch(()=>null);
+    if(!role||role.id===i.guild.roles.everyone.id)return i.reply({content:pick(s.language,'❌ Please choose a normal Staff Role, not @everyone.','❌ Hãy chọn Role Staff bình thường, không chọn @everyone.'),flags:64});
+    await CommunityPanel.updateOne({guildId:i.guildId},{$set:{'ticket.staffRoleId':role.id}});
+    return i.update({content:pick(s.language,`✅ Staff Role set to ${role}. Members do not need this role to open tickets; it is only added and mentioned for Staff.`,`✅ Đã đặt Role Staff là ${role}. Member không cần Role này để mở Ticket; Role chỉ được thêm và tag cho Staff.`),components:[]});
+  }
 
   if(i.isButton()&&p[2]==='edit'){
     if(p[1]==='welcome')return i.showModal(CUI.modal('welcome',c,s));
