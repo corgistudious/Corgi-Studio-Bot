@@ -20,7 +20,7 @@ const schema=new Schema({
     thumbnailMode:{type:String,enum:['server','member','custom','none'],default:'server'},thumbnailUrl:String,imageUrl:String,footer:String,color:{type:String,default:'#F59E0B'}
   },
   ticket:{
-    panelChannelId:String,title:String,description:String,thumbnailUrl:String,imageUrl:String,footer:String,
+    panelChannelId:String,title:String,description:String,thumbnailUrl:String,imageUrl:String,footer:String,staffRoleId:String,
     types:{type:[typeSchema],default:()=>[
       {key:'support',name:'General Support',emoji:'🛟',description:'General help and questions',prefix:'SUP'},
       {key:'bug',name:'Bug Report',emoji:'🐛',description:'Report a bot/server issue',prefix:'BUG'},
