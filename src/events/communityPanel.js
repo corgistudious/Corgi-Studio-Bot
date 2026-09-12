@@ -47,7 +47,8 @@ async function publishReaction(i,c,s){
 
 module.exports={name:Events.InteractionCreate,async execute(i){
   if(!i.customId?.startsWith('community:'))return;
-  const s=await getGuildSettings(i.guildId),c=await CUI.cfg(i.guildId),p=i.customId.split(':');
+  const p=i.customId.split(':');
+    const [s,c]=await Promise.all([getGuildSettings(i.guildId),CUI.cfg(i.guildId)]);
 
   if(i.isStringSelectMenu()&&i.customId==='community:ticket:create'){
     const type=c.ticket.types.find(x=>x.key===i.values[0]&&x.enabled);if(!type)return i.reply({content:pick(s.language,'❌ Ticket type unavailable.','❌ Loại Ticket không khả dụng.'),flags:64});
