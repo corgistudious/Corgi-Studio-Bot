@@ -1,6 +1,7 @@
 const {
   EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,ModalBuilder,TextInputBuilder,TextInputStyle,
-  RoleSelectMenuBuilder,StringSelectMenuBuilder,ChannelSelectMenuBuilder,ChannelType
+  RoleSelectMenuBuilder,StringSelectMenuBuilder,ChannelSelectMenuBuilder,ChannelType,
+  FileUploadBuilder,LabelBuilder
 }=require('discord.js');
 const CommunityPanel=require('../models/CommunityPanel');
 const {premiumPanelVisual}=require('../services/premiumVisual');
@@ -18,7 +19,20 @@ if(kind==='ticket')rows.push(new ActionRowBuilder().addComponents(new ButtonBuil
 if(kind==='reaction')rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('community:reaction:add').setLabel(L(s,'Add Emoji → Role','Thêm Emoji → Role')).setEmoji('➕').setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId('community:reaction:remove').setLabel(L(s,'Remove Mapping','Xóa liên kết')).setEmoji('➖').setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId('community:reaction:channel').setLabel(L(s,'Set Channel','Chọn kênh')).setEmoji('📡').setStyle(ButtonStyle.Secondary)));
 rows.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('community:home').setLabel(L(s,'Back','Quay lại')).setStyle(ButtonStyle.Secondary)));
 const v=await premiumPanelVisual(guildId,e);return {embeds:[v.embed],components:rows,files:v.files};}
-function modal(kind,c,s={language:'en'}){const m=new ModalBuilder().setCustomId(`community:modal:${kind}`).setTitle(kind==='reaction'?L(s,'Reaction Role Builder','Reaction Role Builder'):`${kind} Builder`);const vals=kind==='welcome'?c.welcome:kind==='leave'?c.leave:c[kind]||{};for(const [id,en,vi,style,max] of [['title','Title','Tiêu đề',TextInputStyle.Short,100],['description','Description / message','Mô tả / nội dung',TextInputStyle.Paragraph,1000],['thumbnailUrl','Thumbnail URL (optional)','URL Thumbnail (tùy chọn)',TextInputStyle.Short,500],['imageUrl','Large image URL (optional)','URL ảnh lớn (tùy chọn)',TextInputStyle.Short,500],['footer','Footer (optional)','Footer (tùy chọn)',TextInputStyle.Short,200]]){const x=new TextInputBuilder().setCustomId(id).setLabel(L(s,en,vi)).setStyle(style).setRequired(id==='title'||id==='description').setMaxLength(max);if(vals?.[id])x.setValue(vals[id]);m.addComponents(new ActionRowBuilder().addComponents(x));}return m;}
+function modal(kind,c,s={language:'en'}){
+  const m=new ModalBuilder().setCustomId(`community:modal:${kind}`).setTitle(kind==='reaction'?L(s,'Reaction Role Builder','Reaction Role Builder'):`${kind} Builder`);
+  const vals=kind==='welcome'?c.welcome:kind==='leave'?c.leave:c[kind]||{};
+  for(const [id,en,vi,style,max] of [['title','Title','Tiêu đề',TextInputStyle.Short,100],['description','Description / message','Mô tả / nội dung',TextInputStyle.Paragraph,1000],['footer','Footer (optional)','Footer (tùy chọn)',TextInputStyle.Short,200]]){
+    const x=new TextInputBuilder().setCustomId(id).setLabel(L(s,en,vi)).setStyle(style).setRequired(id==='title'||id==='description').setMaxLength(max);
+    if(vals?.[id])x.setValue(vals[id]);
+    m.addComponents(new ActionRowBuilder().addComponents(x));
+  }
+  m.addComponents(
+    new LabelBuilder().setLabel(L(s,'Thumbnail image (optional)','Ảnh thumbnail (tùy chọn)')).setDescription(L(s,'Upload a replacement image. Leave empty to keep the current one.','Đính kèm ảnh mới để thay thế. Để trống để giữ ảnh hiện tại.')).setFileUploadComponent(new FileUploadBuilder().setCustomId('thumbnailFile').setRequired(false).setMinValues(0).setMaxValues(1)),
+    new LabelBuilder().setLabel(L(s,'Large image (optional)','Ảnh lớn (tùy chọn)')).setDescription(L(s,'Upload a replacement image. Leave empty to keep the current one.','Đính kèm ảnh mới để thay thế. Để trống để giữ ảnh hiện tại.')).setFileUploadComponent(new FileUploadBuilder().setCustomId('imageFile').setRequired(false).setMinValues(0).setMaxValues(1))
+  );
+  return m;
+}
 function ticketStaffRolePicker(s){return new ActionRowBuilder().addComponents(new RoleSelectMenuBuilder().setCustomId('community:ticket:staffpick').setPlaceholder(L(s,'Choose the Staff Role','Chọn Role Staff')).setMinValues(1).setMaxValues(1));}
 function reactionRolePicker(s){return new ActionRowBuilder().addComponents(new RoleSelectMenuBuilder().setCustomId('community:reaction:rolepick').setPlaceholder(L(s,'Choose the role to grant','Chọn Role sẽ được cấp')).setMinValues(1).setMaxValues(1));}
 function reactionEmojiModal(roleId,s){const input=new TextInputBuilder().setCustomId('emoji').setLabel(L(s,'Emoji (Unicode or custom emoji)','Emoji (Unicode hoặc custom emoji)')).setPlaceholder('🎮  or  <:corgi:123456789012345678>').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(100);return new ModalBuilder().setCustomId(`community:reaction:emoji:${roleId}`).setTitle(L(s,'Add Reaction Role','Thêm Reaction Role')).addComponents(new ActionRowBuilder().addComponents(input));}

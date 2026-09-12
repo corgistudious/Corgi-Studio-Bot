@@ -7,16 +7,19 @@ const {ensureWallet,walletFilter}=require('./economyWallet');
 const {getGuildSettings}=require('./guildSettings');
 const {pick}=require('./i18n');
 
-function validHttps(v){if(!v)return '';try{const u=new URL(v);if(u.protocol!=='https:')throw 0;return v;}catch{throw new Error('Image URL must be HTTPS.');}}
 async function createDraft({actorId,title,titleEn,bodyEn,titleVi,bodyVi,imageUrl,cstarAmount,expiresDays}){
   titleEn=String(titleEn||title||'').trim();bodyEn=String(bodyEn||'').trim();titleVi=String(titleVi||'').trim();bodyVi=String(bodyVi||'').trim();
   if(!titleEn||!bodyEn||!titleVi||!bodyVi)throw new Error('Both English and Vietnamese title/message are required.');
   const amount=Math.max(0,Math.min(1e12,Math.floor(Number(cstarAmount)||0)));const days=Math.max(0,Math.min(3650,Math.floor(Number(expiresDays)||0)));
   await GlobalMail.updateMany({createdBy:String(actorId),status:'DRAFT'},{$set:{status:'CANCELLED'}});
-  return GlobalMail.create({createdBy:String(actorId),title:titleEn,body:bodyEn,titleEn,bodyEn,titleVi,bodyVi,imageUrl:validHttps(String(imageUrl||'').trim()),cstarAmount:amount,expiresAt:days?new Date(Date.now()+days*86400000):undefined});
+  return GlobalMail.create({createdBy:String(actorId),title:titleEn,body:bodyEn,titleEn,bodyEn,titleVi,bodyVi,imageUrl:String(imageUrl||'').trim(),cstarAmount:amount,expiresAt:days?new Date(Date.now()+days*86400000):undefined});
 }
 async function latestDraft(actorId){return GlobalMail.findOne({createdBy:String(actorId),status:'DRAFT'}).sort({createdAt:-1});}
 async function latest(limit=8){return GlobalMail.find({status:'PUBLISHED'}).sort({publishedAt:-1}).limit(limit).lean();}
+async function setDraftImage(actorId,imageUrl){
+  const draft=await latestDraft(actorId);if(!draft)throw new Error('No active draft.');
+  draft.imageUrl=String(imageUrl||'').trim();await draft.save();return draft;
+}
 function localizedContent(mail,lang='en'){
   const vi=lang==='vi';
   return {title:String((vi?mail.titleVi:mail.titleEn)||mail.title||'Global Mail'),body:String((vi?mail.bodyVi:mail.bodyEn)||mail.body||'')};
@@ -63,4 +66,4 @@ async function claim(mailId,userId){
   return {mail,wallet};
 }
 async function stats(mailId){const [deliveries,claims]=await Promise.all([Delivery.find({mailId}).lean(),Claim.countDocuments({mailId})]);return{deliveries,claims};}
-module.exports={createDraft,latestDraft,latest,localizedContent,messagePayload,publish,cancelDraft,claim,stats};
+module.exports={createDraft,latestDraft,latest,setDraftImage,localizedContent,messagePayload,publish,cancelDraft,claim,stats};

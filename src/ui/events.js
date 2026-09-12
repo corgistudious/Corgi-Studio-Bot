@@ -1,7 +1,7 @@
 const {
   EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   ChannelSelectMenuBuilder, RoleSelectMenuBuilder, ChannelType,
-  ModalBuilder, TextInputBuilder, TextInputStyle
+  ModalBuilder, TextInputBuilder, TextInputStyle, FileUploadBuilder, LabelBuilder
 } = require('discord.js');
 const { AMBER } = require('./theme');
 const { pick } = require('../services/i18n');
@@ -82,6 +82,12 @@ function text(id, label, value = '', style = TextInputStyle.Short, required = tr
   const t = new TextInputBuilder().setCustomId(id).setLabel(label).setStyle(style).setRequired(required).setMaxLength(max);
   if (value !== undefined && value !== null && String(value).length) t.setValue(String(value).slice(0, max));
   return new ActionRowBuilder().addComponents(t);
+}
+function imageUploadModal(kind, lang) {
+  const giveaway=kind==='giveaway';
+  return new ModalBuilder().setCustomId(giveaway?'eventcfg:gwmodal:image':'eventcfg:ctmodal:image').setTitle(L(lang,giveaway?'Giveaway • Image':'Contest • Banner',giveaway?'Giveaway • Ảnh':'Contest • Banner')).addComponents(
+    new LabelBuilder().setLabel(L(lang,giveaway?'Attach giveaway image':'Attach contest banner',giveaway?'Đính kèm ảnh Giveaway':'Đính kèm banner Contest')).setDescription(L(lang,'Choose one image file directly from Discord.','Chọn trực tiếp một tệp ảnh từ Discord.')).setFileUploadComponent(new FileUploadBuilder().setCustomId('imageFile').setRequired(true).setMinValues(1).setMaxValues(1))
+  );
 }
 async function giveawayGeneralModal(guildId, lang) {
   const d = (await getDraft(guildId)).giveaway;
@@ -203,7 +209,7 @@ function contestPreview(d, lang) {
 }
 
 module.exports = {
-  buildEventCenter, buildGiveawayBuilder, giveawayGeneralModal, giveawayReqModal,
+  buildEventCenter, buildGiveawayBuilder, giveawayGeneralModal, giveawayReqModal, imageUploadModal,
   buildContestBuilder, contestGeneralModal, contestRulesModal, buildContestChannels,
   buildContestVisual, buildActiveEvents, giveawayPreview, contestPreview
 };

@@ -27,23 +27,15 @@ async function refreshModal(i, payload, fallback) {
   if (typeof i.isFromMessage === 'function' && i.isFromMessage()) return i.update(payload);
   return i.reply({ content: fallback, flags: 64 });
 }
-async function captureImage(i, kind, lang) {
+async function saveUploadedImage(i, kind, lang) {
   const draft = await getDraft(i.guildId);
   const shape = kind === 'giveaway' ? draft.giveaway.imageShape : draft.contest.bannerShape;
-  await i.reply({ content: pick(lang, `📤 Send **one image** in this channel within 60 seconds. Preferred ratio: **${shape}**. The bot will capture its Discord CDN URL for this draft.`, `📤 Gửi **1 ảnh** trong kênh này trong vòng 60 giây. Tỷ lệ mong muốn: **${shape}**. Bot sẽ lấy URL Discord CDN cho bản nháp.`), flags: 64 });
-  if (!i.channel?.awaitMessages) return i.editReply(pick(lang, 'This channel cannot accept an image upload.', 'Kênh này không thể nhận ảnh tải lên.'));
-  const collected = await i.channel.awaitMessages({ filter: m => m.author.id === i.user.id && m.attachments.size > 0, max: 1, time: 60000, errors: [] });
-  const msg = collected.first();
-  if (!msg) return i.editReply(pick(lang, '⌛ Upload timed out. Nothing changed.', '⌛ Hết thời gian tải ảnh. Không có thay đổi.'));
-  const att = msg.attachments.first();
-  if (!(att?.contentType || '').startsWith('image/')) return i.editReply(pick(lang, '❌ The uploaded file is not an image.', '❌ File đã gửi không phải ảnh.'));
-  if (!ratioOk(att, shape)) return i.editReply(pick(lang, `❌ Image is ${att.width}×${att.height}. Please use an image close to ${shape}.`, `❌ Ảnh là ${att.width}×${att.height}. Hãy dùng ảnh gần tỷ lệ ${shape}.`));
+  const att = i.fields.getUploadedFiles('imageFile', true)?.first();
+  if (!att || !(att.contentType || '').startsWith('image/')) return i.reply({ content: pick(lang, '❌ The uploaded file is not an image.', '❌ Tệp đã tải lên không phải ảnh.'), flags: 64 });
+  if (!ratioOk(att, shape)) return i.reply({ content: pick(lang, `❌ Image is ${att.width}×${att.height}. Please use an image close to ${shape}.`, `❌ Ảnh là ${att.width}×${att.height}. Hãy dùng ảnh gần tỷ lệ ${shape}.`), flags: 64 });
   if (kind === 'giveaway') await patchDraft(i.guildId, 'giveaway', { imageUrl: att.url });
   else await patchDraft(i.guildId, 'contest', { bannerUrl: att.url });
-  await msg.delete().catch(() => {});
-  await i.editReply(pick(lang, '✅ Image saved to the draft.', '✅ Đã lưu ảnh vào bản nháp.'));
-  const payload = kind === 'giveaway' ? await UI.buildGiveawayBuilder(i.guildId, lang) : await UI.buildContestVisual(i.guildId, lang);
-  await i.message.edit(payload).catch(() => {});
+  return i.reply({ content: pick(lang, '✅ Image attached directly to the draft.', '✅ Đã đính kèm ảnh trực tiếp vào bản nháp.'), flags: 64 });
 }
 async function publishGiveaway(i, lang) {
   const s = await getGuildSettings(i.guildId), d = (await getDraft(i.guildId)).giveaway;
@@ -79,7 +71,7 @@ async function handle(i, client) {
     if (id === 'eventcfg:active') return i.update(await UI.buildActiveEvents(i.guildId, lang));
     if (id === 'eventcfg:gw:general') return i.showModal(await UI.giveawayGeneralModal(i.guildId, lang));
     if (id === 'eventcfg:gw:req') return i.showModal(await UI.giveawayReqModal(i.guildId, lang));
-    if (id === 'eventcfg:gw:image') return captureImage(i, 'giveaway', lang);
+    if (id === 'eventcfg:gw:image') return i.showModal(UI.imageUploadModal('giveaway', lang));
     if (id === 'eventcfg:gw:shape') { const d = (await getDraft(i.guildId)).giveaway; await patchDraft(i.guildId, 'giveaway', { imageShape: d.imageShape === '1:1' ? '16:9' : '1:1' }); return i.update(await UI.buildGiveawayBuilder(i.guildId, lang)); }
     if (id === 'eventcfg:gw:preview') { const d = (await getDraft(i.guildId)).giveaway; return i.reply({ embeds: [UI.giveawayPreview(d, lang)], flags: 64 }); }
     if (id === 'eventcfg:gw:publish') return publishGiveaway(i, lang);
@@ -88,7 +80,7 @@ async function handle(i, client) {
     if (id === 'eventcfg:ct:rules') return i.showModal(await UI.contestRulesModal(i.guildId, lang));
     if (id === 'eventcfg:ct:channels') return i.update(await UI.buildContestChannels(i.guildId, lang));
     if (id === 'eventcfg:ct:visual') return i.update(await UI.buildContestVisual(i.guildId, lang));
-    if (id === 'eventcfg:ct:image') return captureImage(i, 'contest', lang);
+    if (id === 'eventcfg:ct:image') return i.showModal(UI.imageUploadModal('contest', lang));
     if (id === 'eventcfg:ct:shape') { const d = (await getDraft(i.guildId)).contest; await patchDraft(i.guildId, 'contest', { bannerShape: d.bannerShape === '1:1' ? '16:9' : '1:1' }); return i.update(await UI.buildContestVisual(i.guildId, lang)); }
     if (id === 'eventcfg:ct:selfvote' || id === 'eventcfg:ct:review' || id === 'eventcfg:ct:hidevotes') { const d = (await getDraft(i.guildId)).contest; const key = id.endsWith('selfvote') ? 'allowSelfVote' : id.endsWith('review') ? 'reviewRequired' : 'hideVoteCount'; await patchDraft(i.guildId, 'contest', { [key]: !d[key] }); return i.update(await UI.buildContestBuilder(i.guildId, lang)); }
     if (id === 'eventcfg:ct:preview') { const d = (await getDraft(i.guildId)).contest; return i.reply({ embeds: [UI.contestPreview(d, lang)], flags: 64 }); }
@@ -105,6 +97,8 @@ async function handle(i, client) {
     if (id === 'eventcfg:ct:role') { await patchDraft(i.guildId, 'contest', { requiredRoleId: i.values[0] || '' }); return i.update(await UI.buildContestChannels(i.guildId, lang)); }
   }
   if (i.isModalSubmit()) {
+    if (id === 'eventcfg:gwmodal:image') return saveUploadedImage(i, 'giveaway', lang);
+    if (id === 'eventcfg:ctmodal:image') return saveUploadedImage(i, 'contest', lang);
     if (id === 'eventcfg:gwmodal:general') {
       const duration = i.fields.getTextInputValue('duration').trim(), winners = int(i.fields.getTextInputValue('winners'), 1, 20);
       if (!parseDuration(duration) || !winners) return i.reply({ content: pick(lang, '❌ Invalid duration or winner count.', '❌ Thời gian hoặc số người thắng không hợp lệ.'), flags: 64 });

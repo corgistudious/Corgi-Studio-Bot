@@ -84,9 +84,17 @@ module.exports={name:Events.InteractionCreate,async execute(i){
   }
 
   if(i.isModalSubmit()&&p[1]==='modal'){
-    const kind=p[2],patch={};for(const k of ['title','description','thumbnailUrl','imageUrl','footer'])patch[k]=i.fields.getTextInputValue(k).trim();
+    const kind=p[2],patch={};
+    for(const k of ['title','description','footer'])patch[k]=i.fields.getTextInputValue(k).trim();
+    const thumbnail=i.fields.getUploadedFiles('thumbnailFile',false)?.first()||null;
+    const image=i.fields.getUploadedFiles('imageFile',false)?.first()||null;
+    for(const [label,att] of [['thumbnail',thumbnail],['image',image]]){
+      if(att&&!(att.contentType||'').startsWith('image/'))return i.reply({content:pick(s.language,`❌ ${label} must be an image file.`,`❌ ${label==='thumbnail'?'Thumbnail':'Ảnh lớn'} phải là tệp ảnh.`),flags:64});
+    }
+    if(thumbnail){patch.thumbnailUrl=thumbnail.url;if(kind==='welcome'||kind==='leave')patch.thumbnailMode='custom';}
+    if(image)patch.imageUrl=image.url;
     await CommunityPanel.updateOne({guildId:i.guildId},{$set:Object.fromEntries(Object.entries(patch).map(([k,v])=>[`${kind}.${k}`,v]))});
-    return i.reply({content:pick(s.language,'✅ Saved. Use Preview / Publish.','✅ Đã lưu. Hãy dùng Xem trước / Xuất bản.'),flags:64});
+    return i.reply({content:pick(s.language,'✅ Saved. Uploaded images were attached directly from Discord. Use Preview / Publish.','✅ Đã lưu. Ảnh được đính kèm trực tiếp từ Discord. Hãy dùng Xem trước / Xuất bản.'),flags:64});
   }
 
   // Reaction Role Builder: choose Role -> enter Emoji -> save mapping.

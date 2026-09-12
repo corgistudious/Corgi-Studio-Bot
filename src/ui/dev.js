@@ -1,6 +1,7 @@
 const {
   EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
-  StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle
+  StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle,
+  FileUploadBuilder, LabelBuilder
 } = require('discord.js');
 const Dev = require('../services/devControl');
 
@@ -136,7 +137,8 @@ async function globalMail(actorId){
   const row=new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('dev:mail:compose').setLabel(draft?'Replace Draft':'Compose Mail').setEmoji('✍️').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId('dev:mail:preview').setLabel('Preview').setEmoji('👁️').setStyle(ButtonStyle.Secondary).setDisabled(!draft),
-    new ButtonBuilder().setCustomId('dev:mail:send').setLabel('Broadcast All Servers').setEmoji('📨').setStyle(ButtonStyle.Success).setDisabled(!draft),
+    new ButtonBuilder().setCustomId('dev:mail:image').setLabel('Image').setEmoji('🖼️').setStyle(ButtonStyle.Secondary).setDisabled(!draft),
+    new ButtonBuilder().setCustomId('dev:mail:send').setLabel('Broadcast').setEmoji('📨').setStyle(ButtonStyle.Success).setDisabled(!draft),
     new ButtonBuilder().setCustomId('dev:mail:discard').setLabel('Discard').setStyle(ButtonStyle.Danger).setDisabled(!draft)
   );
   return {embeds:[e],components:[row,backRow()]};
@@ -167,6 +169,7 @@ function titleCreateModal(){return new ModalBuilder().setCustomId('dev:modal:tit
 function titleGrantModal(){return new ModalBuilder().setCustomId('dev:modal:titleGrant').setTitle('Grant Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
 function titleRevokeModal(){return new ModalBuilder().setCustomId('dev:modal:titleRevoke').setTitle('Revoke Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
 function titleToggleModal(){return new ModalBuilder().setCustomId('dev:modal:titleToggle').setTitle('Enable / Disable Title').addComponents(input('key','Title Key','FOUNDER'));}
-function mailComposeModal(){return new ModalBuilder().setCustomId('dev:modal:mailCompose').setTitle('Compose Global Mail • EN + VI').addComponents(input('titleEn','English Title','System Announcement'),input('bodyEn','English Message','Write the English announcement...',true,TextInputStyle.Paragraph),input('titleVi','Tiêu đề Tiếng Việt','Thông báo hệ thống'),input('bodyVi','Nội dung Tiếng Việt','Nhập nội dung Tiếng Việt...',true,TextInputStyle.Paragraph),input('options','Options: Cstar | days | image URL','1000 | 7 | https://... (image optional)',false));}
+function mailComposeModal(){return new ModalBuilder().setCustomId('dev:modal:mailCompose').setTitle('Compose Global Mail • EN + VI').addComponents(input('titleEn','English Title','System Announcement'),input('bodyEn','English Message','Write the English announcement...',true,TextInputStyle.Paragraph),input('titleVi','Tiêu đề Tiếng Việt','Thông báo hệ thống'),input('bodyVi','Nội dung Tiếng Việt','Nhập nội dung Tiếng Việt...',true,TextInputStyle.Paragraph),input('options','Options: Cstar | days','1000 | 7',false));}
+function mailImageModal(){return new ModalBuilder().setCustomId('dev:modal:mailImage').setTitle('Global Mail • Image').addComponents(new LabelBuilder().setLabel('Attach image').setDescription('Upload one image directly from Discord.').setFileUploadComponent(new FileUploadBuilder().setCustomId('imageFile').setRequired(true).setMinValues(1).setMaxValues(1)));}
 
-module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal};
+module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal};
