@@ -8,6 +8,7 @@ const Ticket=require('../models/Ticket');
 const ReactionRole=require('../models/ReactionRole');
 const {getGuildSettings}=require('../services/guildSettings');
 const {pick}=require('../services/i18n');
+const {text:ticketTypeText}=require('../services/ticketTypes');
 
 function vars(t,m){return String(t||'').replaceAll('{user}',m?`<@${m.id}>`:'@user').replaceAll('{username}',m?.user?.username||'username').replaceAll('{server}',m?.guild?.name||'Server').replaceAll('{count}',String(m?.guild?.memberCount||0));}
 function embedFrom(o,m,extra=''){const e=new EmbedBuilder().setColor(0xF59E0B).setTitle(vars(o?.title||'Corgi Studio',m)).setDescription(`${vars(o?.description||'Configure this panel.',m)}${extra||''}`);if(o?.footer)e.setFooter({text:vars(o.footer,m)});if(o?.thumbnailUrl)e.setThumbnail(o.thumbnailUrl);if(o?.imageUrl)e.setImage(o.imageUrl);return e;}
@@ -55,12 +56,13 @@ module.exports={name:Events.InteractionCreate,async execute(i){
     const existing=await Ticket.findOne({guildId:i.guildId,ownerId:i.user.id,status:{$in:['open','reopened']}}).lean();
     if(existing){const x=await i.guild.channels.fetch(existing.channelId).catch(()=>null);if(x)return i.reply({content:pick(s.language,`You already have an open ticket: ${x}`,`Bạn đã có một Ticket đang mở: ${x}`),flags:64});}
     const last=await Ticket.findOne({guildId:i.guildId}).sort({ticketNo:-1}).lean(),no=(last?.ticketNo||0)+1;
+    const typeText=ticketTypeText(type,s.language);
     const staffRoleId=type.staffRoleId||c.ticket.staffRoleId||null;
     const perms=[{id:i.guild.roles.everyone.id,deny:[PermissionFlagsBits.ViewChannel]},{id:i.user.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles]},{id:i.guild.members.me.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ManageChannels,PermissionFlagsBits.ReadMessageHistory]}];
     if(staffRoleId)perms.push({id:staffRoleId,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles]});
-    const ch=await i.guild.channels.create({name:`${type.prefix||'TKT'}-${String(no).padStart(6,'0')}`,type:ChannelType.GuildText,parent:type.categoryId||s.channels?.ticketCategory||null,permissionOverwrites:perms});
-    await Ticket.create({guildId:i.guildId,channelId:ch.id,ownerId:i.user.id,ticketNo:no,typeKey:type.key,typeName:type.name});
-    const e=new EmbedBuilder().setColor(0xF59E0B).setTitle(`${type.emoji||'🎫'} ${type.name} • #${String(no).padStart(6,'0')}`).setDescription(`Owner: ${i.user}\nType: **${type.name}**\n\n${pick(s.language,'Please describe your request clearly.','Hãy mô tả yêu cầu của bạn thật rõ ràng.')}`).setTimestamp();
+    const ch=await i.guild.channels.create({name:`${typeText.prefix||'TKT'}-${String(no).padStart(6,'0')}`,type:ChannelType.GuildText,parent:type.categoryId||s.channels?.ticketCategory||null,permissionOverwrites:perms});
+    await Ticket.create({guildId:i.guildId,channelId:ch.id,ownerId:i.user.id,ticketNo:no,typeKey:type.key,typeName:typeText.name});
+    const e=new EmbedBuilder().setColor(0xF59E0B).setTitle(`${typeText.emoji||'🎫'} ${typeText.name} • #${String(no).padStart(6,'0')}`).setDescription(`${pick(s.language,'Owner','Chủ Ticket')}: ${i.user}\n${pick(s.language,'Type','Loại')}: **${typeText.name}**\n\n${pick(s.language,'Please describe your request clearly.','Hãy mô tả yêu cầu của bạn thật rõ ràng.')}`).setTimestamp();
     const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('ticket:close').setLabel(pick(s.language,'Close','Đóng')).setEmoji('🔒').setStyle(ButtonStyle.Danger));
     await ch.send({content:`${i.user}${staffRoleId?` <@&${staffRoleId}>`:''}`,embeds:[e],components:[row],allowedMentions:{users:[i.user.id],roles:staffRoleId?[staffRoleId]:[]}});
     return i.reply({content:pick(s.language,`✅ Ticket created: ${ch}`,`✅ Đã tạo Ticket: ${ch}`),flags:64});
@@ -139,7 +141,7 @@ module.exports={name:Events.InteractionCreate,async execute(i){
   if(i.isButton()&&p[2]==='preview'){
     const o=c[p[1]];
     if(p[1]==='ticket'){
-      const menu=new StringSelectMenuBuilder().setCustomId('community:ticket:create').setPlaceholder(pick(s.language,'Choose ticket type','Chọn loại Ticket')).addOptions(c.ticket.types.filter(x=>x.enabled).slice(0,25).map(x=>({label:x.name,value:x.key,emoji:x.emoji,description:x.description?.slice(0,100)})));
+      const menu=new StringSelectMenuBuilder().setCustomId('community:ticket:create').setPlaceholder(pick(s.language,'Choose ticket type','Chọn loại Ticket')).addOptions(c.ticket.types.filter(x=>x.enabled).slice(0,25).map(x=>{const t=ticketTypeText(x,s.language);return {label:t.name,value:x.key,emoji:t.emoji,description:t.description?.slice(0,100)}}));
       return i.reply({embeds:[embedFrom(o,i.member)],components:[new ActionRowBuilder().addComponents(menu)],flags:64});
     }
     if(p[1]==='reaction')return i.reply({embeds:[embedFrom(o,i.member,mappingExtra(c,s))],flags:64});
@@ -150,7 +152,7 @@ module.exports={name:Events.InteractionCreate,async execute(i){
     if(p[1]==='reaction')return publishReaction(i,c,s);
     const o=c[p[1]],ch=i.channel;
     if(p[1]==='ticket'){
-      const menu=new StringSelectMenuBuilder().setCustomId('community:ticket:create').setPlaceholder(pick(s.language,'Choose ticket type','Chọn loại Ticket')).addOptions(c.ticket.types.filter(x=>x.enabled).slice(0,25).map(x=>({label:x.name,value:x.key,emoji:x.emoji,description:x.description?.slice(0,100)})));
+      const menu=new StringSelectMenuBuilder().setCustomId('community:ticket:create').setPlaceholder(pick(s.language,'Choose ticket type','Chọn loại Ticket')).addOptions(c.ticket.types.filter(x=>x.enabled).slice(0,25).map(x=>{const t=ticketTypeText(x,s.language);return {label:t.name,value:x.key,emoji:t.emoji,description:t.description?.slice(0,100)}}));
       await ch.send({embeds:[embedFrom(o,i.member)],components:[new ActionRowBuilder().addComponents(menu)]});
     }else await ch.send({embeds:[embedFrom(o,i.member)]});
     return i.reply({content:pick(s.language,'✅ Panel published in this channel.','✅ Panel đã được xuất bản trong kênh này.'),flags:64});
