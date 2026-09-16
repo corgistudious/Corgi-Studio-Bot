@@ -1,6 +1,6 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.20.0",
+  "version": "4.20.1",
   "private": true,
   "description": "Corgi-Bot V4.20.0 with advanced table games, 24-hour Lottery, Liêng, and streamlined Ticket categories.",
   "main": "src/index.js",
