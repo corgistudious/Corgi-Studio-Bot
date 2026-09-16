@@ -14,7 +14,7 @@ function lines(lang, category) {
       '🛠️ `setup` — cấu hình server, ngôn ngữ, kênh Global Mail.',
       '👤 `member` — Profile, Ranking, ví và các lệnh thường dùng.',
       '⭐ `economy` — 🌟Cstar, Daily, chuyển tiền, Inventory.',
-      '🎮 `games` — Tài Xỉu, Poker, Roulette, Spin, Lottery.',
+      '🎮 `games` — Tài Xỉu, Poker, Roulette, Liêng, Spin, Lottery.',
       '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Premium Server, VIP Profile, Redeem CD Key.',
@@ -208,17 +208,17 @@ function lines(lang, category) {
 
     games: vi ? [
       '**🎮 Game dùng 🌟Cstar**','Mức cược: **10 → 1.000.000 🌟Cstar**. 🌟Cstar chỉ là tiền ảo giải trí.','',
-      '**🎲 Tài Xỉu / Sic Bo nâng cao**','`/taixiu pick:<cửa> bet:<số>` • `?taixiu <cửa> <số>`','Cửa: `tai/xiu`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, hoặc cặp hai mặt như `pair12`.','',
+      '**🎲 Tài Xỉu / Sic Bo nâng cao**','`/taixiu` • `?taixiu` — mở panel • vẫn hỗ trợ cược nhanh bằng tham số','Cửa: `tai/xiu`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, hoặc cặp hai mặt như `pair12`.','',
       '**🃏 Poker Texas Hold’em**','`/poker bet:<số>` • `?poker <số>`','Cược mở đầu → 2 lá riêng + Flop 3 lá → Theo/Cược thêm/Bỏ → Turn → cược → River → cược → Showdown.','',
-      '**🎡 Roulette đầy đủ**','`/roullette type:<loại> pick:<lựa chọn> bet:<số>`','Hỗ trợ Straight, Split, Street, Zero Trio, Corner, 0-1-2-3 Basket, Six Line, Dozen, Column, Red/Black, Odd/Even và 1–18/19–36.','Ví dụ: `?roulette straight 17 500` hoặc `?roulette color red 1000`.','',
+      '**🎡 Roulette đầy đủ**','`/roullette` • `?roulette` — mở panel • vẫn hỗ trợ cược nhanh bằng tham số','Hỗ trợ Straight, Split, Street, Zero Trio, Corner, 0-1-2-3 Basket, Six Line, Dozen, Column, Red/Black, Odd/Even và 1–18/19–36.','Ví dụ: `?roulette straight 17 500` hoặc `?roulette color red 1000`.','',
       '**🂡 Liêng**','`/lieng bet:<số>` • `?lieng <số>`','Cược mở đầu → chia 3 lá → Theo/Cược thêm/Bỏ → lật bài. Xếp hạng: Sáp > Liêng > Ảnh > Điểm.','',
       '**🎰 Spin**','`/spin bet:<số>` • `?spin <số>`','Tiền thắng chờ nút **Rút 🌟Cstar** nếu phiên yêu cầu.','',
       '**🎟️ Lottery 24 giờ**','`/lottery buy bet:<giá vé>` • `?lottery buy <giá vé>`','Bot cấp ngẫu nhiên 5 số + 1 số đặc biệt. Vé **không mở ngay**; tự mở và trả thưởng sau 24 giờ.','`/lottery status` • `?lottery status` — xem vé gần nhất.'
     ] : [
       '**🎮 🌟Cstar Games**','Bet range: **10 → 1,000,000 🌟Cstar**. 🌟Cstar is entertainment-only virtual currency.','',
-      '**🎲 Advanced Sic Bo**','`/taixiu pick:<bet> bet:<amount>` • `?taixiu <bet> <amount>`','Bets: `big/small`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, or two-face combinations such as `pair12`.','',
+      '**🎲 Advanced Sic Bo**','`/taixiu` • `?taixiu` — open panel • quick-play parameters are still supported','Bets: `big/small`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, or two-face combinations such as `pair12`.','',
       '**🃏 Texas Hold’em Poker**','`/poker bet:<amount>` • `?poker <amount>`','Opening bet → 2 hole cards + 3-card Flop → Check/Bet again/Fold → Turn → betting → River → betting → Showdown.','',
-      '**🎡 Full Roulette**','`/roullette type:<type> pick:<selection> bet:<amount>`','Supports Straight, Split, Street, Zero Trio, Corner, 0-1-2-3 Basket, Six Line, Dozen, Column, Red/Black, Odd/Even, and 1–18/19–36.','Example: `?roulette straight 17 500` or `?roulette color red 1000`.','',
+      '**🎡 Full Roulette**','`/roullette` • `?roulette` — open panel • quick-play parameters are still supported','Supports Straight, Split, Street, Zero Trio, Corner, 0-1-2-3 Basket, Six Line, Dozen, Column, Red/Black, Odd/Even, and 1–18/19–36.','Example: `?roulette straight 17 500` or `?roulette color red 1000`.','',
       '**🂡 Liêng**','`/lieng bet:<amount>` • `?lieng <amount>`','Opening bet → 3 cards → Check/Bet again/Fold → showdown. Ranking: Three of a Kind > Straight > Three Face Cards > Points.','',
       '**🎰 Spin**','`/spin bet:<amount>` • `?spin <amount>`','Winnings remain pending until **cashout** when required.','',
       '**🎟️ 24-hour Lottery**','`/lottery buy bet:<ticket price>` • `?lottery buy <ticket price>`','The bot assigns 5 random main numbers + 1 Power number. Tickets are **not drawn immediately**; settlement happens automatically after 24 hours.','`/lottery status` • `?lottery status` — view recent tickets.'
