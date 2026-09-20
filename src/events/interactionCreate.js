@@ -64,6 +64,7 @@ async function contestButton(i,client){
 module.exports={name:Events.InteractionCreate,async execute(i,client){try{
 const access=await checkAccess({userId:i.user?.id,guildId:i.guildId});
 if(!access.allowed){if(i.isRepliable()){const payload={content:access.message,flags:64};if(i.replied||i.deferred)await i.followUp(payload).catch(()=>{});else await i.reply(payload).catch(()=>{});}return;}
+if(i.customId?.startsWith('fish:')){const s=i.guildId?await getGuildSettings(i.guildId):{language:'en'};return require('../modules/fishing').handle(i,s?.language==='vi'?'vi':'en');}
 if(i.isChatInputCommand()){const c=client.commands.get(i.commandName);if(c?.premiumOnly&&!(await isPremiumGuild(i.guildId)))return i.reply({content:'💎 This command requires an active Corgi Premium subscription for this server.',flags:64});if(c)await c.execute(i,client);return;}
 if(i.customId?.startsWith('eventcfg:')){if(!(await guard(i)))return;return EventControl.handle(i,client);}
 if(i.isButton()&&i.customId==='ticket:create')return createTicket(i);
