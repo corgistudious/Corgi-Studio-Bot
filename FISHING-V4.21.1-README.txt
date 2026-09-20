@@ -1,0 +1,9 @@
+Corgi-Bot V4.21.1 — Fishing VI/EN Cleanup
+
+- Completed Vietnamese/English cleanup across Fishing UI and messages.
+- Button/select interactions continue to resolve the guild language setting.
+- Localized invalid-bait error and Fishing Ranking score labels.
+- Vietnamese terminology cleaned up for lifetime/global/rarity wording.
+- ?? Infiniti Rare displays as "Hiếm Vô Cực" in Vietnamese while keeping the internal rarity ID unchanged.
+- Fixed Fishing migration env key: MONGODB_URI (matching the production bot database service).
+- Gameplay balance, FishingProfile data, Cstar economy and rarity IDs are unchanged.

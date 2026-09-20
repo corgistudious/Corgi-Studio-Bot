@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.21.0",
+  "version": "4.21.1",
   "private": true,
-  "description": "Corgi-Bot V4.21.0 with Corgi Fishing, global Fishing Ranking, bait shop and rod progression.",
+  "description": "Corgi-Bot V4.21.1 with Corgi Fishing VI/EN cleanup and migration fix.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
