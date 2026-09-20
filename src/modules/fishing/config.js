@@ -9,7 +9,7 @@ const RARITIES=[
  {id:'GR',en:'God Rare',vi:'Thần Hiếm',chance:.3,color:0xFF7A00,score:1100},
  {id:'SR',en:'Secret Rare',vi:'Bí Mật',chance:.12,color:0xFF3DCE,score:3000},
  {id:'SSR',en:'Super Secret Rare',vi:'Siêu Bí Mật',chance:.06,color:0xE8FFFF,score:9000},
- {id:'??',en:'Infiniti Rare',vi:'Infiniti Rare',chance:.02,color:0xFFFFFF,score:30000}
+ {id:'??',en:'Infiniti Rare',vi:'Hiếm Vô Cực',chance:.02,color:0xFFFFFF,score:30000}
 ];
 const FISH=[
  ['bluegill','Bluegill','Cá thái dương','N',.15,2.2,18],['anchovy','Anchovy','Cá cơm','N',.03,.35,12],['carp','Common Carp','Cá chép','N',.8,18,24],['catfish','Channel Catfish','Cá trê','R',1.2,28,42],['bass','Largemouth Bass','Cá vược','R',.7,12,48],['salmon','Atlantic Salmon','Cá hồi Đại Tây Dương','VR',2,22,75],['tuna','Yellowfin Tuna','Cá ngừ vây vàng','VR',8,95,90],['mahimahi','Mahi-mahi','Cá nục heo','UR',4,38,140],['swordfish','Swordfish','Cá kiếm','UR',30,180,165],['arapaima','Arapaima','Cá hải tượng','E',35,210,260],['sturgeon','White Sturgeon','Cá tầm trắng','E',45,300,290],['marlin','Blue Marlin','Cá cờ xanh','L',80,520,500],['coelacanth','Coelacanth','Cá vây tay','L',25,110,620],['giant_manta','Giant Manta','Cá đuối khổng lồ','M',350,1600,900],['oarfish','Giant Oarfish','Cá mái chèo khổng lồ','M',80,320,1050],['abyss_shark','Abyssal Shark','Cá mập vực thẳm','GR',450,2200,1800],['golden_koi','Celestial Golden Koi','Cá Koi Thiên Kim','GR',8,55,2200],['ghost_whale','Ghost Whale','Cá voi u linh','SR',1800,9000,5000],['void_ray','Void Ray','Cá đuối hư không','SR',500,2800,5600],['crown_leviathan','Crown Leviathan','Leviathan Vương Miện','SSR',3500,18000,12000],['eternal_dragonfish','Eternal Dragonfish','Long Ngư Vĩnh Hằng','SSR',120,800,14000],['infinity_serpent','???','???','??',5000,30000,50000]
