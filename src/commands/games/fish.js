@@ -1,0 +1,2 @@
+const {SlashCommandBuilder}=require('discord.js');const Fishing=require('../../modules/fishing');const {guildLang}=require('../../services/i18n');
+module.exports={data:new SlashCommandBuilder().setName('fish').setDescription('Open Corgi Fishing Center').setDescriptionLocalizations({vi:'Mở trung tâm Corgi Fishing'}),prefix:['fish'],async execute(i){const l=await guildLang(i.guildId);return i.reply(await Fishing.home(i.user.id,l));},async executePrefix(m){const l=await guildLang(m.guildId);return m.reply(await Fishing.home(m.author.id,l));}};
