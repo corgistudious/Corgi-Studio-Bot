@@ -1,15 +1,16 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.20.1",
+  "version": "4.21.0",
   "private": true,
-  "description": "Corgi-Bot V4.20.0 with advanced table games, 24-hour Lottery, Liêng, and streamlined Ticket categories.",
+  "description": "Corgi-Bot V4.21.0 with Corgi Fishing, global Fishing Ranking, bait shop and rod progression.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "deploy:commands": "node scripts/deploy-commands.js",
-    "migrate:global-cstar": "node scripts/migrate-global-economy.js"
+    "migrate:global-cstar": "node scripts/migrate-global-economy.js",
+    "migrate:fishing": "node scripts/migrate-fishing.js"
   },
   "engines": {
     "node": ">=20"
