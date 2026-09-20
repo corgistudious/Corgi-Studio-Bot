@@ -1,0 +1,10 @@
+Corgi-Bot V4.21.3 — Fishing Developer Configuration
+- /dev > Fishing global configuration panel; no extra Developer slash command.
+- MongoDB-backed settings survive restarts and deployments.
+- General: Fishing ON/OFF, cooldown, starter bait, bag limit, Sell All, Global Ranking.
+- Rarity rates N → ?? with strict total = 100% validation.
+- Bait: Cstar cost, quantity, luck, weight bonus.
+- Rods: lifetime fish/kg requirements, Cstar cost, luck, weight multiplier.
+- Ranking Score base weights configurable.
+- Reset Defaults requires confirmation.
+- Existing catches, Fishdex, Cstar and player progression are not rewritten.
