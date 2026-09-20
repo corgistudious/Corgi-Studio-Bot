@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.21.1",
+  "version": "4.21.2",
   "private": true,
-  "description": "Corgi-Bot V4.21.1 with Corgi Fishing VI/EN cleanup and migration fix.",
+  "description": "Corgi-Bot V4.21.2 with consumable bait, starter bait, and VI/EN Fishing economy flow.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {

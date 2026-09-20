@@ -1,0 +1,12 @@
+Corgi Studio Bot V4.21.2 — Fishing Bait + Fish Market
+
+- Every valid cast consumes 1 bait.
+- Cooldown/blocked casts do not consume bait.
+- New and migrated Fishing profiles receive 20 Basic Bait once.
+- Out-of-bait blocking and VI/EN messages.
+- Active bait and remaining quantity shown in Fishing Center/catch result.
+- Basic bait is purchasable in the Fishing Shop.
+- Added 💰 Sell Fish / Khu Bán Cá accessible from Fishing navigation.
+- Fish Market supports selling one selected fish or all unlocked fish.
+- Locked fish are protected from bulk selling.
+- Existing Fishdex, lifetime records, rarity odds, rods, leaderboard and progression are preserved.
