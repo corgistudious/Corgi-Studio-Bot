@@ -35,6 +35,7 @@ async function home(client) {
     {label:'🌟Cstar Economy',value:'cstar',emoji:'⭐',description:'Add or subtract 🌟Cstar'},
     {label:'Level & EXP',value:'leveling',emoji:'⚔️',description:'Global EXP curve and cooldown'},
     {label:'Global Ranking',value:'ranking',emoji:'🏆',description:'Weekly rewards and Approve Reward'},
+    {label:'Fishing',value:'fishing',emoji:'🎣',description:'Global Fishing gameplay configuration'},
     {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🌟Cstar prices'},
     {label:'Custom Profile Titles',value:'titles',emoji:'🏷️',description:'Create, grant and revoke profile titles'},
     {label:'Profile Verification',value:'verification',emoji:'✅',description:'Review and assign verification badges'},
@@ -172,4 +173,29 @@ function titleToggleModal(){return new ModalBuilder().setCustomId('dev:modal:tit
 function mailComposeModal(){return new ModalBuilder().setCustomId('dev:modal:mailCompose').setTitle('Compose Global Mail • EN + VI').addComponents(input('titleEn','English Title','System Announcement'),input('bodyEn','English Message','Write the English announcement...',true,TextInputStyle.Paragraph),input('titleVi','Tiêu đề Tiếng Việt','Thông báo hệ thống'),input('bodyVi','Nội dung Tiếng Việt','Nhập nội dung Tiếng Việt...',true,TextInputStyle.Paragraph),input('options','Options: Cstar | days','1000 | 7',false));}
 function mailImageModal(){return new ModalBuilder().setCustomId('dev:modal:mailImage').setTitle('Global Mail • Image').addComponents(new LabelBuilder().setLabel('Attach image').setDescription('Upload one image directly from Discord.').setFileUploadComponent(new FileUploadBuilder().setCustomId('imageFile').setRequired(true).setMinValues(1).setMaxValues(1)));}
 
-module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal};
+async function fishing(){
+  const F=require('../services/fishingSettings'),c=await F.get();
+  const rarity=Object.entries(c.rarityChances).map(([k,v])=>`${k} ${v}%`).join(' • ');
+  const e=footer(new EmbedBuilder().setTitle('🎣 Fishing Configuration').setDescription('Global settings stored in MongoDB. Changes apply to new Fishing actions without changing existing catches, Fishdex, Cstar or progression.').addFields(
+    {name:'⚙️ General',value:`Fishing: **${c.enabled?'ON':'OFF'}**\nCooldown: **${c.cooldownMs/1000}s**\nStarter bait: **${c.starterBait}**\nBag limit: **${c.maxBag}**`,inline:true},
+    {name:'🛡️ Features',value:`Sell All: **${c.sellAllEnabled?'ON':'OFF'}**\nGlobal Ranking: **${c.rankingEnabled?'ON':'OFF'}**`,inline:true},
+    {name:'🎲 Rarity chances',value:rarity.slice(0,1024)},
+    {name:'🪱 Baits',value:Object.entries(c.baits).map(([k,b])=>`**${k}** • ${b.cost} Cstar/${b.qty} • luck ${b.luck} • weight ${b.weight}`).join('\n').slice(0,1024)},
+    {name:'🎣 Rods',value:c.rods.map((r,i)=>`**${i}. ${r.nameEn}** • ${r.fish} fish / ${r.kg}kg / ${r.cost} Cstar • luck ${r.luck} • x${r.weight}`).join('\n').slice(0,1024)}
+  ));
+  const r1=new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('dev:fishing:general').setLabel('General').setEmoji('⚙️').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('dev:fishing:rarity').setLabel('Rarity Rates').setEmoji('🎲').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('dev:fishing:bait').setLabel('Bait').setEmoji('🪱').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('dev:fishing:rod').setLabel('Rod').setEmoji('🎣').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('dev:fishing:score').setLabel('Ranking Score').setEmoji('🏆').setStyle(ButtonStyle.Secondary));
+  const r2=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:fishing:resetAsk').setLabel('Reset Defaults').setEmoji('♻️').setStyle(ButtonStyle.Danger));
+  return {embeds:[e],components:[r1,r2,backRow()]};
+}
+function fishingGeneralModal(){return new ModalBuilder().setCustomId('dev:modal:fishingGeneral').setTitle('Fishing • General').addComponents(input('enabled','Fishing enabled: ON / OFF','ON'),input('cooldown','Cooldown seconds','8'),input('starter','Starter Basic Bait','20'),input('bag','Bag limit','250'),input('features','Sell All | Ranking (ON/OFF)','ON | ON'));}
+function fishingRarityModal(){return new ModalBuilder().setCustomId('dev:modal:fishingRarity').setTitle('Fishing • Rarity Rates').addComponents(input('rates','Rates (must total 100%)','N=55,R=25,VR=10,UR=5,E=2.5,L=1.3,M=.7,GR=.3,SR=.12,SSR=.06,??=.02',true,TextInputStyle.Paragraph));}
+function fishingBaitModal(){return new ModalBuilder().setCustomId('dev:modal:fishingBait').setTitle('Fishing • Bait').addComponents(input('key','Bait key','basic / worm / shrimp / glow'),input('values','cost | qty | luck | weight','100 | 10 | 0 | 0'));}
+function fishingRodModal(){return new ModalBuilder().setCustomId('dev:modal:fishingRod').setTitle('Fishing • Rod').addComponents(input('level','Rod level (0-6)','1'),input('values','fish | kg | cost | luck | weight','50 | 100 | 2500 | .02 | 1.08'));}
+function fishingScoreModal(){return new ModalBuilder().setCustomId('dev:modal:fishingScore').setTitle('Fishing • Ranking Score').addComponents(input('values','catch | weight | dex | bestWeight','2 | .4 | 250 | 2'));}
+
+module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal};
