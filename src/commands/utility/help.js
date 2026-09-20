@@ -208,7 +208,7 @@ function lines(lang, category) {
 
     games: vi ? [
       '**🎮 Game dùng 🌟Cstar**','Mức cược: **10 → 1.000.000 🌟Cstar**. 🌟Cstar chỉ là tiền ảo giải trí.','',
-      '**🎣 Corgi Fishing**','`/fish` • `?fish` — mở Fishing Center. `/fishing` • `?fishing` — câu ngay.','Fishing Center gồm Túi cá, Fishdex, Cửa hàng mồi, nâng cấp cần và **1 bảng xếp hạng Fishing toàn cầu**.','Nâng cần yêu cầu đồng thời số cá lifetime + tổng cân nặng lifetime + 🌟Cstar. Bán cá không làm mất Fishdex/kỷ lục.','',
+      '**🎣 Corgi Fishing**','`/fish` • `?fish` — mở Trung tâm Câu Cá. `/fishing` • `?fishing` — câu ngay.','Trung tâm Câu Cá gồm Túi cá, Fishdex, Cửa hàng mồi, nâng cấp cần và **1 bảng xếp hạng câu cá toàn cầu**.','Nâng cần yêu cầu đồng thời số cá đã câu tích lũy + tổng cân nặng tích lũy + 🌟Cstar. Bán cá không làm mất Fishdex/kỷ lục.','',
       '**🎲 Tài Xỉu / Sic Bo nâng cao**','`/taixiu` • `?taixiu` — mở panel • vẫn hỗ trợ cược nhanh bằng tham số','Cửa: `tai/xiu`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, hoặc cặp hai mặt như `pair12`.','',
       '**🃏 Poker Texas Hold’em**','`/poker bet:<số>` • `?poker <số>`','Cược mở đầu → 2 lá riêng + Flop 3 lá → Theo/Cược thêm/Bỏ → Turn → cược → River → cược → Showdown.','',
       '**🎡 Roulette đầy đủ**','`/roullette` • `?roulette` — mở panel • vẫn hỗ trợ cược nhanh bằng tham số','Hỗ trợ Straight, Split, Street, Zero Trio, Corner, 0-1-2-3 Basket, Six Line, Dozen, Column, Red/Black, Odd/Even và 1–18/19–36.','Ví dụ: `?roulette straight 17 500` hoặc `?roulette color red 1000`.','',
