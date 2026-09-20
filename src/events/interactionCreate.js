@@ -147,6 +147,13 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:title:toggle')return i.showModal(DevUI.titleToggleModal());
     if(i.customId==='dev:mail:compose')return i.showModal(DevUI.mailComposeModal());
     if(i.customId==='dev:mail:image')return i.showModal(DevUI.mailImageModal());
+    if(i.customId==='dev:fishing:general')return i.showModal(DevUI.fishingGeneralModal());
+    if(i.customId==='dev:fishing:rarity')return i.showModal(DevUI.fishingRarityModal());
+    if(i.customId==='dev:fishing:bait')return i.showModal(DevUI.fishingBaitModal());
+    if(i.customId==='dev:fishing:rod')return i.showModal(DevUI.fishingRodModal());
+    if(i.customId==='dev:fishing:score')return i.showModal(DevUI.fishingScoreModal());
+    if(i.customId==='dev:fishing:resetAsk')return i.reply({content:'⚠️ Reset ALL Fishing Developer settings to defaults?',components:[new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:fishing:resetConfirm').setLabel('Confirm Reset').setStyle(ButtonStyle.Danger))],flags:64});
+    if(i.customId==='dev:fishing:resetConfirm'){await require('../services/fishingSettings').reset(i.user.id);await sendDeveloperLog(client,{title:'🎣 Fishing Settings Reset',description:`Developer: ${i.user.id}`});return i.update({content:'✅ Fishing settings reset to defaults.',components:[]});}
     if(i.customId==='dev:mail:preview'){const M=require('../services/globalMail'),d=await M.latestDraft(i.user.id);if(!d)return i.reply({content:'❌ No active draft.',flags:64});const en=M.messagePayload(d,'en',{hideLanguageButtons:true}),vi=M.messagePayload(d,'vi',{hideLanguageButtons:true});return i.reply({embeds:[...en.embeds,...vi.embeds],flags:64});}
     if(i.customId==='dev:mail:discard'){const M=require('../services/globalMail'),d=await M.latestDraft(i.user.id);if(!d)return i.reply({content:'❌ No active draft.',flags:64});await M.cancelDraft(d._id,i.user.id);return i.update(await DevUI.globalMail(i.user.id));}
     if(i.customId==='dev:mail:send'){await i.deferUpdate();const M=require('../services/globalMail'),d=await M.latestDraft(i.user.id);if(!d)return i.editReply(await DevUI.globalMail(i.user.id));const sent=await M.publish(client,d._id,i.user.id);await sendDeveloperLog(client,{title:'📬 Global Mail Broadcast',description:`Developer: ${i.user.id}\nMail: ${sent.title}\nSent: ${sent.deliverySummary.sent}\nFailed: ${sent.deliverySummary.failed}\nSkipped: ${sent.deliverySummary.skipped}\n🌟Cstar: ${sent.cstarAmount}`});return i.editReply(await DevUI.globalMail(i.user.id));}
@@ -160,6 +167,7 @@ if(i.customId?.startsWith('dev:')){
     if(p==='cstar')return i.update(DevUI.cstar());
     if(p==='leveling')return i.update(await require('../services/progressionDev').levelPage());
     if(p==='ranking')return i.update(await require('../services/progressionDev').rankingPage());
+    if(p==='fishing')return i.update(await DevUI.fishing());
     if(p==='vipprofile')return i.update(await require('../services/progressionDev').vipPage());
     if(p==='titles')return i.update(await DevUI.titles());
     if(p==='verification')return i.update(await DevUI.verification());
@@ -167,6 +175,11 @@ if(i.customId?.startsWith('dev:')){
     if(p==='blacklist')return i.update(await DevUI.blacklist());
   }
   if(i.isModalSubmit()){
+    if(i.customId==='dev:modal:fishingGeneral'){const F=require('../services/fishingSettings'),on=x=>String(x).trim().toUpperCase()==='ON',feat=i.fields.getTextInputValue('features').split('|');await F.setGeneral({enabled:on(i.fields.getTextInputValue('enabled')),cooldownMs:Number(i.fields.getTextInputValue('cooldown'))*1000,starterBait:Number(i.fields.getTextInputValue('starter')),maxBag:Number(i.fields.getTextInputValue('bag')),sellAllEnabled:on(feat[0]),rankingEnabled:on(feat[1])},i.user.id);await sendDeveloperLog(client,{title:'🎣 Fishing General Updated',description:`Developer: ${i.user.id}`});return i.reply({content:'✅ Fishing general settings saved.',flags:64});}
+    if(i.customId==='dev:modal:fishingRarity'){await require('../services/fishingSettings').setRarities(i.fields.getTextInputValue('rates'),i.user.id);return i.reply({content:'✅ Fishing rarity rates saved. Total = 100%.',flags:64});}
+    if(i.customId==='dev:modal:fishingBait'){await require('../services/fishingSettings').setBait(i.fields.getTextInputValue('key').trim().toLowerCase(),i.fields.getTextInputValue('values'),i.user.id);return i.reply({content:'✅ Fishing bait settings saved.',flags:64});}
+    if(i.customId==='dev:modal:fishingRod'){await require('../services/fishingSettings').setRod(Number(i.fields.getTextInputValue('level')),i.fields.getTextInputValue('values'),i.user.id);return i.reply({content:'✅ Fishing rod settings saved.',flags:64});}
+    if(i.customId==='dev:modal:fishingScore'){await require('../services/fishingSettings').setScore(i.fields.getTextInputValue('values'),i.user.id);return i.reply({content:'✅ Fishing ranking score weights saved.',flags:64});}
     if(i.customId==='dev:modal:premiumGrant'){const p=await DevControl.addPremium(i.fields.getTextInputValue('guildId').trim(),i.fields.getTextInputValue('userId').trim(),i.fields.getTextInputValue('duration').trim(),i.user.id);await sendDeveloperLog(client,{title:'💎 Premium Granted / Extended',description:`Developer: ${i.user.id}\nGuild: ${p.guildId}\nUntil: ${p.expiresAt.toISOString()}`});const g=client.guilds.cache.get(p.guildId);if(g)await applyPremiumBranding(g);return i.reply({content:`✅ Premium granted/extended until <t:${Math.floor(p.expiresAt.getTime()/1000)}:F>.`,flags:64});}
     if(i.customId==='dev:modal:premiumRevoke'){const gid=i.fields.getTextInputValue('guildId').trim();const n=await DevControl.revokePremium(gid,i.user.id);const g=client.guilds.cache.get(gid);if(g)await applyPremiumBranding(g);await sendDeveloperLog(client,{title:'💎 Premium Revoked',description:`Developer: ${i.user.id}\nGuild: ${gid}\nRecords removed: ${n}`});return i.reply({content:`✅ Revoked **${n}** Premium record(s).`,flags:64});}
     if(i.customId==='dev:modal:keyCstar'){const k=await DevControl.createRedeemKey({type:'CSTAR',customCode:i.fields.getTextInputValue('customCode').trim(),amount:Number(i.fields.getTextInputValue('amount')),maxUses:Number(i.fields.getTextInputValue('maxUses')),expiresDays:Number(i.fields.getTextInputValue('expiresDays'))});await sendDeveloperLog(client,{title:'🔑 🌟Cstar Key Created',description:`Developer: ${i.user.id}\nKey: ${k.code}\nAmount: ${k.cstarAmount}\nMax uses: ${k.maxUses}`});return i.reply({content:`✅ 🌟Cstar key created: \`${k.code}\` • **${k.cstarAmount} 🌟Cstar** • max uses **${k.maxUses}**`,flags:64});}
