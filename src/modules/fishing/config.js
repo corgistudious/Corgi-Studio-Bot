@@ -23,5 +23,5 @@ const RODS=[
  {nameEn:'Elite Rod',nameVi:'Cần Tinh Anh',fish:4000,kg:50000,cost:300000,luck:.10,weight:1.47},
  {nameEn:'Legendary Rod',nameVi:'Cần Huyền Thoại',fish:10000,kg:200000,cost:1000000,luck:.12,weight:1.60}
 ];
-const BAITS={basic:{en:'Basic Bait',vi:'Mồi Cơ Bản',cost:0,qty:0,luck:0,weight:0},worm:{en:'Fresh Worm',vi:'Trùn Tươi',cost:300,qty:10,luck:.02,weight:.02},shrimp:{en:'Ocean Shrimp',vi:'Tôm Biển',cost:1200,qty:10,luck:.05,weight:.04},glow:{en:'Glow Bait',vi:'Mồi Phát Sáng',cost:5000,qty:10,luck:.09,weight:.07}};
+const BAITS={basic:{en:'Basic Bait',vi:'Mồi Cơ Bản',cost:100,qty:10,luck:0,weight:0},worm:{en:'Fresh Worm',vi:'Trùn Tươi',cost:300,qty:10,luck:.02,weight:.02},shrimp:{en:'Ocean Shrimp',vi:'Tôm Biển',cost:1200,qty:10,luck:.05,weight:.04},glow:{en:'Glow Bait',vi:'Mồi Phát Sáng',cost:5000,qty:10,luck:.09,weight:.07}};
 module.exports={RARITIES,FISH,RODS,BAITS};
