@@ -7,7 +7,7 @@ const schema = new Schema({
   premiumDuration: { type: String, enum: ['7d','14d','21d','30d','1y','2y','5y','10y'] },
   vipTier: { type: String, enum: ['VIP','VIP+','VVIP','SVIP','SSVIP','SSSVIP'] },
   vipDuration: { type: String, enum: ['7d','14d','21d','30d','90d','1y'] },
-  maxUses: { type: Number, default: 1, min: 1 },
+  maxUses: { type: Number, default: 1, min: 0 },
   uses: { type: Number, default: 0, min: 0 },
   enabled: { type: Boolean, default: true },
   expiresAt: Date,
