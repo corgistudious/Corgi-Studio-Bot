@@ -1,14 +1,12 @@
-const { ChannelType, PermissionFlagsBits } = require('discord.js');
+
 const Premium = require('../models/Premium');
 const PremiumAudit = require('../models/PremiumAudit');
 const GuildSettings = require('../models/GuildSettings');
 const { sendDeveloperLog } = require('./developerLog');
-const { getTopggReviewPremium } = require('./topggReview');
 const DURATIONS = {'7d':7,'14d':14,'21d':21,'30d':30,'1y':365,'2y':730,'5y':1825,'10y':3650};
 const PREMIUM_COMMANDS = new Set();
 const PREMIUM_MODULES = new Set();
-const PREMIUM_TIERS=['STANDARD','STAR','PLUS','PRO','ULTRA'];
-const TIER_MULTIPLIER={STANDARD:1,STAR:2,PLUS:3,PRO:4,ULTRA:5};
+const PREMIUM_TIERS=['STANDARD'];
 
 async function audit(data) {
   try { return await PremiumAudit.create(data); } catch (e) { console.warn('Premium audit failed:', e.message); return null; }
@@ -16,7 +14,7 @@ async function audit(data) {
 
 async function grantPremium(guildId, userId, duration, meta = {}) {
   guildId = String(guildId); userId = String(userId);
-  const tier=PREMIUM_TIERS.includes(String(meta.tier||'STANDARD').toUpperCase())?String(meta.tier||'STANDARD').toUpperCase():'STANDARD';
+  const tier='STANDARD';
   const days = DURATIONS[duration]; if (!days) throw new Error('Invalid premium duration');
   const now = new Date();
   const current = await Premium.findOne({ guildId }).sort({ expiresAt: -1 });
@@ -36,16 +34,11 @@ async function grantPremium(guildId, userId, duration, meta = {}) {
   }
   await GuildSettings.findOneAndUpdate({ guildId }, { $set: { 'premiumBranding.useCorgiStudioEmoji': true } }, { upsert: true, setDefaultsOnInsert: true });
   await audit({ guildId, userId, actorId: meta.actorId, action: wasActive ? 'EXTEND' : (meta.source === 'redeem' ? 'REDEEM' : 'GRANT'), source: meta.source || 'developer', duration, expiresAt });
-  await syncSupportEntitlement(meta.client,userId,tier,expiresAt,doc).catch(()=>{});
   return doc;
 }
 
 async function getActivePremium(guildId) {
   guildId = String(guildId);
-  // Top.gg Verification Center receives temporary Premium review access only.
-  // This is intentionally isolated from Developer permissions and does not write to MongoDB.
-  const review = getTopggReviewPremium(guildId);
-  if (review) return review;
   const manual = await Premium.findOne({ guildId, expiresAt: { $gt: new Date() } }).sort({ expiresAt: -1 });
   if (manual) return manual;
   const { getActiveStoreEntitlement } = require('./discordStorePremium');
@@ -60,7 +53,7 @@ async function getPremiumStatus(guildId) {
   if (active) {
     const store = active.source === 'discord_store';
     const remainingMs = active.expiresAt ? Math.max(0, new Date(active.expiresAt).getTime() - Date.now()) : null;
-    return { active: true, record: active, remainingMs, source: active.source === 'topgg_review' ? 'topgg_review' : (store ? 'discord_store' : 'manual') };
+    return { active: true, record: active, remainingMs, source: store ? 'discord_store' : 'manual' };
   }
   const row = await Premium.findOne({ guildId }).sort({ expiresAt: -1 }).lean();
   if (row) return { active: false, record: row, remainingMs: 0, source: 'manual' };
@@ -98,26 +91,7 @@ async function applyPremiumBranding(guild) {
   await removeLegacyCorgiGuildEmojis(guild).catch(e => console.warn('Legacy Premium guild emoji cleanup:', e.message));
 }
 
-async function premiumMultiplier(guildId){const p=await getActivePremium(guildId);if(!p)return 1;if(p.source==='topgg_review')return 1;return TIER_MULTIPLIER[p.tier||'STANDARD']||1;}
-async function syncSupportEntitlement(client,userId,tier,expiresAt,premiumDoc=null){
-  if(!client||!process.env.CORGI_SUPPORT_GUILD_ID)return {ok:false};
-  const eligible=['STAR','PLUS','PRO','ULTRA'].includes(String(tier||'STANDARD').toUpperCase())&&new Date(expiresAt)>new Date();
-  const g=client.guilds.cache.get(process.env.CORGI_SUPPORT_GUILD_ID);if(!g)return {ok:false};
-  const m=await g.members.fetch(String(userId)).catch(()=>null);if(!m)return {ok:false,reason:'member-not-in-support-guild'};
-  const entitlementRole=process.env.CORGI_SUPPORT_ROLE_ID;
-  if(entitlementRole){if(eligible)await m.roles.add(entitlementRole,'Corgi Premium support entitlement').catch(()=>null);else await m.roles.remove(entitlementRole,'Corgi Premium support entitlement ended').catch(()=>null);}
-  let ch=premiumDoc?.supportChannelId?await g.channels.fetch(premiumDoc.supportChannelId).catch(()=>null):null;
-  if(eligible){
-    if(!ch){
-      const perms=[{id:g.roles.everyone.id,deny:[PermissionFlagsBits.ViewChannel]},{id:m.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles]}];
-      if(process.env.CORGI_SUPPORT_STAFF_ROLE_ID)perms.push({id:process.env.CORGI_SUPPORT_STAFF_ROLE_ID,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.ManageMessages]});
-      perms.push({id:g.members.me.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.ManageChannels]});
-      ch=await g.channels.create({name:`premium-${m.user.username}`.toLowerCase().replace(/[^a-z0-9-]/g,'-').slice(0,80),type:ChannelType.GuildText,parent:process.env.CORGI_SUPPORT_CATEGORY_ID||null,topic:`Corgi Premium ${tier} private support • User ${m.id}`,permissionOverwrites:perms,reason:`Premium ${tier} support channel`}).catch(()=>null);
-      if(ch){await ch.send(`👑 Welcome ${m} to your private **Corgi Premium ${tier}** support channel. Corgi Support Staff can assist you here.`).catch(()=>{});if(premiumDoc){premiumDoc.supportChannelId=ch.id;premiumDoc.supportLockedAt=undefined;await premiumDoc.save().catch(()=>{});}}
-    }else{await ch.permissionOverwrites.edit(m.id,{ViewChannel:true,SendMessages:true,ReadMessageHistory:true,AttachFiles:true}).catch(()=>{});await ch.setTopic(`Corgi Premium ${tier} private support • User ${m.id}`).catch(()=>{});if(ch.name.startsWith('closed-'))await ch.setName(`premium-${m.user.username}`.toLowerCase().replace(/[^a-z0-9-]/g,'-').slice(0,80)).catch(()=>{});}
-  }else if(ch){await ch.permissionOverwrites.edit(m.id,{ViewChannel:false,SendMessages:false}).catch(()=>{});if(!ch.name.startsWith('closed-'))await ch.setName(`closed-${ch.name}`.slice(0,100)).catch(()=>{});await ch.send('🔒 Premium support access has ended. This channel is now locked.').catch(()=>{});if(premiumDoc){premiumDoc.supportLockedAt=new Date();await premiumDoc.save().catch(()=>{});}}
-  return {ok:true,eligible,channelId:ch?.id||null};
-}
+async function premiumMultiplier(guildId){return 1;}
 
 function startPremiumService(client) {
   let running = false;
@@ -161,7 +135,6 @@ function startPremiumService(client) {
         p.expiredProcessedAt = new Date(); await p.save();
         await audit({ guildId:p.guildId,userId:p.userId,action:'EXPIRE',source:'system',expiresAt:p.expiresAt });
         await sendDeveloperLog(client,{title:'💎 Premium Expired',description:`Guild: ${p.guildId}\nUser: ${p.userId}\nExpired: ${p.expiresAt.toISOString()}`});
-        await syncSupportEntitlement(client,p.userId,p.tier,p.expiresAt,p).catch(()=>{});
 
         // Expiration is processed only once. Reset the per-guild Premium identity here,
         // instead of retrying avatar changes every 60 seconds.
@@ -191,4 +164,4 @@ function startPremiumService(client) {
   setInterval(() => void runCycle(), 60000).unref();
 }
 
-module.exports = { PREMIUM_TIERS,TIER_MULTIPLIER,premiumMultiplier,syncSupportEntitlement, grantPremium, getActivePremium, isPremiumGuild, getPremiumStatus, revokePremium, recentPremiumHistory, recordPremiumAudit, applyPremiumBranding, startPremiumService, DURATIONS, PREMIUM_COMMANDS, PREMIUM_MODULES };
+module.exports = { PREMIUM_TIERS,premiumMultiplier, grantPremium, getActivePremium, isPremiumGuild, getPremiumStatus, revokePremium, recentPremiumHistory, recordPremiumAudit, applyPremiumBranding, startPremiumService, DURATIONS, PREMIUM_COMMANDS, PREMIUM_MODULES };

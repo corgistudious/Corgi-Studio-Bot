@@ -14,7 +14,7 @@ function lines(lang, category) {
       '🛠️ `setup` — cấu hình server, ngôn ngữ, kênh Global Mail.',
       '👤 `member` — Profile, Ranking, ví và các lệnh thường dùng.',
       '⭐ `economy` — 🌟Cstar, Daily, chuyển tiền, Inventory.',
-      '🎮 `games` — Tài Xỉu, Poker, Roulette, Liêng, Spin, Lottery.',
+      '🎮 `games` — Game Hub Direct Action, 50 game, Fishing 2.0 và Tournament.',
       '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Premium Server, VIP Profile, Redeem CD Key.',
@@ -38,7 +38,7 @@ function lines(lang, category) {
       '🛠️ `setup` — server configuration, language, Global Mail channel.',
       '👤 `member` — Profile, Ranking and common member commands.',
       '⭐ `economy` — 🌟Cstar, Daily, transfers and Inventory.',
-      '🎮 `games` — Sic Bo, Poker, Roulette, Liêng, Spin and Lottery.',
+      '🎮 `games` — Direct Action Game Hub, 50 games, Fishing 2.0 and Tournaments.',
       '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Server Premium, VIP Profile, CD Key redemption.',
@@ -131,7 +131,7 @@ function lines(lang, category) {
       '`/leaderboard` • `?leaderboard` / `?lb` — BXH 🌟Cstar.',
       '`/transfer user:@user amount:1000` • `?transfer @user 1000` / `?pay @user 1000`.',
       '',
-      '`/pet` • `?pet` — hiện đang **Sắp ra mắt**.'
+      '`/games` • `?games` — mở Game Hub; Pet Hunt/Pet Arena nằm trong Game Hub.'
     ] : [
       '**👤 Profile & rankings**',
       '`/profile [user]` • `?profile [@user]` • alias `?pf`',
@@ -165,13 +165,13 @@ function lines(lang, category) {
       '`/leaderboard` • `?leaderboard` / `?lb` — 🌟Cstar leaderboard.',
       '`/transfer user:@user amount:1000` • `?transfer @user 1000` / `?pay @user 1000`.',
       '',
-      '`/pet` • `?pet` — currently **Coming Soon**.'
+      '`/games` • `?games` — open Game Hub; Pet Hunt/Pet Arena are available inside the hub.'
     ],
 
     economy: vi ? [
       '**⭐ 🌟Cstar Economy**',
       '`/balance` • `?balance` / `?bal` — xem ví liên server.',
-      '`/daily` • `?daily` — nhận Daily; Premium server có multiplier theo tier.',
+      '`/daily` • `?daily` — random **1–10.000 🌟Cstar**; Premium STANDARD nhận **×2** trong cùng một lần claim.',
       '`/inventory` • `?inventory` / `?inv` — xem Inventory.',
       '`/leaderboard` • `?leaderboard` / `?lb` — Top 10 🌟Cstar toàn hệ thống.',
       '',
@@ -189,7 +189,7 @@ function lines(lang, category) {
     ] : [
       '**⭐ 🌟Cstar Economy**',
       '`/balance` • `?balance` / `?bal` — global wallet balance.',
-      '`/daily` • `?daily` — claim Daily; server Premium can apply a tier multiplier.',
+      '`/daily` • `?daily` — random **1–10,000 🌟Cstar**; STANDARD Premium receives **×2** in the same claim.',
       '`/inventory` • `?inventory` / `?inv` — view Inventory.',
       '`/leaderboard` • `?leaderboard` / `?lb` — global Top 10 🌟Cstar.',
       '',
@@ -207,6 +207,7 @@ function lines(lang, category) {
     ],
 
     games: vi ? [
+      '**🎮 Game Hub Direct Action • 50 Game**','`/games` • `?games` — mở Hub và chơi bằng Button/Select. `?game <id>` hoặc `/game name:<id>` để vào game bằng lệnh.','`/tournaments` • `?tournaments` — Tournament Center.','Fishing 2.0, Pet Hunt, Pet Arena, Expedition, Dungeon, Mining và nhiều game khác dùng chung Game Hub.','',
       '**🎮 Game dùng 🌟Cstar**','Mức cược: **10 → 1.000.000 🌟Cstar**. 🌟Cstar chỉ là tiền ảo giải trí.','',
       '**🎣 Corgi Fishing**','`/fish` • `?fish` — mở Trung tâm Câu Cá. `/fishing` • `?fishing` — câu ngay.','Trung tâm Câu Cá gồm Túi cá, Fishdex, Cửa hàng mồi, nâng cấp cần và **1 bảng xếp hạng câu cá toàn cầu**.','Nâng cần yêu cầu đồng thời số cá đã câu tích lũy + tổng cân nặng tích lũy + 🌟Cstar. Bán cá không làm mất Fishdex/kỷ lục.','',
       '**🎲 Tài Xỉu / Sic Bo nâng cao**','`/taixiu` • `?taixiu` — mở panel • vẫn hỗ trợ cược nhanh bằng tham số','Cửa: `tai/xiu`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, hoặc cặp hai mặt như `pair12`.','',
@@ -216,6 +217,7 @@ function lines(lang, category) {
       '**🎰 Spin**','`/spin bet:<số>` • `?spin <số>`','Tiền thắng chờ nút **Rút 🌟Cstar** nếu phiên yêu cầu.','',
       '**🎟️ Lottery 24 giờ**','`/lottery buy bet:<giá vé>` • `?lottery buy <giá vé>`','Bot cấp ngẫu nhiên 5 số + 1 số đặc biệt. Vé **không mở ngay**; tự mở và trả thưởng sau 24 giờ.','`/lottery status` • `?lottery status` — xem vé gần nhất.'
     ] : [
+      '**🎮 Direct Action Game Hub • 50 Games**','`/games` • `?games` — open the Hub and play with Buttons/Selects. `?game <id>` or `/game name:<id>` opens a game by command.','`/tournaments` • `?tournaments` — Tournament Center.','Fishing 2.0, Pet Hunt, Pet Arena, Expedition, Dungeon, Mining and many more share the Game Hub.','',
       '**🎮 🌟Cstar Games**','Bet range: **10 → 1,000,000 🌟Cstar**. 🌟Cstar is entertainment-only virtual currency.','',
       '**🎣 Corgi Fishing**','`/fish` • `?fish` — open Fishing Center. `/fishing` • `?fishing` — cast immediately.','Fishing Center includes Bag, Fishdex, bait shop, rod upgrades and **one global Fishing Ranking**.','Rod upgrades require lifetime fish count + lifetime weight + 🌟Cstar together. Selling fish never removes Fishdex/records.','',
       '**🎲 Advanced Sic Bo**','`/taixiu` • `?taixiu` — open panel • quick-play parameters are still supported','Bets: `big/small`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, or two-face combinations such as `pair12`.','',

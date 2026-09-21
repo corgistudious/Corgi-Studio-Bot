@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "4.21.3",
+  "version": "5.0.0",
   "private": true,
-  "description": "Corgi-Bot V4.21.3 with MongoDB-backed Fishing Developer Configuration via /dev.",
+  "description": "Corgi-Bot V5.0 Direct Action Game Hub \u2022 50 games \u2022 Tournament Center \u2022 Fishing 2.0 \u2022 Standard Premium.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
@@ -10,7 +10,8 @@
     "dev": "node --watch src/index.js",
     "deploy:commands": "node scripts/deploy-commands.js",
     "migrate:global-cstar": "node scripts/migrate-global-economy.js",
-    "migrate:fishing": "node scripts/migrate-fishing.js"
+    "migrate:fishing": "node scripts/migrate-fishing.js",
+    "migrate:v5": "node scripts/migrate-v5.js"
   },
   "engines": {
     "node": ">=20"
