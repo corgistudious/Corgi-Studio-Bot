@@ -15,7 +15,24 @@ function parseDuration(v) {
   const m = /^(\d+)(m|h|d|w)$/i.exec(String(v || '').trim()); if (!m) return null;
   return Number(m[1]) * ({ m: 60000, h: 3600000, d: 86400000, w: 604800000 }[m[2].toLowerCase()]);
 }
-function admin(i) { return i.member?.permissions?.has(PermissionFlagsBits.ManageGuild) || i.member?.permissions?.has(PermissionFlagsBits.Administrator); }
+function admin(i) {
+  const perms = i.memberPermissions;
+  if (perms?.has) {
+    return perms.has(PermissionFlagsBits.ManageGuild) ||
+           perms.has(PermissionFlagsBits.Administrator);
+  }
+
+  const raw = i.member?.permissions;
+  if (raw == null) return false;
+
+  try {
+    const bits = BigInt(raw);
+    return (bits & PermissionFlagsBits.ManageGuild) === PermissionFlagsBits.ManageGuild ||
+           (bits & PermissionFlagsBits.Administrator) === PermissionFlagsBits.Administrator;
+  } catch {
+    return false;
+  }
+}
 function idOpt(s) { return s.addStringOption(o => o.setName('contest_id').setDescription('Contest ID, e.g. CT-ABC123').setDescriptionLocalizations({ vi: 'ID cuộc thi, ví dụ CT-ABC123' }).setRequired(true)); }
 function imageOk(att) { const t = att?.contentType || ''; return !att || t.startsWith('image/'); }
 function validShape(att, shape) { if (!att?.width || !att?.height) return true; const ratio = att.width / att.height, target = shape === '1:1' ? 1 : 16 / 9; return Math.abs(ratio - target) <= 0.12; }

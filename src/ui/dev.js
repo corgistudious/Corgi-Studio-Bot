@@ -32,16 +32,16 @@ async function home(client) {
     {label:'Servers',value:'servers',emoji:'🌐',description:'View guilds using Corgi-Bot'},
     {label:'Premium',value:'premium',emoji:'💎',description:'Grant, revoke and inspect Premium'},
     {label:'CD Keys',value:'keys',emoji:'🔑',description:'Create, list and disable redeem keys'},
-    {label:'🪙 CXu Economy',value:'cstar',emoji:'⭐',description:'Add or subtract 🪙 CXu'},
+    {label:'🌟 CXu Economy',value:'cstar',emoji:'⭐',description:'Add or subtract 🌟 CXu'},
     {label:'Level & EXP',value:'leveling',emoji:'⚔️',description:'Global EXP curve and cooldown'},
     {label:'Global Ranking',value:'ranking',emoji:'🏆',description:'Weekly rewards and Approve Reward'},
     {label:'Fishing',value:'fishing',emoji:'🎣',description:'Global Fishing gameplay configuration'},
     {label:'Game Tournaments',value:'tournaments',emoji:'🏆',description:'Schedule monthly Game Hub tournaments'},
     {label:'Seasonal Events',value:'seasonal',emoji:'🎊',description:'Enable holidays, dates, drops and CXu boxes'},
-    {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🪙 CXu prices'},
+    {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🌟 CXu prices'},
     {label:'Custom Profile Titles',value:'titles',emoji:'🏷️',description:'Create, grant and revoke profile titles'},
     {label:'Profile Verification',value:'verification',emoji:'✅',description:'Review and assign verification badges'},
-    {label:'Global Mail',value:'globalmail',emoji:'📬',description:'Broadcast announcements + optional 🪙 CXu'},
+    {label:'Global Mail',value:'globalmail',emoji:'📬',description:'Broadcast announcements + optional 🌟 CXu'},
     {label:'Blacklist',value:'blacklist',emoji:'🛡️',description:'Block/unblock guilds or users'}
   );
   return { embeds:[e], components:[new ActionRowBuilder().addComponents(menu), backRow()] };
@@ -84,10 +84,10 @@ async function premium() {
 
 async function keys() {
   const rows = await Dev.listRecentKeys(10);
-  const desc = rows.length ? rows.map(k=>`🔑 \`${k.code}\` • **${k.type}** • ${k.enabled?'✅':'⛔'} • ${k.maxUses===0?`${k.uses}/♾️ Unlimited`:`${k.uses}/${k.maxUses}`}${k.type==='PREMIUM'?` • ${k.premiumDuration}`:k.type==='VIP'?` • ${k.vipTier} ${k.vipDuration}`:` • ${k.cstarAmount} 🪙 CXu`}`).join('\n') : 'No redeem keys.';
+  const desc = rows.length ? rows.map(k=>`🔑 \`${k.code}\` • **${k.type}** • ${k.enabled?'✅':'⛔'} • ${k.maxUses===0?`${k.uses}/♾️ Unlimited`:`${k.uses}/${k.maxUses}`}${k.type==='PREMIUM'?` • ${k.premiumDuration}`:k.type==='VIP'?` • ${k.vipTier} ${k.vipDuration}`:` • ${k.cstarAmount} <:cxu_coin:1551759873241251912> CXu`}`).join('\n') : 'No redeem keys.';
   const e = footer(new EmbedBuilder().setTitle('🔑 CD Key Administration').setDescription(desc));
   const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('dev:key:cstar').setLabel('Create 🪙 CXu Key').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('dev:key:cstar').setLabel('Create CXu Key').setEmoji('1551759873241251912').setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId('dev:key:premium').setLabel('Create Premium Key').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId('dev:key:disable').setLabel('Disable Key').setStyle(ButtonStyle.Danger)
   );
@@ -95,8 +95,8 @@ async function keys() {
 }
 
 function cstar() {
-  const e = footer(new EmbedBuilder().setTitle('⭐ 🪙 CXu Economy Control').setDescription('Adjust a member’s GLOBAL 🪙 CXu wallet by User ID. The same balance is used in every server. Negative values subtract 🪙 CXu; balance can never go below 0.'));
-  const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:cstar:adjust').setLabel('Adjust 🪙 CXu').setEmoji('⭐').setStyle(ButtonStyle.Primary));
+  const e = footer(new EmbedBuilder().setTitle('⭐ 🌟 CXu Economy Control').setDescription('Adjust a member’s GLOBAL CXu wallet by User ID. The same balance is used in every server. Negative values subtract CXu; balance can never go below 0.'));
+  const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:cstar:adjust').setLabel('Adjust CXu').setEmoji('1551759873241251912').setStyle(ButtonStyle.Primary));
   return {embeds:[e],components:[row,backRow()]};
 }
 
@@ -113,10 +113,10 @@ async function blacklist() {
 function input(id,label,placeholder,required=true,style=TextInputStyle.Short){return new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId(id).setLabel(label).setPlaceholder(placeholder).setRequired(required).setStyle(style));}
 function premiumGrantModal(){return new ModalBuilder().setCustomId('dev:modal:premiumGrant').setTitle('Grant / Extend Premium').addComponents(input('guildId','Guild ID','123456789012345678'),input('userId','User ID / purchaser ID','123456789012345678'),input('duration','Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'));}
 function premiumRevokeModal(){return new ModalBuilder().setCustomId('dev:modal:premiumRevoke').setTitle('Revoke Guild Premium').addComponents(input('guildId','Guild ID','123456789012345678'));}
-function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCstar').setTitle('Create 🪙 CXu Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('amount','🪙 CXu Amount','1000'),input('maxUses','Maximum Uses (0 = Unlimited)','1'),input('expiresDays','Expires After Days (0 = never)','0'));}
+function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCstar').setTitle('Create CXu Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('amount','CXu Amount','1000'),input('maxUses','Maximum Uses (0 = Unlimited)','1'),input('expiresDays','Expires After Days (0 = never)','0'));}
 function keyPremiumModal(){return new ModalBuilder().setCustomId('dev:modal:keyPremium').setTitle('Create Premium Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('duration','Premium Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'),input('maxUses','Maximum Uses (0 = Unlimited)','1'),input('expiresDays','Key Expires After Days (0 = never)','0'));}
 function keyDisableModal(){return new ModalBuilder().setCustomId('dev:modal:keyDisable').setTitle('Disable CD Key').addComponents(input('code','CD Key','PREM-XXXXXX-XXXXXX-XXXXXX'));}
-function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Global 🪙 CXu').addComponents(input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
+function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Global CXu').addComponents(input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
 function blacklistModal(kind){return new ModalBuilder().setCustomId(`dev:modal:blacklist:${kind}`).setTitle(`Toggle ${kind} blacklist`).addComponents(input('id',`${kind==='guild'?'Guild':'User'} ID`,'123456789012345678'));}
 
 
@@ -134,9 +134,9 @@ async function titles(){
 }
 async function globalMail(actorId){
   const M=require('../services/globalMail');const [draft,recent]=await Promise.all([M.latestDraft(actorId),M.latest(5)]);
-  const draftText=draft?`🇺🇸 **${draft.titleEn||draft.title}**\n🇻🇳 **${draft.titleVi||draft.title}**\n🪙 CXu: **${Number(draft.cstarAmount||0).toLocaleString()}**\nExpires: ${draft.expiresAt?`<t:${Math.floor(new Date(draft.expiresAt).getTime()/1000)}:R>`:'Never'}\nDraft ID: \`${draft._id}\``:'No active draft.';
+  const draftText=draft?`🇺🇸 **${draft.titleEn||draft.title}**\n🇻🇳 **${draft.titleVi||draft.title}**\n<:cxu_coin:1551759873241251912> CXu: **${Number(draft.cstarAmount||0).toLocaleString()}**\nExpires: ${draft.expiresAt?`<t:${Math.floor(new Date(draft.expiresAt).getTime()/1000)}:R>`:'Never'}\nDraft ID: \`${draft._id}\``:'No active draft.';
   const hist=recent.length?recent.map(x=>`• **${x.title}** — ${x.deliverySummary?.sent||0} sent / ${x.deliverySummary?.failed||0} failed / ${x.deliverySummary?.skipped||0} skipped`).join('\n'):'No broadcasts yet.';
-  const e=footer(new EmbedBuilder().setTitle('📬 Global Mail Center').setDescription('Developer-only broadcast panel. One message is posted to every server where Corgi-Bot can find a writable text/announcement channel. 🪙 CXu attachments can be claimed only once per Discord account, even if the same user is in multiple servers.').addFields({name:'Current Draft',value:draftText.slice(0,1024)},{name:'Recent Broadcasts',value:hist.slice(0,1024)}));
+  const e=footer(new EmbedBuilder().setTitle('📬 Global Mail Center').setDescription('Developer-only broadcast panel. One message is posted to every server where Corgi-Bot can find a writable text/announcement channel. CXu attachments can be claimed only once per Discord account, even if the same user is in multiple servers.').addFields({name:'Current Draft',value:draftText.slice(0,1024)},{name:'Recent Broadcasts',value:hist.slice(0,1024)}));
   const row=new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('dev:mail:compose').setLabel(draft?'Replace Draft':'Compose Mail').setEmoji('✍️').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId('dev:mail:preview').setLabel('Preview').setEmoji('👁️').setStyle(ButtonStyle.Secondary).setDisabled(!draft),
