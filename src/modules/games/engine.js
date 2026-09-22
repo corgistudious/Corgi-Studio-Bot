@@ -6,11 +6,11 @@ const {
 } = require('discord.js');
 const UserEconomy = require('../../models/UserEconomy');
 const { ensureWallet: ensureGlobalWallet, walletFilter } = require('../../services/economyWallet');
-const { guildLang, pick } = require('../../services/i18n');
+const { guildLang, mtx } = require('../../services/i18n');
 
 const MIN_BET = 10;
 const MAX_BET = 1_000_000;
-const CURRENCY = '🌟Cstar';
+const CURRENCY = '🪙 CXu';
 
 async function ensureWallet(_guildId, userId) {
   return ensureGlobalWallet(userId);
@@ -31,16 +31,16 @@ function validateBet(value) {
 
 function money(n) { return Number(n || 0).toLocaleString('en-US'); }
 function outcomeLine(lang, net) {
-  if (net > 0) return pick(lang, `✅ Profit: **+${money(net)} ${CURRENCY}**`, `✅ Lãi: **+${money(net)} ${CURRENCY}**`);
-  if (net < 0) return pick(lang, `❌ Loss: **${money(net)} ${CURRENCY}**`, `❌ Thua: **${money(net)} ${CURRENCY}**`);
-  return pick(lang, '➖ Push • bet returned', '➖ Hòa • hoàn cược');
+  if (net > 0) return mtx(lang, `✅ Profit: **+${money(net)} ${CURRENCY}**`, `✅ Lãi: **+${money(net)} ${CURRENCY}**`);
+  if (net < 0) return mtx(lang, `❌ Loss: **${money(net)} ${CURRENCY}**`, `❌ Thua: **${money(net)} ${CURRENCY}**`);
+  return mtx(lang, '➖ Push • bet returned', '➖ Hòa • hoàn cược');
 }
 
 function resultEmbed({ lang, title, description, net, balance, footer }) {
   return new EmbedBuilder()
     .setTitle(title)
-    .setDescription(`${description}\n\n${outcomeLine(lang, net)}\n🌟 ${pick(lang,'Balance','Số dư')}: **${money(balance)} ${CURRENCY}**`)
-    .setFooter({ text: footer || pick(lang, 'Corgi Studio • Entertainment only • No real-money value', 'Corgi Studio • Chỉ giải trí • Không có giá trị tiền thật') })
+    .setDescription(`${description}\n\n${outcomeLine(lang, net)}\n🌟 ${mtx(lang,'Balance','Số dư')}: **${money(balance)} ${CURRENCY}**`)
+    .setFooter({ text: footer || mtx(lang, 'Corgi Studio • Entertainment only • No real-money value', 'Corgi Studio • Chỉ giải trí • Không có giá trị tiền thật') })
     .setTimestamp();
 }
 
@@ -103,18 +103,18 @@ function sicboPayout(spec,d){
  if(spec.kind==='total'){const pay={4:50,5:18,6:14,7:12,8:8,9:6,10:6,11:6,12:6,13:8,14:12,15:14,16:18,17:50};return sum===spec.n?pay[sum]:0;}return 0;
 }
 async function runTaixiu({guildId,userId,bet,pickValue}){
- const lang=await guildLang(guildId);if(!validateBet(bet))return {error:pick(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};
- const spec=sicboBet(pickValue);if(!spec)return {error:pick(lang,'Invalid Sic Bo bet. Use Big/Small, Total 4–17, Single/Double/Triple 1–6, Any Triple, or Pair such as pair12.','Cửa Sic Bo không hợp lệ. Dùng Tài/Xỉu, Tổng 4–17, Một mặt/Cặp/Bộ ba 1–6, Bộ ba bất kỳ hoặc cặp hai mặt như pair12.')};
- const wallet=await debit(userId,bet);if(!wallet)return {error:pick(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};
+ const lang=await guildLang(guildId);if(!validateBet(bet))return {error:mtx(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};
+ const spec=sicboBet(pickValue);if(!spec)return {error:mtx(lang,'Invalid Sic Bo bet. Use Big/Small, Total 4–17, Single/Double/Triple 1–6, Any Triple, or Pair such as pair12.','Cửa Sic Bo không hợp lệ. Dùng Tài/Xỉu, Tổng 4–17, Một mặt/Cặp/Bộ ba 1–6, Bộ ba bất kỳ hoặc cặp hai mặt như pair12.')};
+ const wallet=await debit(userId,bet);if(!wallet)return {error:mtx(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};
  const d=[dice(),dice(),dice()],sum=d.reduce((a,b)=>a+b,0),mult=sicboPayout(spec,d),returned=mult?bet*(mult+1):0;if(returned)await credit(userId,returned);const balance=wallet.cstar+returned,net=returned-bet;
- return {embed:resultEmbed({lang,title:pick(lang,'🎲 SIC BO • ADVANCED TABLE','🎲 TÀI XỈU • BÀN SIC BO NÂNG CAO'),description:`${DICE[d[0]-1]} ${DICE[d[1]-1]} ${DICE[d[2]-1]}\n**${d.join(' + ')} = ${sum}**\n${pick(lang,'Your bet','Cửa cược')}: **${spec.label}**\n${pick(lang,'Payout','Tỷ lệ trả')}: **×${mult}**`,net,balance})};
+ return {embed:resultEmbed({lang,title:mtx(lang,'🎲 SIC BO • ADVANCED TABLE','🎲 TÀI XỈU • BÀN SIC BO NÂNG CAO'),description:`${DICE[d[0]-1]} ${DICE[d[1]-1]} ${DICE[d[2]-1]}\n**${d.join(' + ')} = ${sum}**\n${mtx(lang,'Your bet','Cửa cược')}: **${spec.label}**\n${mtx(lang,'Payout','Tỷ lệ trả')}: **×${mult}**`,net,balance})};
 }
 
 function bestFive(cards){let best=null;for(let a=0;a<cards.length-4;a++)for(let b=a+1;b<cards.length-3;b++)for(let c=b+1;c<cards.length-2;c++)for(let d=b+1;d<cards.length-1;d++){if(d<=c)continue;for(let e=d+1;e<cards.length;e++){const h=[cards[a],cards[b],cards[c],cards[d],cards[e]],ev=evaluate(h);if(!best||compareEval(ev,best.ev)>0)best={hand:h,ev};}}return best;}
 function compareEval(A,B){if(A.cat!==B.cat)return A.cat>B.cat?1:-1;for(let i=0;i<Math.max(A.tie.length,B.tie.length);i++){const a=A.tie[i]||0,b=B.tie[i]||0;if(a!==b)return a>b?1:-1;}return 0;}
-function gameButtons(game,userId,stage,lang){return [new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`game:${game}:check:${userId}`).setLabel(pick(lang,'Check / Continue','Theo / Tiếp tục')).setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId(`game:${game}:bet:${userId}`).setLabel(pick(lang,'Bet again','Cược thêm')).setEmoji('🌟').setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId(`game:${game}:fold:${userId}`).setLabel(pick(lang,'Fold','Bỏ bài')).setStyle(ButtonStyle.Danger))];}
-function pokerEmbed(s,lang,reveal=false){const street=s.stage==='flop'?'FLOP':s.stage==='turn'?'TURN':s.stage==='river'?'RIVER':'SHOWDOWN';return new EmbedBuilder().setTitle(pick(lang,'🃏 POKER • TEXAS HOLD’EM','🃏 POKER • TEXAS HOLD’EM')).setDescription(`**${pick(lang,'Your cards','Bài của bạn')}**\n${handText(s.playerCards)}\n\n**${pick(lang,'Community cards','Bài chung')} • ${street}**\n${handText(s.community)}\n\n**${pick(lang,'Dealer','Nhà cái')}**\n${reveal?handText(s.dealerCards):'🂠  🂠'}\n\n🌟 ${pick(lang,'Total wager','Tổng cược')}: **${money(s.totalBet)} ${CURRENCY}**`).setFooter({text:pick(lang,'Check to continue, Bet again to add the opening bet, or Fold.','Theo để tiếp tục, Cược thêm để thêm đúng mức cược mở đầu, hoặc Bỏ bài.')});}
-async function runPoker({guildId,userId,bet}){const GameSession=require('../../models/GameSession');const lang=await guildLang(guildId);if(!validateBet(bet))return {error:pick(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};const active=await GameSession.findOne({game:'poker',guildId,userId,status:'active'});if(active)return {error:pick(lang,'Finish your current Poker hand first.','Hãy hoàn thành ván Poker hiện tại trước.')};const wallet=await debit(userId,bet);if(!wallet)return {error:pick(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};const deck=cardDeck(),playerCards=deck.splice(0,2),dealerCards=deck.splice(0,2),community=deck.splice(0,3);const s=await GameSession.create({game:'poker',guildId,userId,bet,totalBet:bet,deck,playerCards,dealerCards,community,stage:'flop',expiresAt:new Date(Date.now()+15*60_000)});return {embed:pokerEmbed(s,lang),components:gameButtons('poker',userId,'flop',lang)};}
+function gameButtons(game,userId,stage,lang){return [new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`game:${game}:check:${userId}`).setLabel(mtx(lang,'Check / Continue','Theo / Tiếp tục')).setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId(`game:${game}:bet:${userId}`).setLabel(mtx(lang,'Bet again','Cược thêm')).setEmoji('🌟').setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId(`game:${game}:fold:${userId}`).setLabel(mtx(lang,'Fold','Bỏ bài')).setStyle(ButtonStyle.Danger))];}
+function pokerEmbed(s,lang,reveal=false){const street=s.stage==='flop'?'FLOP':s.stage==='turn'?'TURN':s.stage==='river'?'RIVER':'SHOWDOWN';return new EmbedBuilder().setTitle(mtx(lang,'🃏 POKER • TEXAS HOLD’EM','🃏 POKER • TEXAS HOLD’EM')).setDescription(`**${mtx(lang,'Your cards','Bài của bạn')}**\n${handText(s.playerCards)}\n\n**${mtx(lang,'Community cards','Bài chung')} • ${street}**\n${handText(s.community)}\n\n**${mtx(lang,'Dealer','Nhà cái')}**\n${reveal?handText(s.dealerCards):'🂠  🂠'}\n\n🌟 ${mtx(lang,'Total wager','Tổng cược')}: **${money(s.totalBet)} ${CURRENCY}**`).setFooter({text:mtx(lang,'Check to continue, Bet again to add the opening bet, or Fold.','Theo để tiếp tục, Cược thêm để thêm đúng mức cược mở đầu, hoặc Bỏ bài.')});}
+async function runPoker({guildId,userId,bet}){const GameSession=require('../../models/GameSession');const lang=await guildLang(guildId);if(!validateBet(bet))return {error:mtx(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};const active=await GameSession.findOne({game:'poker',guildId,userId,status:'active'});if(active)return {error:mtx(lang,'Finish your current Poker hand first.','Hãy hoàn thành ván Poker hiện tại trước.')};const wallet=await debit(userId,bet);if(!wallet)return {error:mtx(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};const deck=cardDeck(),playerCards=deck.splice(0,2),dealerCards=deck.splice(0,2),community=deck.splice(0,3);const s=await GameSession.create({game:'poker',guildId,userId,bet,totalBet:bet,deck,playerCards,dealerCards,community,stage:'flop',expiresAt:new Date(Date.now()+15*60_000)});return {embed:pokerEmbed(s,lang),components:gameButtons('poker',userId,'flop',lang)};}
 
 function parseNums(raw){return String(raw||'').split(/[-,\s]+/).filter(Boolean).map(Number);}
 function sameSet(a,b){return a.length===b.length&&[...a].sort((x,y)=>x-y).every((x,i)=>x===[...b].sort((x,y)=>x-y)[i]);}
@@ -127,12 +127,12 @@ function rouletteSpec(kind,raw){const k=String(kind||'').toLowerCase(),nums=pars
  if(k==='sixline'&&nums.length===6){const n=[...nums].sort((x,y)=>x-y),a=n[0];if(a>=1&&a<=31&&a%3===1&&sameSet(n,[a,a+1,a+2,a+3,a+4,a+5]))return {k,nums,pay:5};}
  if(k==='dozen'&&['1','2','3'].includes(String(raw)))return {k,n:+raw,pay:2};if(k==='column'&&['1','2','3'].includes(String(raw)))return {k,n:+raw,pay:2};if(k==='color'&&['red','black','do','đỏ','den','đen'].includes(String(raw).toLowerCase()))return {k,v:['red','do','đỏ'].includes(String(raw).toLowerCase())?'red':'black',pay:1};if(k==='parity'&&['odd','even','le','lẻ','chan','chẵn'].includes(String(raw).toLowerCase()))return {k,v:['odd','le','lẻ'].includes(String(raw).toLowerCase())?'odd':'even',pay:1};if(k==='half'&&['1-18','19-36'].includes(String(raw)))return {k,v:String(raw),pay:1};return null;}
 function rouletteWin(s,n){if(s.k==='straight'||s.k==='split'||s.k==='street'||s.k==='corner'||s.k==='sixline')return s.nums.includes(n);if(n===0)return false;if(s.k==='dozen')return n>=((s.n-1)*12+1)&&n<=s.n*12;if(s.k==='column')return ((n-1)%3)+1===s.n;if(s.k==='color')return rouletteColor(n)===s.v;if(s.k==='parity')return (n%2?'odd':'even')===s.v;if(s.k==='half')return s.v==='1-18'?n<=18:n>=19;return false;}
-async function runRoulette({guildId,userId,bet,betType,pickValue}){const lang=await guildLang(guildId);if(!validateBet(bet))return {error:pick(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};const spec=rouletteSpec(betType,pickValue);if(!spec)return {error:pick(lang,'Invalid Roulette selection for that bet type.','Lựa chọn Roulette không hợp lệ với loại cược này.')};const wallet=await debit(userId,bet);if(!wallet)return {error:pick(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};const n=Math.floor(Math.random()*37),c=rouletteColor(n),win=rouletteWin(spec,n),returned=win?bet*(spec.pay+1):0;if(returned)await credit(userId,returned);return {embed:resultEmbed({lang,title:'🎡 ROULETTE • FULL TABLE',description:`${pick(lang,'Ball','Bi')}: **${colorIcon(c)} ${n} • ${c.toUpperCase()}**\n${pick(lang,'Bet type','Loại cược')}: **${String(betType).toUpperCase()}**\n${pick(lang,'Selection','Lựa chọn')}: **${pickValue}**\n${pick(lang,'Payout','Tỷ lệ trả')}: **${win?`×${spec.pay}`:'×0'}**`,net:returned-bet,balance:wallet.cstar+returned})};}
+async function runRoulette({guildId,userId,bet,betType,pickValue}){const lang=await guildLang(guildId);if(!validateBet(bet))return {error:mtx(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};const spec=rouletteSpec(betType,pickValue);if(!spec)return {error:mtx(lang,'Invalid Roulette selection for that bet type.','Lựa chọn Roulette không hợp lệ với loại cược này.')};const wallet=await debit(userId,bet);if(!wallet)return {error:mtx(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};const n=Math.floor(Math.random()*37),c=rouletteColor(n),win=rouletteWin(spec,n),returned=win?bet*(spec.pay+1):0;if(returned)await credit(userId,returned);return {embed:resultEmbed({lang,title:'🎡 ROULETTE • FULL TABLE',description:`${mtx(lang,'Ball','Bi')}: **${colorIcon(c)} ${n} • ${c.toUpperCase()}**\n${mtx(lang,'Bet type','Loại cược')}: **${String(betType).toUpperCase()}**\n${mtx(lang,'Selection','Lựa chọn')}: **${pickValue}**\n${mtx(lang,'Payout','Tỷ lệ trả')}: **${win?`×${spec.pay}`:'×0'}**`,net:returned-bet,balance:wallet.cstar+returned})};}
 
 // ─────────────────────────────────────────────────────────────
 // SPIN 12 CON GIÁP
 // Bet is deducted immediately. Winnings are held in spinPending
-// until the player presses “Rút 🌟Cstar”. This is virtual currency only.
+// until the player presses “Rút 🪙 CXu”. This is virtual currency only.
 // ─────────────────────────────────────────────────────────────
 const ZODIAC = [
   { emoji:'🐭', vi:'Tý',   en:'Rat',     mult:2.0 },
@@ -171,32 +171,32 @@ function evaluateSpin(board, bet){
 }
 function spinButtons(userId,bet,pending,lang,disabled=false){
   return [new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`spin:again:${bet}:${userId}`).setLabel(pick(lang,'Spin again','Quay tiếp')).setEmoji('🎰').setStyle(ButtonStyle.Primary).setDisabled(disabled),
-    new ButtonBuilder().setCustomId(`spin:cashout:${userId}`).setLabel(pick(lang,'Cash out 🌟Cstar','Rút 🌟Cstar')).setEmoji('💸').setStyle(ButtonStyle.Success).setDisabled(disabled || pending<=0),
+    new ButtonBuilder().setCustomId(`spin:again:${bet}:${userId}`).setLabel(mtx(lang,'Spin again','Quay tiếp')).setEmoji('🎰').setStyle(ButtonStyle.Primary).setDisabled(disabled),
+    new ButtonBuilder().setCustomId(`spin:cashout:${userId}`).setLabel(mtx(lang,'Cash out 🪙 CXu','Rút 🪙 CXu')).setEmoji('💸').setStyle(ButtonStyle.Success).setDisabled(disabled || pending<=0),
   )];
 }
 function spinEmbed({lang,board,bet,payout,pending,balance,wins,cashedOut=0}){
   const hit = wins?.length
     ? wins.map(w=>`${w.animal.emoji} **${lang==='vi'?w.animal.vi:w.animal.en} ×${w.animal.mult}**  →  +${money(w.payout)} ${CURRENCY}`).join('\n')
-    : pick(lang,'No winning line this round.','Chưa có hàng trúng ở lượt này.');
+    : mtx(lang,'No winning line this round.','Chưa có hàng trúng ở lượt này.');
   const status = cashedOut>0
-    ? `\n\n💸 ${pick(lang,'Cashed out','Đã rút')}: **+${money(cashedOut)} ${CURRENCY}**`
+    ? `\n\n💸 ${mtx(lang,'Cashed out','Đã rút')}: **+${money(cashedOut)} ${CURRENCY}**`
     : '';
   return new EmbedBuilder()
-    .setTitle(pick(lang,'🎰 CORGI SPIN • 12 ZODIAC','🎰 CORGI SPIN • 12 CON GIÁP'))
+    .setTitle(mtx(lang,'🎰 CORGI SPIN • 12 ZODIAC','🎰 CORGI SPIN • 12 CON GIÁP'))
     .setDescription(`${boardText(board)}\n\n${hit}${status}`)
     .addFields(
-      {name:pick(lang,'Bet','Cược'),value:`**${money(bet)} ${CURRENCY}**`,inline:true},
-      {name:pick(lang,'Round reward','Thưởng lượt'),value:`**+${money(payout)} ${CURRENCY}**`,inline:true},
-      {name:pick(lang,'Pending cashout','Chờ rút'),value:`**${money(pending)} ${CURRENCY}**`,inline:true},
-      {name:pick(lang,'Wallet','Ví hiện tại'),value:`**${money(balance)} ${CURRENCY}**`,inline:true},
+      {name:mtx(lang,'Bet','Cược'),value:`**${money(bet)} ${CURRENCY}**`,inline:true},
+      {name:mtx(lang,'Round reward','Thưởng lượt'),value:`**+${money(payout)} ${CURRENCY}**`,inline:true},
+      {name:mtx(lang,'Pending cashout','Chờ rút'),value:`**${money(pending)} ${CURRENCY}**`,inline:true},
+      {name:mtx(lang,'Wallet','Ví hiện tại'),value:`**${money(balance)} ${CURRENCY}**`,inline:true},
     )
-    .setFooter({text:pick(lang,'Corgi Studio • Virtual entertainment currency only','Corgi Studio • Tiền ảo giải trí • Không có giá trị tiền thật')})
+    .setFooter({text:mtx(lang,'Corgi Studio • Virtual entertainment currency only','Corgi Studio • Tiền ảo giải trí • Không có giá trị tiền thật')})
     .setTimestamp();
 }
 async function performSpin({guildId,userId,bet}){
   const lang=await guildLang(guildId);
-  if(!validateBet(bet)) return {error:pick(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};
+  if(!validateBet(bet)) return {error:mtx(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};
   await ensureWallet(guildId,userId);
   const board=spinBoard();
   const {wins,payout}=evaluateSpin(board,bet);
@@ -205,7 +205,7 @@ async function performSpin({guildId,userId,bet}){
     {$inc:{cstar:-bet,spinPending:payout}},
     {returnDocument:'after'},
   );
-  if(!row) return {error:pick(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};
+  if(!row) return {error:mtx(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};
   return {
     embed:spinEmbed({lang,board,bet,payout,pending:row.spinPending||0,balance:row.cstar,wins}),
     components:spinButtons(userId,bet,row.spinPending||0,lang),
@@ -221,25 +221,25 @@ async function cashOutSpin({guildId,userId}){
     [{$set:{cstar:{$add:['$cstar','$spinPending']},spinPending:0}}],
     {returnDocument:'before'},
   );
-  if(!before) return {error:pick(lang,`There is no ${CURRENCY} waiting to cash out.`,`Bạn chưa có ${CURRENCY} nào đang chờ rút.`)};
+  if(!before) return {error:mtx(lang,`There is no ${CURRENCY} waiting to cash out.`,`Bạn chưa có ${CURRENCY} nào đang chờ rút.`)};
   const amount=Math.max(0,before.spinPending||0);
   const balance=(before.cstar||0)+amount;
   const embed=new EmbedBuilder()
-    .setTitle(pick(lang,'💸 SPIN CASHOUT COMPLETE','💸 RÚT 🌟CSTAR THÀNH CÔNG'))
-    .setDescription(`${pick(lang,'Cashed out from your Spin session','Đã rút thưởng từ phiên Spin')}: **+${money(amount)} ${CURRENCY}**\n\n🌟 ${pick(lang,'New balance','Số dư mới')}: **${money(balance)} ${CURRENCY}**`)
-    .setFooter({text:pick(lang,'Corgi Studio • Virtual entertainment currency only','Corgi Studio • Tiền ảo giải trí • Không có giá trị tiền thật')})
+    .setTitle(mtx(lang,'💸 SPIN CASHOUT COMPLETE','💸 RÚT 🌟CSTAR THÀNH CÔNG'))
+    .setDescription(`${mtx(lang,'Cashed out from your Spin session','Đã rút thưởng từ phiên Spin')}: **+${money(amount)} ${CURRENCY}**\n\n🌟 ${mtx(lang,'New balance','Số dư mới')}: **${money(balance)} ${CURRENCY}**`)
+    .setFooter({text:mtx(lang,'Corgi Studio • Virtual entertainment currency only','Corgi Studio • Tiền ảo giải trí • Không có giá trị tiền thật')})
     .setTimestamp();
   return {embed,components:[],amount};
 }
 
 function liengEval(cards){const rs=cards.map(c=>c.r),sorted=[...rs].sort((a,b)=>a-b),counts=new Map();rs.forEach(r=>counts.set(r,(counts.get(r)||0)+1));const triple=[...counts.entries()].find(x=>x[1]===3);if(triple)return {cat:4,name:'Three of a Kind',tie:[triple[0]]};const vals=sorted.map(r=>r===14?1:r);const straight=(vals[2]-vals[0]===2&&new Set(vals).size===3)||(new Set(rs).size===3&&rs.includes(14)&&rs.includes(13)&&rs.includes(12));if(straight)return {cat:3,name:'Liêng',tie:[rs.includes(14)&&rs.includes(13)?14:Math.max(...vals)]};const faces=rs.filter(r=>r>=11||r===14).length;if(faces===3)return {cat:2,name:'Ảnh',tie:[...rs].sort((a,b)=>b-a)};const points=rs.reduce((a,r)=>a+(r>=10?0:r),0)%10;return {cat:1,name:'Points',tie:[points,...rs.sort((a,b)=>b-a)]};}
 function liengName(lang,n){const en={'Three of a Kind':'Three of a Kind','Liêng':'Straight','Ảnh':'Three Face Cards','Points':'Points'};return lang==='vi'?n:(en[n]||n);}
-function liengEmbed(s,lang,reveal=false){const ev=liengEval(s.playerCards);return new EmbedBuilder().setTitle(pick(lang,'🂡 LIENG • THREE-CARD TABLE','🂡 LIÊNG • BÀN 3 LÁ')).setDescription(`**${pick(lang,'Your cards','Bài của bạn')}**\n${handText(s.playerCards)}\n→ **${liengName(lang,ev.name)}${ev.name==='Points'?` ${ev.tie[0]}`:''}**\n\n**${pick(lang,'Dealer','Nhà cái')}**\n${reveal?handText(s.dealerCards):'🂠  🂠  🂠'}\n\n🌟 ${pick(lang,'Total wager','Tổng cược')}: **${money(s.totalBet)} ${CURRENCY}**`).setFooter({text:pick(lang,'Check to showdown, Bet again to raise once, or Fold.','Theo để lật bài, Cược thêm để tố thêm một lần, hoặc Bỏ bài.')});}
-async function runLieng({guildId,userId,bet}){const GameSession=require('../../models/GameSession');const lang=await guildLang(guildId);if(!validateBet(bet))return {error:pick(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};if(await GameSession.findOne({game:'lieng',guildId,userId,status:'active'}))return {error:pick(lang,'Finish your current Liêng hand first.','Hãy hoàn thành ván Liêng hiện tại trước.')};const wallet=await debit(userId,bet);if(!wallet)return {error:pick(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};const deck=cardDeck(),playerCards=deck.splice(0,3),dealerCards=deck.splice(0,3);const s=await GameSession.create({game:'lieng',guildId,userId,bet,totalBet:bet,playerCards,dealerCards,stage:'betting',expiresAt:new Date(Date.now()+10*60_000)});return {embed:liengEmbed(s,lang),components:gameButtons('lieng',userId,'betting',lang)};}
+function liengEmbed(s,lang,reveal=false){const ev=liengEval(s.playerCards);return new EmbedBuilder().setTitle(mtx(lang,'🂡 LIENG • THREE-CARD TABLE','🂡 LIÊNG • BÀN 3 LÁ')).setDescription(`**${mtx(lang,'Your cards','Bài của bạn')}**\n${handText(s.playerCards)}\n→ **${liengName(lang,ev.name)}${ev.name==='Points'?` ${ev.tie[0]}`:''}**\n\n**${mtx(lang,'Dealer','Nhà cái')}**\n${reveal?handText(s.dealerCards):'🂠  🂠  🂠'}\n\n🌟 ${mtx(lang,'Total wager','Tổng cược')}: **${money(s.totalBet)} ${CURRENCY}**`).setFooter({text:mtx(lang,'Check to showdown, Bet again to raise once, or Fold.','Theo để lật bài, Cược thêm để tố thêm một lần, hoặc Bỏ bài.')});}
+async function runLieng({guildId,userId,bet}){const GameSession=require('../../models/GameSession');const lang=await guildLang(guildId);if(!validateBet(bet))return {error:mtx(lang,`Bet must be between 10 and 1,000,000 ${CURRENCY}.`,`Mức cược phải từ 10 đến 1.000.000 ${CURRENCY}.`)};if(await GameSession.findOne({game:'lieng',guildId,userId,status:'active'}))return {error:mtx(lang,'Finish your current Liêng hand first.','Hãy hoàn thành ván Liêng hiện tại trước.')};const wallet=await debit(userId,bet);if(!wallet)return {error:mtx(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};const deck=cardDeck(),playerCards=deck.splice(0,3),dealerCards=deck.splice(0,3);const s=await GameSession.create({game:'lieng',guildId,userId,bet,totalBet:bet,playerCards,dealerCards,stage:'betting',expiresAt:new Date(Date.now()+10*60_000)});return {embed:liengEmbed(s,lang),components:gameButtons('lieng',userId,'betting',lang)};}
 function compareLieng(a,b){const A=liengEval(a),B=liengEval(b);return compareEval(A,B);}
 
 async function buyLottery({guildId,userId,bet}){
- const LotteryTicket=require('../../models/LotteryTicket');const {sample}=require('../../services/lotteryService');const lang=await guildLang(guildId);if(!validateBet(bet))return {error:pick(lang,`Ticket price must be between 10 and 1,000,000 ${CURRENCY}.`,`Giá vé phải từ 10 đến 1.000.000 ${CURRENCY}.`)};const wallet=await debit(userId,bet);if(!wallet)return {error:pick(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};const mainNumbers=sample(5,69),powerNumber=1+Math.floor(Math.random()*26),drawAt=new Date(Date.now()+24*60*60*1000);const t=await LotteryTicket.create({guildId,userId,bet,mainNumbers,powerNumber,drawAt});return {embed:new EmbedBuilder().setTitle(pick(lang,'🎟️ LOTTERY • TICKET PURCHASED','🎟️ XỔ SỐ • ĐÃ MUA VÉ')).setDescription(`${pick(lang,'Your random numbers','Bộ số ngẫu nhiên của bạn')}:\n**${mainNumbers.join('  ')} | ${pick(lang,'PB','SĐB')} ${powerNumber}**\n\n${pick(lang,'Draw time','Mở thưởng')}: <t:${Math.floor(drawAt.getTime()/1000)}:F> • <t:${Math.floor(drawAt.getTime()/1000)}:R>\n${pick(lang,'The ticket is not drawn immediately. Results are settled automatically after 24 hours.','Vé không mở thưởng ngay. Kết quả được tự động đối chiếu sau 24 giờ.')}\n🌟 ${pick(lang,'Balance','Số dư')}: **${money(wallet.cstar)} ${CURRENCY}**`).setFooter({text:`Ticket ${t._id}`})};}
-async function lotteryStatus({guildId,userId}){const LotteryTicket=require('../../models/LotteryTicket');const lang=await guildLang(guildId);const rows=await LotteryTicket.find({guildId,userId}).sort({createdAt:-1}).limit(5).lean();if(!rows.length)return {error:pick(lang,'You have no Lottery tickets yet.','Bạn chưa có vé Xổ số nào.')};return {embed:new EmbedBuilder().setTitle(pick(lang,'🎟️ LOTTERY • MY TICKETS','🎟️ XỔ SỐ • VÉ CỦA TÔI')).setDescription(rows.map(t=>`**${t.mainNumbers.join(' ')} | ${pick(lang,'PB','SĐB')} ${t.powerNumber}**\n${t.status==='pending'?`${pick(lang,'Draw','Mở thưởng')}: <t:${Math.floor(new Date(t.drawAt).getTime()/1000)}:R>`:`${pick(lang,'Result','Kết quả')}: ${t.winningMain.join(' ')} | ${pick(lang,'PB','SĐB')} ${t.winningPower} • **+${money(t.payout)} ${CURRENCY}**`}`).join('\n\n'))};}
+ const LotteryTicket=require('../../models/LotteryTicket');const {sample}=require('../../services/lotteryService');const lang=await guildLang(guildId);if(!validateBet(bet))return {error:mtx(lang,`Ticket price must be between 10 and 1,000,000 ${CURRENCY}.`,`Giá vé phải từ 10 đến 1.000.000 ${CURRENCY}.`)};const wallet=await debit(userId,bet);if(!wallet)return {error:mtx(lang,`Not enough ${CURRENCY}.`,`Bạn không đủ ${CURRENCY}.`)};const mainNumbers=sample(5,69),powerNumber=1+Math.floor(Math.random()*26),drawAt=new Date(Date.now()+24*60*60*1000);const t=await LotteryTicket.create({guildId,userId,bet,mainNumbers,powerNumber,drawAt});return {embed:new EmbedBuilder().setTitle(mtx(lang,'🎟️ LOTTERY • TICKET PURCHASED','🎟️ XỔ SỐ • ĐÃ MUA VÉ')).setDescription(`${mtx(lang,'Your random numbers','Bộ số ngẫu nhiên của bạn')}:\n**${mainNumbers.join('  ')} | ${mtx(lang,'PB','SĐB')} ${powerNumber}**\n\n${mtx(lang,'Draw time','Mở thưởng')}: <t:${Math.floor(drawAt.getTime()/1000)}:F> • <t:${Math.floor(drawAt.getTime()/1000)}:R>\n${mtx(lang,'The ticket is not drawn immediately. Results are settled automatically after 24 hours.','Vé không mở thưởng ngay. Kết quả được tự động đối chiếu sau 24 giờ.')}\n🌟 ${mtx(lang,'Balance','Số dư')}: **${money(wallet.cstar)} ${CURRENCY}**`).setFooter({text:`Ticket ${t._id}`})};}
+async function lotteryStatus({guildId,userId}){const LotteryTicket=require('../../models/LotteryTicket');const lang=await guildLang(guildId);const rows=await LotteryTicket.find({guildId,userId}).sort({createdAt:-1}).limit(5).lean();if(!rows.length)return {error:mtx(lang,'You have no Lottery tickets yet.','Bạn chưa có vé Xổ số nào.')};return {embed:new EmbedBuilder().setTitle(mtx(lang,'🎟️ LOTTERY • MY TICKETS','🎟️ XỔ SỐ • VÉ CỦA TÔI')).setDescription(rows.map(t=>`**${t.mainNumbers.join(' ')} | ${mtx(lang,'PB','SĐB')} ${t.powerNumber}**\n${t.status==='pending'?`${mtx(lang,'Draw','Mở thưởng')}: <t:${Math.floor(new Date(t.drawAt).getTime()/1000)}:R>`:`${mtx(lang,'Result','Kết quả')}: ${t.winningMain.join(' ')} | ${mtx(lang,'PB','SĐB')} ${t.winningPower} • **+${money(t.payout)} ${CURRENCY}**`}`).join('\n\n'))};}
 
 module.exports={MIN_BET,MAX_BET,CURRENCY,validateBet,runTaixiu,runPoker,runRoulette,runSpin,runSpinAgain,cashOutSpin,buyLottery,lotteryStatus,runLieng,pokerEmbed,liengEmbed,gameButtons,handText,bestFive,pokerName,liengEval,liengName,compareLieng,compareEval,credit,debit};

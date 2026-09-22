@@ -2,7 +2,7 @@ const path=require('path');
 const {SlashCommandBuilder,EmbedBuilder,AttachmentBuilder}=require('discord.js');
 const P=require('../../services/progression');
 const {ensureWallet}=require('../../services/economyWallet');
-const {guildLang,pick}=require('../../services/i18n');
+const {guildLang,mtx}=require('../../services/i18n');
 const Verification=require('../../services/profileVerification');
 const {isPremiumGuild}=require('../../services/premium');
 
@@ -28,9 +28,9 @@ async function build(user,lang,guildId){
   p=await P.clearExpiredTitle(p);
   const r=await P.ranks(user.id),dev=await P.settings(),wallet=await ensureWallet(user.id),verification=await Verification.get(user.id),need=P.xpNeeded(p.level,dev.progression);
   const pct=need?Math.min(100,Math.floor(p.xp/need*100)):100,filled=Math.round(pct/10),bar='▰'.repeat(filled)+'▱'.repeat(10-filled);
-  const vip=p.vipTier&&p.vipExpiresAt?`💎 **${p.vipTier}** • <t:${Math.floor(p.vipExpiresAt.getTime()/1000)}:R>`:pick(lang,'No active VIP','Chưa có VIP');
+  const vip=p.vipTier&&p.vipExpiresAt?`💎 **${p.vipTier}** • <t:${Math.floor(p.vipExpiresAt.getTime()/1000)}:R>`:mtx(lang,'No active VIP','Chưa có VIP');
   const custom=await require('../../services/customTitles').resolveActive(p);
-  const title=custom?`${custom.title.emoji||'🏷️'} **${custom.title.name}**${custom.grant.expiresAt?` • <t:${Math.floor(new Date(custom.grant.expiresAt).getTime()/1000)}:R>`:''}`:p.activeTitle?`👑 **${p.activeTitle}**${p.activeTitleExpiresAt?` • <t:${Math.floor(p.activeTitleExpiresAt.getTime()/1000)}:R>`:''}`:pick(lang,'No active title','Chưa có danh hiệu');
+  const title=custom?`${custom.title.emoji||'🏷️'} **${custom.title.name}**${custom.grant.expiresAt?` • <t:${Math.floor(new Date(custom.grant.expiresAt).getTime()/1000)}:R>`:''}`:p.activeTitle?`👑 **${p.activeTitle}**${p.activeTitleExpiresAt?` • <t:${Math.floor(p.activeTitleExpiresAt.getTime()/1000)}:R>`:''}`:mtx(lang,'No active title','Chưa có danh hiệu');
   const colors={'VIP':0x3498DB,'VIP+':0x9B59B6,'VVIP':0xE91E63,'SVIP':0xE67E22,'SSVIP':0x2ECC71,'SSSVIP':0xF1C40F};
   const verified=verificationEmoji(verification);
   const premium=Boolean(guildId&&await isPremiumGuild(guildId));
@@ -40,19 +40,19 @@ async function build(user,lang,guildId){
 
   const embed=new EmbedBuilder()
     .setColor(colors[p.vipTier]||0xF59E0B)
-    .setAuthor({name:pick(lang,'CORGI GAMING PROFILE','HỒ SƠ GAMING CORGI'),iconURL:user.displayAvatarURL()})
+    .setAuthor({name:mtx(lang,'CORGI GAMING PROFILE','HỒ SƠ GAMING CORGI'),iconURL:user.displayAvatarURL()})
     .setTitle(profileTitle)
     .setThumbnail(`attachment://${logo.name}`)
     .setDescription(`${title}\n${vip}`)
     .addFields(
-      {name:pick(lang,'⚔️ Level & EXP','⚔️ Cấp độ & EXP'),value:`**Lv.${p.level.toLocaleString()}** / ${dev.progression.maxLevel.toLocaleString()}\n${bar} **${pct}%**\n${p.xp.toLocaleString()} / ${need.toLocaleString()} EXP`,inline:false},
-      {name:pick(lang,'🌐 Global Rank','🌐 Hạng liên server'),value:`**#${r.globalRank.toLocaleString()}**\n${p.totalXp.toLocaleString()} ${pick(lang,'Total EXP','Tổng EXP')}`,inline:true},
-      {name:pick(lang,'🏆 Weekly Race','🏆 Đua Top tuần'),value:`${r.weeklyRank?`**#${r.weeklyRank.toLocaleString()}**`:'—'}\n${r.weeklyXp.toLocaleString()} EXP`,inline:true},
-      {name:pick(lang,'💰 Wealth Rank','💰 Hạng Tài Phú'),value:`**#${r.wealthRank.toLocaleString()}**\n${wallet.cstar.toLocaleString()} 🌟Cstar`,inline:true},
-      {name:pick(lang,'🏅 Achievements','🏅 Thành tích'),value:pick(lang,`Weekly rewards: **${p.weeklyWins}**\nBest weekly rank: **${p.bestWeeklyRank?`#${p.bestWeeklyRank}`:'—'}**`,`Số lần nhận thưởng Top: **${p.weeklyWins}**\nHạng tuần cao nhất: **${p.bestWeeklyRank?`#${p.bestWeeklyRank}`:'—'}**`),inline:true},
-      {name:pick(lang,'📨 Activity','📨 Hoạt động'),value:pick(lang,`Qualified messages: **${p.totalMessages.toLocaleString()}**\nJoined: <t:${Math.floor(new Date(p.joinedAt).getTime()/1000)}:D>`,`Tin nhắn được tính: **${p.totalMessages.toLocaleString()}**\nTham gia: <t:${Math.floor(new Date(p.joinedAt).getTime()/1000)}:D>`),inline:true}
+      {name:mtx(lang,'⚔️ Level & EXP','⚔️ Cấp độ & EXP'),value:`**Lv.${p.level.toLocaleString()}** / ${dev.progression.maxLevel.toLocaleString()}\n${bar} **${pct}%**\n${p.xp.toLocaleString()} / ${need.toLocaleString()} EXP`,inline:false},
+      {name:mtx(lang,'🌐 Global Rank','🌐 Hạng liên server'),value:`**#${r.globalRank.toLocaleString()}**\n${p.totalXp.toLocaleString()} ${mtx(lang,'Total EXP','Tổng EXP')}`,inline:true},
+      {name:mtx(lang,'🏆 Weekly Race','🏆 Đua Top tuần'),value:`${r.weeklyRank?`**#${r.weeklyRank.toLocaleString()}**`:'—'}\n${r.weeklyXp.toLocaleString()} EXP`,inline:true},
+      {name:mtx(lang,'💰 Wealth Rank','💰 Hạng Tài Phú'),value:`**#${r.wealthRank.toLocaleString()}**\n${wallet.cstar.toLocaleString()} 🪙 CXu`,inline:true},
+      {name:mtx(lang,'🏅 Achievements','🏅 Thành tích'),value:mtx(lang,`Weekly rewards: **${p.weeklyWins}**\nBest weekly rank: **${p.bestWeeklyRank?`#${p.bestWeeklyRank}`:'—'}**`,`Số lần nhận thưởng Top: **${p.weeklyWins}**\nHạng tuần cao nhất: **${p.bestWeeklyRank?`#${p.bestWeeklyRank}`:'—'}**`),inline:true},
+      {name:mtx(lang,'📨 Activity','📨 Hoạt động'),value:mtx(lang,`Qualified messages: **${p.totalMessages.toLocaleString()}**\nJoined: <t:${Math.floor(new Date(p.joinedAt).getTime()/1000)}:D>`,`Tin nhắn được tính: **${p.totalMessages.toLocaleString()}**\nTham gia: <t:${Math.floor(new Date(p.joinedAt).getTime()/1000)}:D>`),inline:true}
     )
-    .setFooter({text:pick(lang,`Weekly reset: Monday 00:00 UTC • ${r.week.key}`,`Reset tuần: Thứ Hai 00:00 UTC • ${r.week.key}`)})
+    .setFooter({text:mtx(lang,`Weekly reset: Monday 00:00 UTC • ${r.week.key}`,`Reset tuần: Thứ Hai 00:00 UTC • ${r.week.key}`)})
     .setTimestamp();
   return {embed,logo};
 }

@@ -32,15 +32,16 @@ async function home(client) {
     {label:'Servers',value:'servers',emoji:'🌐',description:'View guilds using Corgi-Bot'},
     {label:'Premium',value:'premium',emoji:'💎',description:'Grant, revoke and inspect Premium'},
     {label:'CD Keys',value:'keys',emoji:'🔑',description:'Create, list and disable redeem keys'},
-    {label:'🌟Cstar Economy',value:'cstar',emoji:'⭐',description:'Add or subtract 🌟Cstar'},
+    {label:'🪙 CXu Economy',value:'cstar',emoji:'⭐',description:'Add or subtract 🪙 CXu'},
     {label:'Level & EXP',value:'leveling',emoji:'⚔️',description:'Global EXP curve and cooldown'},
     {label:'Global Ranking',value:'ranking',emoji:'🏆',description:'Weekly rewards and Approve Reward'},
     {label:'Fishing',value:'fishing',emoji:'🎣',description:'Global Fishing gameplay configuration'},
     {label:'Game Tournaments',value:'tournaments',emoji:'🏆',description:'Schedule monthly Game Hub tournaments'},
-    {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🌟Cstar prices'},
+    {label:'Seasonal Events',value:'seasonal',emoji:'🎊',description:'Enable holidays, dates, drops and CXu boxes'},
+    {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🪙 CXu prices'},
     {label:'Custom Profile Titles',value:'titles',emoji:'🏷️',description:'Create, grant and revoke profile titles'},
     {label:'Profile Verification',value:'verification',emoji:'✅',description:'Review and assign verification badges'},
-    {label:'Global Mail',value:'globalmail',emoji:'📬',description:'Broadcast announcements + optional 🌟Cstar'},
+    {label:'Global Mail',value:'globalmail',emoji:'📬',description:'Broadcast announcements + optional 🪙 CXu'},
     {label:'Blacklist',value:'blacklist',emoji:'🛡️',description:'Block/unblock guilds or users'}
   );
   return { embeds:[e], components:[new ActionRowBuilder().addComponents(menu), backRow()] };
@@ -83,10 +84,10 @@ async function premium() {
 
 async function keys() {
   const rows = await Dev.listRecentKeys(10);
-  const desc = rows.length ? rows.map(k=>`🔑 \`${k.code}\` • **${k.type}** • ${k.enabled?'✅':'⛔'} • ${k.maxUses===0?`${k.uses}/♾️ Unlimited`:`${k.uses}/${k.maxUses}`}${k.type==='PREMIUM'?` • ${k.premiumDuration}`:k.type==='VIP'?` • ${k.vipTier} ${k.vipDuration}`:` • ${k.cstarAmount} 🌟Cstar`}`).join('\n') : 'No redeem keys.';
+  const desc = rows.length ? rows.map(k=>`🔑 \`${k.code}\` • **${k.type}** • ${k.enabled?'✅':'⛔'} • ${k.maxUses===0?`${k.uses}/♾️ Unlimited`:`${k.uses}/${k.maxUses}`}${k.type==='PREMIUM'?` • ${k.premiumDuration}`:k.type==='VIP'?` • ${k.vipTier} ${k.vipDuration}`:` • ${k.cstarAmount} 🪙 CXu`}`).join('\n') : 'No redeem keys.';
   const e = footer(new EmbedBuilder().setTitle('🔑 CD Key Administration').setDescription(desc));
   const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('dev:key:cstar').setLabel('Create 🌟Cstar Key').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('dev:key:cstar').setLabel('Create 🪙 CXu Key').setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId('dev:key:premium').setLabel('Create Premium Key').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId('dev:key:disable').setLabel('Disable Key').setStyle(ButtonStyle.Danger)
   );
@@ -94,8 +95,8 @@ async function keys() {
 }
 
 function cstar() {
-  const e = footer(new EmbedBuilder().setTitle('⭐ 🌟Cstar Economy Control').setDescription('Adjust a member’s GLOBAL 🌟Cstar wallet by User ID. The same balance is used in every server. Negative values subtract 🌟Cstar; balance can never go below 0.'));
-  const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:cstar:adjust').setLabel('Adjust 🌟Cstar').setEmoji('⭐').setStyle(ButtonStyle.Primary));
+  const e = footer(new EmbedBuilder().setTitle('⭐ 🪙 CXu Economy Control').setDescription('Adjust a member’s GLOBAL 🪙 CXu wallet by User ID. The same balance is used in every server. Negative values subtract 🪙 CXu; balance can never go below 0.'));
+  const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:cstar:adjust').setLabel('Adjust 🪙 CXu').setEmoji('⭐').setStyle(ButtonStyle.Primary));
   return {embeds:[e],components:[row,backRow()]};
 }
 
@@ -112,10 +113,10 @@ async function blacklist() {
 function input(id,label,placeholder,required=true,style=TextInputStyle.Short){return new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId(id).setLabel(label).setPlaceholder(placeholder).setRequired(required).setStyle(style));}
 function premiumGrantModal(){return new ModalBuilder().setCustomId('dev:modal:premiumGrant').setTitle('Grant / Extend Premium').addComponents(input('guildId','Guild ID','123456789012345678'),input('userId','User ID / purchaser ID','123456789012345678'),input('duration','Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'));}
 function premiumRevokeModal(){return new ModalBuilder().setCustomId('dev:modal:premiumRevoke').setTitle('Revoke Guild Premium').addComponents(input('guildId','Guild ID','123456789012345678'));}
-function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCstar').setTitle('Create 🌟Cstar Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('amount','🌟Cstar Amount','1000'),input('maxUses','Maximum Uses (0 = Unlimited)','1'),input('expiresDays','Expires After Days (0 = never)','0'));}
+function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCstar').setTitle('Create 🪙 CXu Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('amount','🪙 CXu Amount','1000'),input('maxUses','Maximum Uses (0 = Unlimited)','1'),input('expiresDays','Expires After Days (0 = never)','0'));}
 function keyPremiumModal(){return new ModalBuilder().setCustomId('dev:modal:keyPremium').setTitle('Create Premium Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('duration','Premium Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'),input('maxUses','Maximum Uses (0 = Unlimited)','1'),input('expiresDays','Key Expires After Days (0 = never)','0'));}
 function keyDisableModal(){return new ModalBuilder().setCustomId('dev:modal:keyDisable').setTitle('Disable CD Key').addComponents(input('code','CD Key','PREM-XXXXXX-XXXXXX-XXXXXX'));}
-function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Global 🌟Cstar').addComponents(input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
+function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Global 🪙 CXu').addComponents(input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
 function blacklistModal(kind){return new ModalBuilder().setCustomId(`dev:modal:blacklist:${kind}`).setTitle(`Toggle ${kind} blacklist`).addComponents(input('id',`${kind==='guild'?'Guild':'User'} ID`,'123456789012345678'));}
 
 
@@ -133,9 +134,9 @@ async function titles(){
 }
 async function globalMail(actorId){
   const M=require('../services/globalMail');const [draft,recent]=await Promise.all([M.latestDraft(actorId),M.latest(5)]);
-  const draftText=draft?`🇺🇸 **${draft.titleEn||draft.title}**\n🇻🇳 **${draft.titleVi||draft.title}**\n🌟Cstar: **${Number(draft.cstarAmount||0).toLocaleString()}**\nExpires: ${draft.expiresAt?`<t:${Math.floor(new Date(draft.expiresAt).getTime()/1000)}:R>`:'Never'}\nDraft ID: \`${draft._id}\``:'No active draft.';
+  const draftText=draft?`🇺🇸 **${draft.titleEn||draft.title}**\n🇻🇳 **${draft.titleVi||draft.title}**\n🪙 CXu: **${Number(draft.cstarAmount||0).toLocaleString()}**\nExpires: ${draft.expiresAt?`<t:${Math.floor(new Date(draft.expiresAt).getTime()/1000)}:R>`:'Never'}\nDraft ID: \`${draft._id}\``:'No active draft.';
   const hist=recent.length?recent.map(x=>`• **${x.title}** — ${x.deliverySummary?.sent||0} sent / ${x.deliverySummary?.failed||0} failed / ${x.deliverySummary?.skipped||0} skipped`).join('\n'):'No broadcasts yet.';
-  const e=footer(new EmbedBuilder().setTitle('📬 Global Mail Center').setDescription('Developer-only broadcast panel. One message is posted to every server where Corgi-Bot can find a writable text/announcement channel. 🌟Cstar attachments can be claimed only once per Discord account, even if the same user is in multiple servers.').addFields({name:'Current Draft',value:draftText.slice(0,1024)},{name:'Recent Broadcasts',value:hist.slice(0,1024)}));
+  const e=footer(new EmbedBuilder().setTitle('📬 Global Mail Center').setDescription('Developer-only broadcast panel. One message is posted to every server where Corgi-Bot can find a writable text/announcement channel. 🪙 CXu attachments can be claimed only once per Discord account, even if the same user is in multiple servers.').addFields({name:'Current Draft',value:draftText.slice(0,1024)},{name:'Recent Broadcasts',value:hist.slice(0,1024)}));
   const row=new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('dev:mail:compose').setLabel(draft?'Replace Draft':'Compose Mail').setEmoji('✍️').setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId('dev:mail:preview').setLabel('Preview').setEmoji('👁️').setStyle(ButtonStyle.Secondary).setDisabled(!draft),
@@ -171,18 +172,18 @@ function titleCreateModal(){return new ModalBuilder().setCustomId('dev:modal:tit
 function titleGrantModal(){return new ModalBuilder().setCustomId('dev:modal:titleGrant').setTitle('Grant Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
 function titleRevokeModal(){return new ModalBuilder().setCustomId('dev:modal:titleRevoke').setTitle('Revoke Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
 function titleToggleModal(){return new ModalBuilder().setCustomId('dev:modal:titleToggle').setTitle('Enable / Disable Title').addComponents(input('key','Title Key','FOUNDER'));}
-function mailComposeModal(){return new ModalBuilder().setCustomId('dev:modal:mailCompose').setTitle('Compose Global Mail • EN + VI').addComponents(input('titleEn','English Title','System Announcement'),input('bodyEn','English Message','Write the English announcement...',true,TextInputStyle.Paragraph),input('titleVi','Tiêu đề Tiếng Việt','Thông báo hệ thống'),input('bodyVi','Nội dung Tiếng Việt','Nhập nội dung Tiếng Việt...',true,TextInputStyle.Paragraph),input('options','Options: Cstar | days','1000 | 7',false));}
+function mailComposeModal(){return new ModalBuilder().setCustomId('dev:modal:mailCompose').setTitle('Compose Global Mail • EN + VI').addComponents(input('titleEn','English Title','System Announcement'),input('bodyEn','English Message','Write the English announcement...',true,TextInputStyle.Paragraph),input('titleVi','Tiêu đề Tiếng Việt','Thông báo hệ thống'),input('bodyVi','Nội dung Tiếng Việt','Nhập nội dung Tiếng Việt...',true,TextInputStyle.Paragraph),input('options','Options: CXu | days','1000 | 7',false));}
 function mailImageModal(){return new ModalBuilder().setCustomId('dev:modal:mailImage').setTitle('Global Mail • Image').addComponents(new LabelBuilder().setLabel('Attach image').setDescription('Upload one image directly from Discord.').setFileUploadComponent(new FileUploadBuilder().setCustomId('imageFile').setRequired(true).setMinValues(1).setMaxValues(1)));}
 
 async function fishing(){
   const F=require('../services/fishingSettings'),c=await F.get();
   const rarity=Object.entries(c.rarityChances).map(([k,v])=>`${k} ${v}%`).join(' • ');
-  const e=footer(new EmbedBuilder().setTitle('🎣 Fishing Configuration').setDescription('Global settings stored in MongoDB. Changes apply to new Fishing actions without changing existing catches, Fishdex, Cstar or progression.').addFields(
+  const e=footer(new EmbedBuilder().setTitle('🎣 Fishing Configuration').setDescription('Global settings stored in MongoDB. Changes apply to new Fishing actions without changing existing catches, Fishdex, CXu or progression.').addFields(
     {name:'⚙️ General',value:`Fishing: **${c.enabled?'ON':'OFF'}**\nCooldown: **${c.cooldownMs/1000}s**\nStarter bait: **${c.starterBait}**\nBag limit: **${c.maxBag}**`,inline:true},
     {name:'🛡️ Features',value:`Sell All: **${c.sellAllEnabled?'ON':'OFF'}**\nGlobal Ranking: **${c.rankingEnabled?'ON':'OFF'}**`,inline:true},
     {name:'🎲 Rarity chances',value:rarity.slice(0,1024)},
-    {name:'🪱 Baits',value:Object.entries(c.baits).map(([k,b])=>`**${k}** • ${b.cost} Cstar/${b.qty} • luck ${b.luck} • weight ${b.weight}`).join('\n').slice(0,1024)},
-    {name:'🎣 Rods',value:c.rods.map((r,i)=>`**${i}. ${r.nameEn}** • ${r.fish} fish / ${r.kg}kg / ${r.cost} Cstar • luck ${r.luck} • x${r.weight}`).join('\n').slice(0,1024)}
+    {name:'🪱 Baits',value:Object.entries(c.baits).map(([k,b])=>`**${k}** • ${b.cost} CXu/${b.qty} • luck ${b.luck} • weight ${b.weight}`).join('\n').slice(0,1024)},
+    {name:'🎣 Rods',value:c.rods.map((r,i)=>`**${i}. ${r.nameEn}** • ${r.fish} fish / ${r.kg}kg / ${r.cost} CXu • luck ${r.luck} • x${r.weight}`).join('\n').slice(0,1024)}
   ));
   const r1=new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('dev:fishing:general').setLabel('General').setEmoji('⚙️').setStyle(ButtonStyle.Primary),
@@ -201,4 +202,8 @@ function fishingScoreModal(){return new ModalBuilder().setCustomId('dev:modal:fi
 
 function tournamentModal(){return new ModalBuilder().setCustomId('dev:modal:tournamentCreate').setTitle('Schedule Game Tournament').addComponents(input('name','Tournament name','October Pet Arena Cup'),input('gameId','Game ID','pet-arena'),input('registrationAt','Registration opens (ISO)','2026-10-01T00:00:00-04:00'),input('startsAt','Tournament starts (ISO)','2026-10-15T18:00:00-04:00'),input('endsAt','End | Max | Reward | Rules','2026-10-16T18:00:00-04:00 | 32 | 10000 | Highest score wins',true,TextInputStyle.Paragraph));}
 
-module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal};
+
+async function seasonal(){const S=require('../models/SeasonalEvent');await require('../services/seasonalService').seed();const rows=await S.find().sort({key:1}).lean();const e=footer(new EmbedBuilder().setTitle('🎊 Seasonal Event Control').setDescription('Global holiday events. Valid Game Hub actions can drop event materials. Crafting exchanges **1 crafted item → 1 Gift Box**.').addFields({name:'Events',value:rows.map(x=>`${x.enabled?'🟢':'⚫'} **${x.key}** • ${x.startAt?`<t:${Math.floor(new Date(x.startAt).getTime()/1000)}:d>`:'no start'} → ${x.endAt?`<t:${Math.floor(new Date(x.endAt).getTime()/1000)}:d>`:'no end'} • 🎁 ${x.cstarMin}-${x.cstarMax} CXu`).join('\n').slice(0,1024)}));const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:seasonal:configure').setLabel('Configure Event').setEmoji('⚙️').setStyle(ButtonStyle.Primary));return{embeds:[e],components:[row,backRow()]};}
+function seasonalModal(){return new ModalBuilder().setCustomId('dev:modal:seasonal').setTitle('Seasonal Event Configuration').addComponents(input('key','Event key','christmas'),input('enabled','Enabled: ON / OFF','ON'),input('dates','Start ISO | End ISO','2026-12-01T00:00:00-05:00 | 2026-12-31T23:59:59-05:00'),input('reward','Gift Box CXu min | max','250 | 5000'),input('dropMultiplier','Drop multiplier (0.1 - 10)','1'));}
+
+module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal,seasonal,seasonalModal};

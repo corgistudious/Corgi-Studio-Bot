@@ -2,7 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits, ChannelType } = require('disco
 const Contest = require('../../models/Contest');
 const ContestSubmission = require('../../models/ContestSubmission');
 const ContestVote = require('../../models/ContestVote');
-const { guildLang, pick } = require('../../services/i18n');
+const { guildLang, mtx } = require('../../services/i18n');
 const { getGuildSettings } = require('../../services/guildSettings');
 const EventUI = require('../../ui/events');
 const {
@@ -43,59 +43,59 @@ module.exports = {
   async execute(i, client) {
     const lang = await guildLang(i.guildId), sub = i.options.getSubcommand();
     const adminSubs = new Set(['panel', 'approve', 'reject', 'approve_all', 'close_submissions', 'open_vote', 'end_vote', 'publish', 'cancel']);
-    if (adminSubs.has(sub) && !admin(i)) return i.reply({ content: pick(lang, 'You need Manage Server or Administrator for this action.', 'Bạn cần quyền Quản lý Server hoặc Administrator để thực hiện thao tác này.'), flags: 64 });
+    if (adminSubs.has(sub) && !admin(i)) return i.reply({ content: mtx(lang, 'You need Manage Server or Administrator for this action.', 'Bạn cần quyền Quản lý Server hoặc Administrator để thực hiện thao tác này.'), flags: 64 });
 
     if (sub === 'panel') { const settings = await getGuildSettings(i.guildId); return i.reply({ ...(await EventUI.buildContestBuilder(i.guildId, settings.language)), flags: 64 }); }
 
     const c = await findContest(i.guildId, i.options.getString('contest_id'));
-    if (!c) return i.reply({ content: pick(lang, 'Contest not found.', 'Không tìm thấy cuộc thi.'), flags: 64 });
+    if (!c) return i.reply({ content: mtx(lang, 'Contest not found.', 'Không tìm thấy cuộc thi.'), flags: 64 });
 
     if (sub === 'submit') {
-      if (c.status !== 'SUBMISSION' || (c.submissionEndsAt && c.submissionEndsAt <= new Date())) return i.reply({ content: pick(lang, 'Submissions are closed for this contest.', 'Cuộc thi này đã đóng nhận bài.'), flags: 64 });
+      if (c.status !== 'SUBMISSION' || (c.submissionEndsAt && c.submissionEndsAt <= new Date())) return i.reply({ content: mtx(lang, 'Submissions are closed for this contest.', 'Cuộc thi này đã đóng nhận bài.'), flags: 64 });
       const check = await checkEligibility(c, i.member, lang); if (!check.ok) return i.reply({ content: `❌ ${check.reason}`, flags: 64 });
       const used = await ContestSubmission.countDocuments({ contestId: c.contestId, userId: i.user.id, status: { $ne: 'REJECTED' } });
-      if (used >= c.maxEntriesPerUser) return i.reply({ content: pick(lang, `You reached the limit of ${c.maxEntriesPerUser} entry/entries.`, `Bạn đã đạt giới hạn ${c.maxEntriesPerUser} bài dự thi.`), flags: 64 });
-      const att = i.options.getAttachment('file'); if (!att) return i.reply({ content: pick(lang, 'Please upload a file.', 'Hãy upload một file.'), flags: 64 });
+      if (used >= c.maxEntriesPerUser) return i.reply({ content: mtx(lang, `You reached the limit of ${c.maxEntriesPerUser} entry/entries.`, `Bạn đã đạt giới hạn ${c.maxEntriesPerUser} bài dự thi.`), flags: 64 });
+      const att = i.options.getAttachment('file'); if (!att) return i.reply({ content: mtx(lang, 'Please upload a file.', 'Hãy upload một file.'), flags: 64 });
       await i.deferReply({ flags: 64 });
       const entryNo = (await ContestSubmission.countDocuments({ contestId: c.contestId })) + 1, entryId = `${c.contestId}-E${String(entryNo).padStart(3, '0')}`;
       const row = await ContestSubmission.create({ guildId: i.guildId, contestId: c.contestId, userId: i.user.id, entryNo, entryId, caption: i.options.getString('caption') || '', mediaUrl: att.url, mediaType: mediaType(att), fileName: att.name, status: c.reviewRequired ? 'PENDING' : 'APPROVED' });
       if (row.status === 'APPROVED') await postOrRefreshSubmission(client, c, row, lang); await refreshContestMessage(client, c, lang);
-      return i.editReply(pick(lang, row.status === 'PENDING' ? `✅ Entry \`${entryId}\` submitted and is waiting for admin review.` : `✅ Entry \`${entryId}\` approved automatically and posted to the Gallery.`, row.status === 'PENDING' ? `✅ Bài \`${entryId}\` đã gửi và đang chờ Admin duyệt.` : `✅ Bài \`${entryId}\` đã được duyệt tự động và đăng lên Gallery.`));
+      return i.editReply(mtx(lang, row.status === 'PENDING' ? `✅ Entry \`${entryId}\` submitted and is waiting for admin review.` : `✅ Entry \`${entryId}\` approved automatically and posted to the Gallery.`, row.status === 'PENDING' ? `✅ Bài \`${entryId}\` đã gửi và đang chờ Admin duyệt.` : `✅ Bài \`${entryId}\` đã được duyệt tự động và đăng lên Gallery.`));
     }
 
     if (sub === 'approve' || sub === 'reject') {
       const entryId = i.options.getString('entry_id'); const row = await ContestSubmission.findOne({ contestId: c.contestId, entryId });
-      if (!row) return i.reply({ content: pick(lang, 'Entry not found.', 'Không tìm thấy bài dự thi.'), flags: 64 });
-      if (sub === 'approve') { row.status = 'APPROVED'; row.reviewReason = ''; row.reviewedBy = i.user.id; row.reviewedAt = new Date(); await row.save(); await postOrRefreshSubmission(client, c, row, lang); await refreshContestMessage(client, c, lang); return i.reply({ content: pick(lang, `✅ Approved \`${entryId}\` and posted/refreshed in Gallery.`, `✅ Đã duyệt \`${entryId}\` và đăng/cập nhật trên Gallery.`), flags: 64 }); }
-      row.status = 'REJECTED'; row.reviewReason = i.options.getString('reason') || ''; row.reviewedBy = i.user.id; row.reviewedAt = new Date(); await row.save(); await refreshContestMessage(client, c, lang); return i.reply({ content: pick(lang, `❌ Rejected \`${entryId}\`.`, `❌ Đã từ chối \`${entryId}\`.`), flags: 64 });
+      if (!row) return i.reply({ content: mtx(lang, 'Entry not found.', 'Không tìm thấy bài dự thi.'), flags: 64 });
+      if (sub === 'approve') { row.status = 'APPROVED'; row.reviewReason = ''; row.reviewedBy = i.user.id; row.reviewedAt = new Date(); await row.save(); await postOrRefreshSubmission(client, c, row, lang); await refreshContestMessage(client, c, lang); return i.reply({ content: mtx(lang, `✅ Approved \`${entryId}\` and posted/refreshed in Gallery.`, `✅ Đã duyệt \`${entryId}\` và đăng/cập nhật trên Gallery.`), flags: 64 }); }
+      row.status = 'REJECTED'; row.reviewReason = i.options.getString('reason') || ''; row.reviewedBy = i.user.id; row.reviewedAt = new Date(); await row.save(); await refreshContestMessage(client, c, lang); return i.reply({ content: mtx(lang, `❌ Rejected \`${entryId}\`.`, `❌ Đã từ chối \`${entryId}\`.`), flags: 64 });
     }
 
     if (sub === 'approve_all') {
       const rows = await ContestSubmission.find({ contestId: c.contestId, status: 'PENDING' }); for (const row of rows) { row.status = 'APPROVED'; row.reviewedBy = i.user.id; row.reviewedAt = new Date(); await row.save(); await postOrRefreshSubmission(client, c, row, lang); } await refreshContestMessage(client, c, lang);
-      return i.reply({ content: pick(lang, `✅ Approved ${rows.length} pending entry/entries.`, `✅ Đã duyệt ${rows.length} bài đang chờ.`), flags: 64 });
+      return i.reply({ content: mtx(lang, `✅ Approved ${rows.length} pending entry/entries.`, `✅ Đã duyệt ${rows.length} bài đang chờ.`), flags: 64 });
     }
 
-    if (sub === 'close_submissions') { if (c.status !== 'SUBMISSION') return i.reply({ content: pick(lang, 'Contest is not accepting submissions.', 'Cuộc thi hiện không ở giai đoạn nhận bài.'), flags: 64 }); c.status = 'REVIEW'; await c.save(); await refreshContestMessage(client, c, lang); return i.reply({ content: pick(lang, '🔒 Submissions closed. Contest is now in review.', '🔒 Đã đóng nhận bài. Cuộc thi chuyển sang giai đoạn duyệt.'), flags: 64 }); }
+    if (sub === 'close_submissions') { if (c.status !== 'SUBMISSION') return i.reply({ content: mtx(lang, 'Contest is not accepting submissions.', 'Cuộc thi hiện không ở giai đoạn nhận bài.'), flags: 64 }); c.status = 'REVIEW'; await c.save(); await refreshContestMessage(client, c, lang); return i.reply({ content: mtx(lang, '🔒 Submissions closed. Contest is now in review.', '🔒 Đã đóng nhận bài. Cuộc thi chuyển sang giai đoạn duyệt.'), flags: 64 }); }
 
     if (sub === 'open_vote') {
-      if (!['REVIEW', 'SUBMISSION'].includes(c.status)) return i.reply({ content: pick(lang, 'Voting cannot be opened from the current stage.', 'Không thể mở bình chọn từ giai đoạn hiện tại.'), flags: 64 });
-      const pending = await ContestSubmission.countDocuments({ contestId: c.contestId, status: 'PENDING' }); if (pending) return i.reply({ content: pick(lang, `There are still ${pending} pending entries. Approve or reject them first.`, `Vẫn còn ${pending} bài đang chờ duyệt. Hãy duyệt hoặc từ chối trước.`), flags: 64 });
-      const approved = await ContestSubmission.countDocuments({ contestId: c.contestId, status: 'APPROVED' }); if (!approved) return i.reply({ content: pick(lang, 'No approved entries are available for voting.', 'Không có bài đã duyệt để mở bình chọn.'), flags: 64 });
+      if (!['REVIEW', 'SUBMISSION'].includes(c.status)) return i.reply({ content: mtx(lang, 'Voting cannot be opened from the current stage.', 'Không thể mở bình chọn từ giai đoạn hiện tại.'), flags: 64 });
+      const pending = await ContestSubmission.countDocuments({ contestId: c.contestId, status: 'PENDING' }); if (pending) return i.reply({ content: mtx(lang, `There are still ${pending} pending entries. Approve or reject them first.`, `Vẫn còn ${pending} bài đang chờ duyệt. Hãy duyệt hoặc từ chối trước.`), flags: 64 });
+      const approved = await ContestSubmission.countDocuments({ contestId: c.contestId, status: 'APPROVED' }); if (!approved) return i.reply({ content: mtx(lang, 'No approved entries are available for voting.', 'Không có bài đã duyệt để mở bình chọn.'), flags: 64 });
       c.status = 'VOTING'; c.votingEndsAt = new Date(Date.now() + (c.votingDurationMs || 86400000)); await c.save(); await refreshContestMessage(client, c, lang); await refreshGallery(client, c, lang);
-      return i.reply({ content: pick(lang, `❤️ Voting is open until <t:${Math.floor(c.votingEndsAt.getTime() / 1000)}:F>.`, `❤️ Đã mở bình chọn đến <t:${Math.floor(c.votingEndsAt.getTime() / 1000)}:F>.`), flags: 64 });
+      return i.reply({ content: mtx(lang, `❤️ Voting is open until <t:${Math.floor(c.votingEndsAt.getTime() / 1000)}:F>.`, `❤️ Đã mở bình chọn đến <t:${Math.floor(c.votingEndsAt.getTime() / 1000)}:F>.`), flags: 64 });
     }
 
-    if (sub === 'end_vote') { if (c.status !== 'VOTING') return i.reply({ content: pick(lang, 'Voting is not currently open.', 'Bình chọn hiện không mở.'), flags: 64 }); await i.deferReply({ flags: 64 }); const rows = await endVoting(client, c); return i.editReply(pick(lang, `🏁 Voting closed. ${rows.length} approved entries ranked.`, `🏁 Đã khóa bình chọn. ${rows.length} bài đã được xếp hạng.`)); }
+    if (sub === 'end_vote') { if (c.status !== 'VOTING') return i.reply({ content: mtx(lang, 'Voting is not currently open.', 'Bình chọn hiện không mở.'), flags: 64 }); await i.deferReply({ flags: 64 }); const rows = await endVoting(client, c); return i.editReply(mtx(lang, `🏁 Voting closed. ${rows.length} approved entries ranked.`, `🏁 Đã khóa bình chọn. ${rows.length} bài đã được xếp hạng.`)); }
 
     if (sub === 'results') { const rows = await ranking(c, 10); return i.reply({ embeds: [buildResultsEmbed(c, rows, lang)], flags: 64 }); }
 
     if (sub === 'publish') {
-      if (!['ENDED', 'PUBLISHED'].includes(c.status)) return i.reply({ content: pick(lang, 'End voting before publishing results.', 'Hãy kết thúc bình chọn trước khi công bố kết quả.'), flags: 64 });
-      const rows = await ranking(c, c.topCount || 3); const ch = await client.channels.fetch(c.resultChannelId || c.eventChannelId || c.channelId).catch(() => null); if (!ch?.isTextBased()) return i.reply({ content: pick(lang, 'Result channel is unavailable.', 'Kênh kết quả không khả dụng.'), flags: 64 });
-      await ch.send({ embeds: [buildResultsEmbed(c, rows, lang)] }); c.status = 'PUBLISHED'; c.publishedAt = new Date(); await c.save(); await refreshContestMessage(client, c, lang); return i.reply({ content: pick(lang, `🏆 Results published in ${ch}.`, `🏆 Đã công bố kết quả tại ${ch}.`), flags: 64 });
+      if (!['ENDED', 'PUBLISHED'].includes(c.status)) return i.reply({ content: mtx(lang, 'End voting before publishing results.', 'Hãy kết thúc bình chọn trước khi công bố kết quả.'), flags: 64 });
+      const rows = await ranking(c, c.topCount || 3); const ch = await client.channels.fetch(c.resultChannelId || c.eventChannelId || c.channelId).catch(() => null); if (!ch?.isTextBased()) return i.reply({ content: mtx(lang, 'Result channel is unavailable.', 'Kênh kết quả không khả dụng.'), flags: 64 });
+      await ch.send({ embeds: [buildResultsEmbed(c, rows, lang)] }); c.status = 'PUBLISHED'; c.publishedAt = new Date(); await c.save(); await refreshContestMessage(client, c, lang); return i.reply({ content: mtx(lang, `🏆 Results published in ${ch}.`, `🏆 Đã công bố kết quả tại ${ch}.`), flags: 64 });
     }
 
-    if (sub === 'cancel') { c.status = 'CANCELLED'; await c.save(); await refreshContestMessage(client, c, lang); await refreshGallery(client, c, lang); return i.reply({ content: pick(lang, '❌ Contest cancelled.', '❌ Đã hủy cuộc thi.'), flags: 64 }); }
+    if (sub === 'cancel') { c.status = 'CANCELLED'; await c.save(); await refreshContestMessage(client, c, lang); await refreshGallery(client, c, lang); return i.reply({ content: mtx(lang, '❌ Contest cancelled.', '❌ Đã hủy cuộc thi.'), flags: 64 }); }
   },
-  async executePrefix(m) { const lang = await guildLang(m.guildId); return m.reply(pick(lang, '🏆 Use `/setup` → **Events** → **Contest Builder** to configure a Contest. Members still submit with `/contest submit`.', '🏆 Dùng `/setup` → **Sự kiện** → **Tạo Contest** để cấu hình. Thành viên vẫn gửi bài bằng `/contest submit`.')); }
+  async executePrefix(m) { const lang = await guildLang(m.guildId); return m.reply(mtx(lang, '🏆 Use `/setup` → **Events** → **Contest Builder** to configure a Contest. Members still submit with `/contest submit`.', '🏆 Dùng `/setup` → **Sự kiện** → **Tạo Contest** để cấu hình. Thành viên vẫn gửi bài bằng `/contest submit`.')); }
 };

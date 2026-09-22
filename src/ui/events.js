@@ -4,14 +4,14 @@ const {
   ModalBuilder, TextInputBuilder, TextInputStyle, FileUploadBuilder, LabelBuilder
 } = require('discord.js');
 const { AMBER } = require('./theme');
-const { pick } = require('../services/i18n');
+const { mtx } = require('../services/i18n');
 const { getDraft } = require('../services/eventDraft');
 const Giveaway = require('../models/Giveaway');
 const Contest = require('../models/Contest');
 const { premiumPanelVisual } = require('../services/premiumVisual');
 async function panelPayload(guildId,e,components=[]){const x=await premiumPanelVisual(guildId,e);return {embeds:[x.embed],components,files:x.files};}
 
-function L(lang, en, vi) { return pick(lang, en, vi); }
+function L(lang, en, vi) { return mtx(lang, en, vi); }
 function v(x, fallback = '—') { return x === undefined || x === null || x === '' ? fallback : String(x); }
 function yn(lang, x) { return x ? L(lang, 'ON', 'BẬT') : L(lang, 'OFF', 'TẮT'); }
 function backEvents(lang) {
@@ -59,7 +59,7 @@ async function buildGiveawayBuilder(guildId, lang) {
       { name: L(lang, '⏱️ Duration / Winners', '⏱️ Thời gian / Người thắng'), value: `**${v(d.duration)}** • **${v(d.winnerCount, 1)}**`, inline: true },
       { name: L(lang, '📡 Channel', '📡 Kênh'), value: d.channelId ? `<#${d.channelId}>` : L(lang, 'Not set', 'Chưa đặt'), inline: true },
       { name: L(lang, '🎭 Required role', '🎭 Role bắt buộc'), value: d.requiredRoleId ? `<@&${d.requiredRoleId}>` : L(lang, 'None', 'Không'), inline: true },
-      { name: L(lang, '🛡️ Requirements', '🛡️ Điều kiện'), value: `${L(lang, 'Account age', 'Tuổi tài khoản')}: **${d.minAccountAgeDays || 0}d**\n${L(lang, 'Server age', 'Thời gian server')}: **${d.minServerAgeDays || 0}d**\n🌟Cstar: **${Number(d.minCstar || 0).toLocaleString()}**`, inline: true },
+      { name: L(lang, '🛡️ Requirements', '🛡️ Điều kiện'), value: `${L(lang, 'Account age', 'Tuổi tài khoản')}: **${d.minAccountAgeDays || 0}d**\n${L(lang, 'Server age', 'Thời gian server')}: **${d.minServerAgeDays || 0}d**\n🪙 CXu: **${Number(d.minCstar || 0).toLocaleString()}**`, inline: true },
       { name: L(lang, '🖼️ Visual', '🖼️ Hình ảnh'), value: `${d.imageUrl ? '✅' : '⚫'} ${L(lang, 'Image', 'Ảnh')} • **${d.imageShape || '16:9'}**\n${L(lang, 'Join emoji', 'Emoji tham gia')}: ${d.joinEmoji || '🔥'}`, inline: true }
     ).setFooter({ text: L(lang, 'Amber Builder • changes are saved as draft', 'Amber Builder • thay đổi được lưu dạng bản nháp') });
   const controls = new ActionRowBuilder().addComponents(
@@ -103,7 +103,7 @@ async function giveawayReqModal(guildId, lang) {
   return new ModalBuilder().setCustomId('eventcfg:gwmodal:req').setTitle(L(lang, 'Giveaway • Requirements', 'Giveaway • Điều kiện')).addComponents(
     text('accountAge', L(lang, 'Minimum account age (days)', 'Tuổi tài khoản tối thiểu (ngày)'), d.minAccountAgeDays, TextInputStyle.Short, true, 4),
     text('serverAge', L(lang, 'Minimum server age (days)', 'Thời gian trong server tối thiểu (ngày)'), d.minServerAgeDays, TextInputStyle.Short, true, 4),
-    text('minCstar', L(lang, 'Minimum Cstar (not charged)', 'Cstar tối thiểu (không trừ)'), d.minCstar, TextInputStyle.Short, true, 12),
+    text('minCstar', L(lang, 'Minimum CXu (not charged)', 'CXu tối thiểu (không trừ)'), d.minCstar, TextInputStyle.Short, true, 12),
     text('joinEmoji', L(lang, 'Join emoji', 'Emoji tham gia'), d.joinEmoji || '🔥', TextInputStyle.Short, true, 100)
   );
 }
@@ -193,7 +193,7 @@ function giveawayPreview(d, lang) {
     { name: L(lang, '🎁 Prize', '🎁 Phần thưởng'), value: `**${d.prize || '—'}**` },
     { name: L(lang, '👑 Winners', '👑 Người thắng'), value: `**${d.winnerCount || 1}**`, inline: true },
     { name: L(lang, '⏱️ Duration', '⏱️ Thời gian'), value: `**${d.duration || '—'}**`, inline: true },
-    { name: L(lang, '📋 Requirements', '📋 Điều kiện'), value: `${d.requiredRoleId ? `<@&${d.requiredRoleId}>\n` : ''}${L(lang, 'Account', 'Tài khoản')} ≥ ${d.minAccountAgeDays || 0}d\n${L(lang, 'Server', 'Server')} ≥ ${d.minServerAgeDays || 0}d\n🌟Cstar ≥ ${Number(d.minCstar || 0).toLocaleString()}` }
+    { name: L(lang, '📋 Requirements', '📋 Điều kiện'), value: `${d.requiredRoleId ? `<@&${d.requiredRoleId}>\n` : ''}${L(lang, 'Account', 'Tài khoản')} ≥ ${d.minAccountAgeDays || 0}d\n${L(lang, 'Server', 'Server')} ≥ ${d.minServerAgeDays || 0}d\n🪙 CXu ≥ ${Number(d.minCstar || 0).toLocaleString()}` }
   ).setFooter({ text: 'Amber Preview • not published' });
   if (d.imageUrl) e.setImage(d.imageUrl);
   return e;

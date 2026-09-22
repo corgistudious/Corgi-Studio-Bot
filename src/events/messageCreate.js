@@ -2,7 +2,7 @@ const { Events } = require('discord.js');
 const { getGuildSettings } = require('../services/guildSettings');
 const { checkAccess } = require('../services/accessControl');
 const { isPremiumGuild, premiumMultiplier } = require('../services/premium');
-const { pick } = require('../services/i18n');
+const { mtx } = require('../services/i18n');
 const Progression = require('../services/progression');
 
 module.exports = {
@@ -35,7 +35,7 @@ module.exports = {
                 name: `corgi-level-${r.profile.level}.png`
               });
               await message.channel.send({
-                content: pick(
+                content: mtx(
                   s.language,
                   `🎉 ${message.author} reached **Level ${r.profile.level.toLocaleString()}**!`,
                   `🎉 ${message.author} đã đạt **Cấp ${r.profile.level.toLocaleString()}**!`
@@ -46,7 +46,7 @@ module.exports = {
               console.warn('Level-up card failed:', e.message);
               await message.channel
                 .send(
-                  pick(
+                  mtx(
                     s.language,
                     `🎉 ${message.author} reached **Level ${r.profile.level.toLocaleString()}**!`,
                     `🎉 ${message.author} đã đạt **Cấp ${r.profile.level.toLocaleString()}**!`
@@ -76,7 +76,7 @@ module.exports = {
     if (required && !message.member?.permissions?.has(BigInt(required))) {
       return message
         .reply(
-          pick(
+          mtx(
             s.language,
             '❌ You do not have the required Discord permission for this command.',
             '❌ Bạn không có quyền Discord cần thiết để dùng lệnh này.'
@@ -87,7 +87,7 @@ module.exports = {
 
     if (c.premiumOnly && !(await isPremiumGuild(message.guildId))) {
       return message.reply(
-        pick(
+        mtx(
           s.language,
           '💎 This command requires active Corgi Premium for this server.',
           '💎 Lệnh này yêu cầu Corgi Premium đang hoạt động cho server.'
@@ -99,7 +99,7 @@ module.exports = {
       await c.executePrefix(message, parts, client);
     } catch (e) {
       console.error(e);
-      await message.reply(pick(s.language, 'Command error.', 'Lệnh gặp lỗi.'));
+      await message.reply(mtx(s.language, 'Command error.', 'Lệnh gặp lỗi.'));
     }
   }
 };
