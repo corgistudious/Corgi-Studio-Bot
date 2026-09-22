@@ -95,7 +95,7 @@ async function keys() {
 }
 
 function cstar() {
-  const e = footer(new EmbedBuilder().setTitle('⭐ 🌟 CXu Economy Control').setDescription('Adjust a member’s GLOBAL CXu wallet by User ID. The same balance is used in every server. Negative values subtract CXu; balance can never go below 0.'));
+  const e = footer(new EmbedBuilder().setTitle('🌟 CXu Economy Control').setDescription('Adjust a member’s GLOBAL CXu wallet by User ID. The same balance is used in every server. Negative values subtract CXu; balance can never go below 0.'));
   const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:cstar:adjust').setLabel('Adjust CXu').setEmoji('1551759873241251912').setStyle(ButtonStyle.Primary));
   return {embeds:[e],components:[row,backRow()]};
 }

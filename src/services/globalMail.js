@@ -28,13 +28,13 @@ function messagePayload(mail,lang='en',options={}){
   const content=localizedContent(mail,lang);
   const e=new EmbedBuilder().setColor(0xF59E0B).setTitle(`📬 ${content.title}`).setDescription(content.body).setFooter({text:'Corgi-Bot • Global Mail'}).setTimestamp(mail.publishedAt||mail.createdAt||new Date());
   if(mail.imageUrl)e.setImage(mail.imageUrl);
-  if(mail.cstarAmount>0)e.addFields({name:'🪙 CXu',value:mtx(lang,`Attachment: **${Number(mail.cstarAmount).toLocaleString()} 🪙 CXu**
-Claim once per Discord account.`,`Đính kèm: **${Number(mail.cstarAmount).toLocaleString()} 🪙 CXu**
+  if(mail.cstarAmount>0)e.addFields({name:'<:cxu_coin:1551759873241251912> CXu',value:mtx(lang,`Attachment: **${Number(mail.cstarAmount).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**
+Claim once per Discord account.`,`Đính kèm: **${Number(mail.cstarAmount).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**
 Mỗi tài khoản Discord chỉ nhận 1 lần.`)});
   if(mail.expiresAt)e.addFields({name:mtx(lang,'⏳ Claim deadline','⏳ Hạn nhận'),value:`<t:${Math.floor(new Date(mail.expiresAt).getTime()/1000)}:F>`});
   const components=[];
   if(!options.hideLanguageButtons)components.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`globalmail:view:vi:${mail._id}`).setLabel('Tiếng Việt').setEmoji('🇻🇳').setStyle(lang==='vi'?ButtonStyle.Primary:ButtonStyle.Secondary),new ButtonBuilder().setCustomId(`globalmail:view:en:${mail._id}`).setLabel('English').setEmoji('🇺🇸').setStyle(lang==='en'?ButtonStyle.Primary:ButtonStyle.Secondary)));
-  if(mail.cstarAmount>0)components.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`globalmail:claim:${mail._id}`).setLabel(mtx(lang,'Claim 🪙 CXu','Nhận 🪙 CXu')).setEmoji('🎁').setStyle(ButtonStyle.Success)));
+  if(mail.cstarAmount>0)components.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`globalmail:claim:${mail._id}`).setLabel(mtx(lang,'Claim <:cxu_coin:1551759873241251912> CXu','Nhận <:cxu_coin:1551759873241251912> CXu')).setEmoji('🎁').setStyle(ButtonStyle.Success)));
   return {embeds:[e],components};
 }
 function canSend(ch,guild){if(!ch?.isTextBased?.()||ch.type===ChannelType.GuildVoice)return false;const me=guild.members.me;const p=ch.permissionsFor(me);return p?.has([PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.EmbedLinks]);}
@@ -58,7 +58,7 @@ async function publish(client,mailId,actorId){
 }
 async function cancelDraft(mailId,actorId){return GlobalMail.findOneAndUpdate({_id:mailId,createdBy:String(actorId),status:'DRAFT'},{$set:{status:'CANCELLED'}},{returnDocument:'after'});}
 async function claim(mailId,userId){
-  const mail=await GlobalMail.findById(mailId);if(!mail||mail.status!=='PUBLISHED')throw new Error('This mail is not available.');if(mail.cstarAmount<=0)throw new Error('This mail has no 🪙 CXu attachment.');if(mail.expiresAt&&mail.expiresAt<=new Date())throw new Error('This mail reward has expired.');
+  const mail=await GlobalMail.findById(mailId);if(!mail||mail.status!=='PUBLISHED')throw new Error('This mail is not available.');if(mail.cstarAmount<=0)throw new Error('This mail has no <:cxu_coin:1551759873241251912> CXu attachment.');if(mail.expiresAt&&mail.expiresAt<=new Date())throw new Error('This mail reward has expired.');
   const uid=String(userId),mid=String(mail._id);await ensureWallet(uid);
   const wallet=await UserEconomy.findOneAndUpdate({...walletFilter(uid),claimedGlobalMailIds:{$ne:mid}},{$inc:{cstar:mail.cstarAmount},$addToSet:{claimedGlobalMailIds:mid}},{returnDocument:'after'});
   if(!wallet)throw new Error('You already claimed this mail reward.');

@@ -3,7 +3,7 @@ const {mtx}=require('../services/i18n');
 
 function ownerGuard(owner){return String(owner);}
 function sicboHome(owner,lang){
-  const embed=new EmbedBuilder().setTitle(mtx(lang,'🎲 SIC BO • BETTING TABLE','🎲 TÀI XỈU • BÀN CƯỢC')).setDescription(mtx(lang,'Choose a betting area below. After choosing a bet, enter your 🪙 CXu wager in the popup.','Chọn khu vực cược bên dưới. Sau khi chọn cửa, nhập số 🪙 CXu muốn cược trong cửa sổ bật lên.')).addFields(
+  const embed=new EmbedBuilder().setTitle(mtx(lang,'🎲 SIC BO • BETTING TABLE','🎲 TÀI XỈU • BÀN CƯỢC')).setDescription(mtx(lang,'Choose a betting area below. After choosing a bet, enter your CXu wager in the popup.','Chọn khu vực cược bên dưới. Sau khi chọn cửa, nhập số CXu muốn cược trong cửa sổ bật lên.')).addFields(
     {name:mtx(lang,'Quick bets','Cược nhanh'),value:mtx(lang,'Big / Small • Any Triple','Tài / Xỉu • Bộ ba bất kỳ'),inline:false},
     {name:mtx(lang,'Advanced bets','Cược nâng cao'),value:mtx(lang,'Total 4–17 • Single / Double / Triple 1–6 • Two-face Pair','Tổng 4–17 • Một mặt / Đôi / Bộ ba 1–6 • Cặp hai mặt'),inline:false},
   ).setFooter({text:mtx(lang,'Big/Small lose when the dice form a triple.','Tài/Xỉu thua khi xúc xắc ra bộ ba.')});
@@ -32,7 +32,7 @@ function sicboChoices(owner,lang,category){
   return {embeds:[embed],components:[menu,back]};
 }
 function rouletteHome(owner,lang){
- const embed=new EmbedBuilder().setTitle('🎡 ROULETTE • EUROPEAN 0–36').setDescription(mtx(lang,'Choose a common bet or open an advanced number bet. Then enter your 🪙 CXu wager.','Chọn cửa cược phổ biến hoặc mở cược số nâng cao. Sau đó nhập số 🪙 CXu muốn cược.')).addFields({name:mtx(lang,'Outside bets','Cược ngoài'),value:mtx(lang,'Red/Black • Odd/Even • 1–18/19–36 • Dozens • Columns','Đỏ/Đen • Chẵn/Lẻ • 1–18/19–36 • Dozen • Column')},{name:mtx(lang,'Number bets','Cược số'),value:'Straight • Split • Street • Corner • Six Line • Zero Trio • 0-1-2-3 Basket'});
+ const embed=new EmbedBuilder().setTitle('🎡 ROULETTE • EUROPEAN 0–36').setDescription(mtx(lang,'Choose a common bet or open an advanced number bet. Then enter your CXu wager.','Chọn cửa cược phổ biến hoặc mở cược số nâng cao. Sau đó nhập số CXu muốn cược.')).addFields({name:mtx(lang,'Outside bets','Cược ngoài'),value:mtx(lang,'Red/Black • Odd/Even • 1–18/19–36 • Dozens • Columns','Đỏ/Đen • Chẵn/Lẻ • 1–18/19–36 • Dozen • Column')},{name:mtx(lang,'Number bets','Cược số'),value:'Straight • Split • Street • Corner • Six Line • Zero Trio • 0-1-2-3 Basket'});
  const colors=new ActionRowBuilder().addComponents(
    new ButtonBuilder().setCustomId(`casino:roulette:bet:color~red:${owner}`).setLabel(mtx(lang,'Red','Đỏ')).setEmoji('🔴').setStyle(ButtonStyle.Danger),
    new ButtonBuilder().setCustomId(`casino:roulette:bet:color~black:${owner}`).setLabel(mtx(lang,'Black','Đen')).setEmoji('⚫').setStyle(ButtonStyle.Secondary),
@@ -52,7 +52,7 @@ function rouletteHome(owner,lang){
 function wagerModal(game,selection,owner,lang){
  const modal=new ModalBuilder().setCustomId(`casinoModal:${game}:${selection}:${owner}`).setTitle(game==='sicbo'?mtx(lang,'Sic Bo wager','Tiền cược Tài Xỉu'):mtx(lang,'Roulette wager','Tiền cược Roulette'));
  const amount=new TextInputBuilder().setCustomId('amount').setStyle(TextInputStyle.Short).setRequired(true).setPlaceholder('10 - 1,000,000');
- modal.addLabelComponents(new LabelBuilder().setLabel(mtx(lang,'🪙 CXu wager','Số 🪙 CXu muốn cược')).setTextInputComponent(amount));
+ modal.addLabelComponents(new LabelBuilder().setLabel(mtx(lang,'<:cxu_coin:1551759873241251912> CXu wager','Số <:cxu_coin:1551759873241251912> CXu muốn cược')).setTextInputComponent(amount));
  return modal;
 }
 function rouletteAdvancedModal(type,owner,lang){
@@ -62,7 +62,7 @@ function rouletteAdvancedModal(type,owner,lang){
  const amount=new TextInputBuilder().setCustomId('amount').setStyle(TextInputStyle.Short).setRequired(true).setPlaceholder('10 - 1,000,000');
  modal.addLabelComponents(
    new LabelBuilder().setLabel(mtx(lang,'Number selection','Dãy số cược')).setDescription(mtx(lang,'Use hyphens between numbers.','Dùng dấu gạch ngang giữa các số.')).setTextInputComponent(pickInput),
-   new LabelBuilder().setLabel(mtx(lang,'🪙 CXu wager','Số 🪙 CXu muốn cược')).setTextInputComponent(amount),
+   new LabelBuilder().setLabel(mtx(lang,'<:cxu_coin:1551759873241251912> CXu wager','Số <:cxu_coin:1551759873241251912> CXu muốn cược')).setTextInputComponent(amount),
  );
  return modal;
 }

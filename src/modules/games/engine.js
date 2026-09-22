@@ -10,7 +10,7 @@ const { guildLang, mtx } = require('../../services/i18n');
 
 const MIN_BET = 10;
 const MAX_BET = 1_000_000;
-const CURRENCY = '🪙 CXu';
+const CURRENCY = '<:cxu_coin:1551759873241251912> CXu';
 
 async function ensureWallet(_guildId, userId) {
   return ensureGlobalWallet(userId);
@@ -132,7 +132,7 @@ async function runRoulette({guildId,userId,bet,betType,pickValue}){const lang=aw
 // ─────────────────────────────────────────────────────────────
 // SPIN 12 CON GIÁP
 // Bet is deducted immediately. Winnings are held in spinPending
-// until the player presses “Rút 🪙 CXu”. This is virtual currency only.
+// until the player presses “Rút <:cxu_coin:1551759873241251912> CXu”. This is virtual currency only.
 // ─────────────────────────────────────────────────────────────
 const ZODIAC = [
   { emoji:'🐭', vi:'Tý',   en:'Rat',     mult:2.0 },
@@ -172,7 +172,7 @@ function evaluateSpin(board, bet){
 function spinButtons(userId,bet,pending,lang,disabled=false){
   return [new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`spin:again:${bet}:${userId}`).setLabel(mtx(lang,'Spin again','Quay tiếp')).setEmoji('🎰').setStyle(ButtonStyle.Primary).setDisabled(disabled),
-    new ButtonBuilder().setCustomId(`spin:cashout:${userId}`).setLabel(mtx(lang,'Cash out 🪙 CXu','Rút 🪙 CXu')).setEmoji('💸').setStyle(ButtonStyle.Success).setDisabled(disabled || pending<=0),
+    new ButtonBuilder().setCustomId(`spin:cashout:${userId}`).setLabel(mtx(lang,'Cash out <:cxu_coin:1551759873241251912> CXu','Rút <:cxu_coin:1551759873241251912> CXu')).setEmoji('💸').setStyle(ButtonStyle.Success).setDisabled(disabled || pending<=0),
   )];
 }
 function spinEmbed({lang,board,bet,payout,pending,balance,wins,cashedOut=0}){

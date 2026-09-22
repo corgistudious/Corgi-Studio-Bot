@@ -109,7 +109,7 @@ async function updateRewardConfig(patch){const set={};for(const [k,v] of Object.
 function vipField(tier){return tier==='VIP+'?'VIP_PLUS':tier;}
 async function buyVip(userId,tier){
   if(!VIP_TIERS.includes(tier))throw new Error('Invalid VIP tier.');const s=await settings(),price=s.vipPrices[vipField(tier)];
-  await ensureWallet(userId);const wallet=await UserEconomy.findOne(walletFilter(userId));if(wallet.cstar<price)throw new Error(`Not enough 🪙 CXu. Need ${Number(price).toLocaleString()} 🪙 CXu.`);
+  await ensureWallet(userId);const wallet=await UserEconomy.findOne(walletFilter(userId));if(wallet.cstar<price)throw new Error(`Not enough <:cxu_coin:1551759873241251912> CXu. Need ${Number(price).toLocaleString()} <:cxu_coin:1551759873241251912> CXu.`);
   wallet.cstar-=price;await wallet.save();const p=await ensureProgress(userId),now=Date.now(),base=p.vipTier===tier&&p.vipExpiresAt&&p.vipExpiresAt>new Date()?p.vipExpiresAt.getTime():now;
   p.vipTier=tier;p.vipExpiresAt=new Date(base+30*86400000);p.vipSource='CSTAR';await p.save();return {profile:p,price,balance:wallet.cstar};
 }

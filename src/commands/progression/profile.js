@@ -48,7 +48,7 @@ async function build(user,lang,guildId){
       {name:mtx(lang,'⚔️ Level & EXP','⚔️ Cấp độ & EXP'),value:`**Lv.${p.level.toLocaleString()}** / ${dev.progression.maxLevel.toLocaleString()}\n${bar} **${pct}%**\n${p.xp.toLocaleString()} / ${need.toLocaleString()} EXP`,inline:false},
       {name:mtx(lang,'🌐 Global Rank','🌐 Hạng liên server'),value:`**#${r.globalRank.toLocaleString()}**\n${p.totalXp.toLocaleString()} ${mtx(lang,'Total EXP','Tổng EXP')}`,inline:true},
       {name:mtx(lang,'🏆 Weekly Race','🏆 Đua Top tuần'),value:`${r.weeklyRank?`**#${r.weeklyRank.toLocaleString()}**`:'—'}\n${r.weeklyXp.toLocaleString()} EXP`,inline:true},
-      {name:mtx(lang,'💰 Wealth Rank','💰 Hạng Tài Phú'),value:`**#${r.wealthRank.toLocaleString()}**\n${wallet.cstar.toLocaleString()} 🪙 CXu`,inline:true},
+      {name:mtx(lang,'💰 Wealth Rank','💰 Hạng Tài Phú'),value:`**#${r.wealthRank.toLocaleString()}**\n${wallet.cstar.toLocaleString()} <:cxu_coin:1551759873241251912> CXu`,inline:true},
       {name:mtx(lang,'🏅 Achievements','🏅 Thành tích'),value:mtx(lang,`Weekly rewards: **${p.weeklyWins}**\nBest weekly rank: **${p.bestWeeklyRank?`#${p.bestWeeklyRank}`:'—'}**`,`Số lần nhận thưởng Top: **${p.weeklyWins}**\nHạng tuần cao nhất: **${p.bestWeeklyRank?`#${p.bestWeeklyRank}`:'—'}**`),inline:true},
       {name:mtx(lang,'📨 Activity','📨 Hoạt động'),value:mtx(lang,`Qualified messages: **${p.totalMessages.toLocaleString()}**\nJoined: <t:${Math.floor(new Date(p.joinedAt).getTime()/1000)}:D>`,`Tin nhắn được tính: **${p.totalMessages.toLocaleString()}**\nTham gia: <t:${Math.floor(new Date(p.joinedAt).getTime()/1000)}:D>`),inline:true}
     )
