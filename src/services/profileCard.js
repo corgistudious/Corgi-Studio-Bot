@@ -5,6 +5,8 @@ const P = require('./progression');
 const { ensureWallet } = require('./economyWallet');
 const Social = require('./socialProfile');
 const Verification = require('./profileVerification');
+const Cosmetic = require('../models/GlobalCosmetic');
+const CosmeticAssets = require('./cosmeticAssetStorage');
 
 const BG = path.join(__dirname, '../../assets/profile/default-background.png');
 const CXU_ICON = path.join(__dirname, '../../assets/currency/cxu_coin_128.png');
@@ -129,6 +131,32 @@ async function avatarBuffer(user) {
   return Buffer.from(await response.arrayBuffer());
 }
 
+async function cosmeticItem(type, selected) {
+  selected = String(selected || '').trim();
+
+  if (!selected || selected === 'default' || selected === 'ice') return null;
+
+  const key = selected.includes(':')
+    ? selected
+    : `${String(type).toLowerCase()}:${selected}`;
+
+  return Cosmetic.findOne({ key, type }).lean();
+}
+
+async function imageAsset(item) {
+  if (!item?.value) return null;
+
+  const absolute = CosmeticAssets.resolve(item.value);
+  if (!absolute) return null;
+
+  try {
+    await sharp(absolute).metadata();
+    return absolute;
+  } catch {
+    return null;
+  }
+}
+
 async function render(user, lang = 'en') {
   const z = LABELS[lang] || LABELS.en;
 
@@ -154,7 +182,22 @@ async function render(user, lang = 'en') {
 
   const barWidth = Math.round(540 * xpRatio);
 
-  const bg = await sharp(BG)
+  const [backgroundItem, frameItem, accentItem, nameplateItem, titleItem] =
+    await Promise.all([
+      cosmeticItem('BACKGROUND', social.cosmetics?.background),
+      cosmeticItem('FRAME', social.cosmetics?.frame),
+      cosmeticItem('ACCENT', social.cosmetics?.accent),
+      cosmeticItem('NAMEPLATE', social.cosmetics?.nameplate),
+      cosmeticItem('TITLE', social.cosmetics?.title)
+    ]);
+
+  const [backgroundAsset, frameAsset, nameplateAsset] = await Promise.all([
+    imageAsset(backgroundItem),
+    imageAsset(frameItem),
+    imageAsset(nameplateItem)
+  ]);
+
+  const bg = await sharp(backgroundAsset || BG)
     .resize(900, 1600, { fit: 'cover' })
     .png()
     .toBuffer();
@@ -175,16 +218,30 @@ async function render(user, lang = 'en') {
     .png()
     .toBuffer();
 
-  const accent = {
+  const legacyAccent = {
     ice: '#64c8ff',
     gold: '#ffd36a',
     sakura: '#ff8fca',
     emerald: '#67e8a5'
-  }[social.cosmetics?.accent] || '#64c8ff';
+  }[social.cosmetics?.accent];
+
+  const customAccent = String(accentItem?.value || '').trim();
+  const accent = /^#[0-9a-fA-F]{6}$/.test(customAccent)
+    ? customAccent
+    : (legacyAccent || '#64c8ff');
 
   const name = esc((user.globalName || user.username).slice(0, 30));
+
+  const equippedTitle = String(titleItem?.value || '').trim();
+  const legacyTitle = String(social.cosmetics?.title || '').trim();
+
   const title = esc(
-    (social.cosmetics?.title || p.activeTitle || z.player).slice(0, 32)
+    (
+      equippedTitle ||
+      (!legacyTitle.includes(':') ? legacyTitle : '') ||
+      p.activeTitle ||
+      z.player
+    ).slice(0, 32)
   );
   const bio = esc((social.bio || z.defaultBio).slice(0, 150));
   const verified = verify?.status === 'APPROVED' ? ' ✓' : '';
@@ -277,12 +334,52 @@ async function render(user, lang = 'en') {
           class="m" font-size="18">${z.footer}</text>
   </svg>`;
 
+  const layers = [
+    { input: Buffer.from(svg), top: 0, left: 0 },
+    { input: avatar, top: 110, left: 340 }
+  ];
+
+  if (frameAsset) {
+    try {
+      const frame = await sharp(frameAsset)
+        .resize(270, 270, { fit: 'contain' })
+        .png()
+        .toBuffer();
+
+      layers.push({
+        input: frame,
+        top: 85,
+        left: 315
+      });
+    } catch {}
+  }
+
+  if (nameplateAsset) {
+    try {
+      const nameplate = await sharp(nameplateAsset)
+        .resize(600, 100, {
+          fit: 'contain',
+          withoutEnlargement: true
+        })
+        .png()
+        .toBuffer();
+
+      layers.push({
+        input: nameplate,
+        top: 342,
+        left: 150
+      });
+    } catch {}
+  }
+
+  layers.push({
+    input: cxuIcon,
+    top: 493,
+    left: 645
+  });
+
   return sharp(bg)
-    .composite([
-      { input: Buffer.from(svg), top: 0, left: 0 },
-      { input: avatar, top: 110, left: 340 },
-      { input: cxuIcon, top: 493, left: 645 }
-    ])
+    .composite(layers)
     .png()
     .toBuffer();
 }

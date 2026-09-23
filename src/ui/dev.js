@@ -40,6 +40,7 @@ async function home(client) {
     {label:'Seasonal Events',value:'seasonal',emoji:'🎊',description:'Enable holidays, dates, drops and CXu boxes'},
     {label:'Custom Profile Titles',value:'titles',emoji:'🏷️',description:'Create, grant and revoke profile titles'},
     {label:'Profile Verification',value:'verification',emoji:'✅',description:'Review and assign verification badges'},
+    {label:'Global Cosmetic Shop',value:'cosmetics',emoji:'🎨',description:'Create and manage Global profile cosmetics'},
     {label:'Global Mail',value:'globalmail',emoji:'📬',description:'Broadcast announcements + optional 🌟 CXu'},
     {label:'Blacklist',value:'blacklist',emoji:'🛡️',description:'Block/unblock guilds or users'}
   );
@@ -108,6 +109,126 @@ async function blacklist() {
   );
   return {embeds:[e],components:[row,backRow()]};
 }
+
+
+async function cosmetics() {
+  const Admin = require('../services/globalCosmeticAdmin');
+  const rows = await Admin.list();
+
+  const recent = rows.slice(0, 12).map(x =>
+    `${x.enabled ? '🟢' : '⚫'} **${x.name}** • \`${x.key}\`\n` +
+    `   ${x.type} • ${x.rarity} • ${Number(x.price || 0).toLocaleString()} <:cxu_coin:1551759873241251912> CXu`
+  );
+
+  const e = footer(
+    new EmbedBuilder()
+      .setTitle('🎨 Global Cosmetic Shop')
+      .setDescription(
+        'Developer-managed GLOBAL profile cosmetics.\n' +
+        'Frame, Background, Nameplate and Effect use uploaded image files stored on the VPS.\n' +
+        'Accent uses a HEX color. Title uses text.\n\n' +
+        (recent.length ? recent.join('\n') : '*No developer cosmetics yet.*')
+      )
+      .addFields(
+        { name:'Catalog', value:`**${rows.length}** cosmetic(s)`, inline:true },
+        { name:'Image storage', value:'Persistent VPS storage', inline:true }
+      )
+  );
+
+  const create = new StringSelectMenuBuilder()
+    .setCustomId('dev:cosmetic:createType')
+    .setPlaceholder('Create cosmetic…')
+    .addOptions(
+      {label:'Frame',value:'FRAME',emoji:'🖼️',description:'Upload transparent/profile frame artwork'},
+      {label:'Background',value:'BACKGROUND',emoji:'🌄',description:'Upload profile-card background artwork'},
+      {label:'Text Color',value:'ACCENT',emoji:'🎨',description:'Create a HEX profile text accent'},
+      {label:'Nameplate',value:'NAMEPLATE',emoji:'🏷️',description:'Upload nameplate artwork'},
+      {label:'Title',value:'TITLE',emoji:'👑',description:'Create a profile title'},
+      {label:'Effect',value:'EFFECT',emoji:'✨',description:'Upload profile effect artwork'}
+    );
+
+  const actions = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('dev:cosmetic:edit').setLabel('Edit').setEmoji('✏️').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('dev:cosmetic:toggle').setLabel('Enable / Disable').setEmoji('🔁').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('dev:cosmetic:delete').setLabel('Retire').setEmoji('🗑️').setStyle(ButtonStyle.Danger)
+  );
+
+  return {
+    embeds:[e],
+    components:[
+      new ActionRowBuilder().addComponents(create),
+      actions,
+      backRow()
+    ]
+  };
+}
+
+function cosmeticImageModal(type) {
+  const labels = {
+    FRAME:'Frame',
+    BACKGROUND:'Background',
+    NAMEPLATE:'Nameplate',
+    EFFECT:'Effect'
+  };
+
+  const label = labels[type];
+  if (!label) throw new Error('Invalid image cosmetic type.');
+
+  const upload = new FileUploadBuilder()
+    .setCustomId('imageFile')
+    .setRequired(true)
+    .setMinValues(1)
+    .setMaxValues(1);
+
+  return new ModalBuilder()
+    .setCustomId(`dev:modal:cosmeticImage:${type}`)
+    .setTitle(`Create ${label}`)
+    .addComponents(
+      input('key','Cosmetic Key',`${type.toLowerCase()}:celestial`),
+      input('name','Display Name',`Celestial ${label}`),
+      input('price','CXu Price','25000'),
+      input('rarity','Rarity','COMMON / RARE / EPIC / LEGENDARY / LIMITED'),
+      new LabelBuilder()
+        .setLabel(`${label} Image`)
+        .setDescription('PNG, JPEG or WebP • maximum 8 MB')
+        .setFileUploadComponent(upload)
+    );
+}
+
+function cosmeticTextModal(type) {
+  if (!['ACCENT','TITLE'].includes(type)) throw new Error('Invalid text cosmetic type.');
+
+  return new ModalBuilder()
+    .setCustomId(`dev:modal:cosmeticText:${type}`)
+    .setTitle(type === 'ACCENT' ? 'Create Text Color' : 'Create Profile Title')
+    .addComponents(
+      input('key','Cosmetic Key',type === 'ACCENT' ? 'accent:amethyst' : 'title:immortal'),
+      input('name','Display Name',type === 'ACCENT' ? 'Amethyst' : 'Immortal'),
+      input('price','CXu Price','10000'),
+      input('rarity','Rarity','COMMON / RARE / EPIC / LEGENDARY / LIMITED'),
+      input(
+        'value',
+        type === 'ACCENT' ? 'HEX Color' : 'Title Text',
+        type === 'ACCENT' ? '#A855F7' : '👑 Immortal'
+      )
+    );
+}
+
+function cosmeticKeyModal(action) {
+  const titles = {
+    edit:'Edit Cosmetic',
+    toggle:'Enable / Disable Cosmetic',
+    delete:'Retire Cosmetic'
+  };
+
+  return new ModalBuilder()
+    .setCustomId(`dev:modal:cosmeticAction:${action}`)
+    .setTitle(titles[action] || 'Manage Cosmetic')
+    .addComponents(
+      input('key','Cosmetic Key','frame:celestial')
+    );
+}
+
 
 function input(id,label,placeholder,required=true,style=TextInputStyle.Short){return new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId(id).setLabel(label).setPlaceholder(placeholder).setRequired(required).setStyle(style));}
 function premiumGrantModal(){return new ModalBuilder().setCustomId('dev:modal:premiumGrant').setTitle('Grant / Extend Premium').addComponents(input('guildId','Guild ID','123456789012345678'),input('userId','User ID / purchaser ID','123456789012345678'),input('duration','Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'));}
@@ -205,4 +326,4 @@ function tournamentModal(){return new ModalBuilder().setCustomId('dev:modal:tour
 async function seasonal(){const S=require('../models/SeasonalEvent');await require('../services/seasonalService').seed();const rows=await S.find().sort({key:1}).lean();const e=footer(new EmbedBuilder().setTitle('🎊 Seasonal Event Control').setDescription('Global holiday events. Valid Game Hub actions can drop event materials. Crafting exchanges **1 crafted item → 1 Gift Box**.').addFields({name:'Events',value:rows.map(x=>`${x.enabled?'🟢':'⚫'} **${x.key}** • ${x.startAt?`<t:${Math.floor(new Date(x.startAt).getTime()/1000)}:d>`:'no start'} → ${x.endAt?`<t:${Math.floor(new Date(x.endAt).getTime()/1000)}:d>`:'no end'} • 🎁 ${x.cstarMin}-${x.cstarMax} CXu`).join('\n').slice(0,1024)}));const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:seasonal:configure').setLabel('Configure Event').setEmoji('⚙️').setStyle(ButtonStyle.Primary));return{embeds:[e],components:[row,backRow()]};}
 function seasonalModal(){return new ModalBuilder().setCustomId('dev:modal:seasonal').setTitle('Seasonal Event Configuration').addComponents(input('key','Event key','christmas'),input('enabled','Enabled: ON / OFF','ON'),input('dates','Start ISO | End ISO','2026-12-01T00:00:00-05:00 | 2026-12-31T23:59:59-05:00'),input('reward','Gift Box CXu min | max','250 | 5000'),input('dropMultiplier','Drop multiplier (0.1 - 10)','1'));}
 
-module.exports={home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal,seasonal,seasonalModal};
+module.exports={cosmetics,cosmeticImageModal,cosmeticTextModal,cosmeticKeyModal,home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal,seasonal,seasonalModal};

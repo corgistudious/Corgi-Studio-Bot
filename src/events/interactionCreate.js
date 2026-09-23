@@ -22,6 +22,7 @@ const EventControl=require('../modules/eventControl');
 const {isDeveloper}=require('../services/permissions');
 const {mtx}=require('../services/i18n');
 const ProgressionDev=require('../modules/progressionDev');
+const GlobalCollection=require('../services/globalCollection');
 async function guard(i){const s=i.guildId?await getGuildSettings(i.guildId):null;if(!i.guildId||!canSetup(i.member)){if(i.isRepliable())await i.reply({content:mtx(s?.language,'You need Manage Server or Administrator.','Bạn cần quyền Quản lý Server hoặc Administrator.'),flags:64});return false;}return true;}
 async function createTicket(i){const s=await getGuildSettings(i.guildId);const lang=s.language;if(!s.modules.ticket)return i.reply({content:mtx(lang,'🎫 Ticket module is disabled.','🎫 Tính năng Ticket đang tắt.'),flags:64});const existing=await Ticket.findOne({guildId:i.guildId,ownerId:i.user.id,status:'open'}).lean();if(existing){const ch=await i.guild.channels.fetch(existing.channelId).catch(()=>null);if(ch)return i.reply({content:mtx(lang,`You already have an open ticket: ${ch}`,`Bạn đã có một Ticket đang mở: ${ch}`),flags:64});}
  const perms=[{id:i.guild.roles.everyone.id,deny:[PermissionFlagsBits.ViewChannel]},{id:i.user.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ReadMessageHistory,PermissionFlagsBits.AttachFiles]},{id:i.guild.members.me.id,allow:[PermissionFlagsBits.ViewChannel,PermissionFlagsBits.SendMessages,PermissionFlagsBits.ManageChannels,PermissionFlagsBits.ReadMessageHistory]}];
@@ -152,6 +153,17 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:mail:image')return i.showModal(DevUI.mailImageModal());
     if(i.customId==='dev:tournament:create')return i.showModal(DevUI.tournamentModal());
     if(i.customId==='dev:seasonal:configure')return i.showModal(DevUI.seasonalModal());
+    if(i.customId==='dev:cosmetic:refresh')return i.update(await DevUI.cosmetics());
+
+    if(i.customId==='dev:cosmetic:edit')
+      return i.showModal(DevUI.cosmeticKeyModal('edit'));
+
+    if(i.customId==='dev:cosmetic:toggle')
+      return i.showModal(DevUI.cosmeticKeyModal('toggle'));
+
+    if(i.customId==='dev:cosmetic:delete')
+      return i.showModal(DevUI.cosmeticKeyModal('delete'));
+
     if(i.customId==='dev:fishing:general')return i.showModal(DevUI.fishingGeneralModal());
     if(i.customId==='dev:fishing:rarity')return i.showModal(DevUI.fishingRarityModal());
     if(i.customId==='dev:fishing:bait')return i.showModal(DevUI.fishingBaitModal());
@@ -163,6 +175,15 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:mail:discard'){const M=require('../services/globalMail'),d=await M.latestDraft(i.user.id);if(!d)return i.reply({content:'❌ No active draft.',flags:64});await M.cancelDraft(d._id,i.user.id);return i.update(await DevUI.globalMail(i.user.id));}
     if(i.customId==='dev:mail:send'){await i.deferUpdate();const M=require('../services/globalMail'),d=await M.latestDraft(i.user.id);if(!d)return i.editReply(await DevUI.globalMail(i.user.id));const sent=await M.publish(client,d._id,i.user.id);await sendDeveloperLog(client,{title:'📬 Global Mail Broadcast',description:`Developer: ${i.user.id}\nMail: ${sent.title}\nSent: ${sent.deliverySummary.sent}\nFailed: ${sent.deliverySummary.failed}\nSkipped: ${sent.deliverySummary.skipped}\n<:cxu_coin:1551759873241251912> CXu: ${sent.cstarAmount}`});return i.editReply(await DevUI.globalMail(i.user.id));}
   }
+  if(i.isStringSelectMenu()&&i.customId==='dev:cosmetic:createType'){
+    const type=i.values[0];
+    if(['FRAME','BACKGROUND','NAMEPLATE','EFFECT'].includes(type))
+      return i.showModal(DevUI.cosmeticImageModal(type));
+    if(['ACCENT','TITLE'].includes(type))
+      return i.showModal(DevUI.cosmeticTextModal(type));
+    return i.reply({content:'❌ Invalid cosmetic type.',flags:64});
+  }
+
   if(i.isStringSelectMenu()&&i.customId==='dev:page'){
     const p=i.values[0];
     if(p==='system')return i.update(await DevUI.system(client));
@@ -177,10 +198,200 @@ if(i.customId?.startsWith('dev:')){
     if(p==='seasonal')return i.update(await DevUI.seasonal());
     if(p==='titles')return i.update(await DevUI.titles());
     if(p==='verification')return i.update(await DevUI.verification());
+    if(p==='cosmetics')return i.update(await DevUI.cosmetics());
     if(p==='globalmail')return i.update(await DevUI.globalMail(i.user.id));
     if(p==='blacklist')return i.update(await DevUI.blacklist());
   }
   if(i.isModalSubmit()){
+
+    if(i.customId.startsWith('dev:modal:cosmeticCreateImage:')){
+      try{
+        const type=i.customId.split(':')[4];
+        const Admin=require('../services/globalCosmeticAdmin');
+        const Storage=require('../services/cosmeticAssetStorage');
+
+        const key=i.fields.getTextInputValue('key').trim().toLowerCase();
+        const name=i.fields.getTextInputValue('name').trim();
+        const price=i.fields.getTextInputValue('price').trim();
+        const rarity=i.fields.getTextInputValue('rarity').trim().toUpperCase();
+
+        const att=i.fields.getUploadedFiles('imageFile',true)?.first();
+
+        if(!att || !(att.contentType||'').startsWith('image/'))
+          return i.reply({
+            content:'❌ Please upload a valid image file.',
+            flags:64
+          });
+
+        const saved=await Storage.save(type,key,att);
+
+        try{
+          const item=await Admin.create({
+            key,
+            type,
+            name,
+            price,
+            rarity,
+            value:saved.reference
+          });
+
+          await sendDeveloperLog(client,{
+            title:'🛍️ Global Cosmetic Created',
+            description:
+              `Developer: ${i.user.id}\n`+
+              `Key: ${item.key}\n`+
+              `Type: ${item.type}\n`+
+              `Name: ${item.name}\n`+
+              `Price: ${Number(item.price).toLocaleString()} CXu`
+          });
+
+          return i.reply({
+            content:
+              `✅ Created **${item.name}**\n`+
+              `Type: **${item.type}**\n`+
+              `Key: \`${item.key}\`\n`+
+              `Price: **${Number(item.price).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**\n`+
+              `Rarity: **${item.rarity}**`,
+            flags:64
+          });
+        }catch(e){
+          await Storage.remove(saved.reference).catch(()=>{});
+          throw e;
+        }
+
+      }catch(e){
+        return i.reply({content:`❌ ${e.message}`,flags:64});
+      }
+    }
+
+    if(i.customId.startsWith('dev:modal:cosmeticCreateText:')){
+      try{
+        const type=i.customId.split(':')[4];
+        const Admin=require('../services/globalCosmeticAdmin');
+
+        const item=await Admin.create({
+          key:i.fields.getTextInputValue('key'),
+          type,
+          name:i.fields.getTextInputValue('name'),
+          price:i.fields.getTextInputValue('price'),
+          rarity:i.fields.getTextInputValue('rarity'),
+          value:i.fields.getTextInputValue('value')
+        });
+
+        await sendDeveloperLog(client,{
+          title:'🛍️ Global Cosmetic Created',
+          description:
+            `Developer: ${i.user.id}\n`+
+            `Key: ${item.key}\n`+
+            `Type: ${item.type}\n`+
+            `Name: ${item.name}\n`+
+            `Price: ${Number(item.price).toLocaleString()} CXu`
+        });
+
+        return i.reply({
+          content:
+            `✅ Created **${item.name}**\n`+
+            `Type: **${item.type}**\n`+
+            `Key: \`${item.key}\`\n`+
+            `Price: **${Number(item.price).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**\n`+
+            `Rarity: **${item.rarity}**`,
+          flags:64
+        });
+
+      }catch(e){
+        return i.reply({content:`❌ ${e.message}`,flags:64});
+      }
+    }
+
+    if(i.customId==='dev:modal:cosmeticEdit'){
+      try{
+        const Admin=require('../services/globalCosmeticAdmin');
+
+        const item=await Admin.edit(
+          i.fields.getTextInputValue('key'),
+          {
+            name:i.fields.getTextInputValue('name'),
+            price:i.fields.getTextInputValue('price'),
+            rarity:i.fields.getTextInputValue('rarity'),
+            value:i.fields.getTextInputValue('value')
+          }
+        );
+
+        await sendDeveloperLog(client,{
+          title:'✏️ Global Cosmetic Edited',
+          description:
+            `Developer: ${i.user.id}\n`+
+            `Key: ${item.key}\n`+
+            `Name: ${item.name}`
+        });
+
+        return i.reply({
+          content:`✅ Updated **${item.name}** (\`${item.key}\`).`,
+          flags:64
+        });
+
+      }catch(e){
+        return i.reply({content:`❌ ${e.message}`,flags:64});
+      }
+    }
+
+    if(i.customId==='dev:modal:cosmeticToggle'){
+      try{
+        const Admin=require('../services/globalCosmeticAdmin');
+        const item=await Admin.toggle(
+          i.fields.getTextInputValue('key')
+        );
+
+        await sendDeveloperLog(client,{
+          title:'🔘 Global Cosmetic Status Changed',
+          description:
+            `Developer: ${i.user.id}\n`+
+            `Key: ${item.key}\n`+
+            `Enabled: ${item.enabled}`
+        });
+
+        return i.reply({
+          content:
+            `${item.enabled?'🟢':'🔴'} **${item.name}** is now `+
+            `**${item.enabled?'ENABLED':'DISABLED'}**.`,
+          flags:64
+        });
+
+      }catch(e){
+        return i.reply({content:`❌ ${e.message}`,flags:64});
+      }
+    }
+
+    if(i.customId==='dev:modal:cosmeticDelete'){
+      try{
+        const Admin=require('../services/globalCosmeticAdmin');
+        const Storage=require('../services/cosmeticAssetStorage');
+
+        const item=await Admin.remove(
+          i.fields.getTextInputValue('key')
+        );
+
+        // Keep the stored asset after catalog removal.
+        // Existing owners may still own or have this cosmetic equipped.
+
+        await sendDeveloperLog(client,{
+          title:'🗃️ Global Cosmetic Retired',
+          description:
+            `Developer: ${i.user.id}\n`+
+            `Key: ${item.key}\n`+
+            `Name: ${item.name}`
+        });
+
+        return i.reply({
+          content:`🗃️ Retired **${item.name}** (\`${item.key}\`).`,
+          flags:64
+        });
+
+      }catch(e){
+        return i.reply({content:`❌ ${e.message}`,flags:64});
+      }
+    }
+
     if(i.customId==='dev:modal:seasonal'){try{const Event=require('../models/SeasonalEvent');const key=i.fields.getTextInputValue('key').trim().toLowerCase(),enabled=i.fields.getTextInputValue('enabled').trim().toUpperCase()==='ON',[start,end]=i.fields.getTextInputValue('dates').split('|').map(x=>x.trim()),[min,max]=i.fields.getTextInputValue('reward').split('|').map(x=>Number(x.trim())),mult=Math.max(.1,Math.min(10,Number(i.fields.getTextInputValue('dropMultiplier'))||1));const e=await Event.findOne({key});if(!e)throw new Error('Unknown event key');e.enabled=enabled;e.startAt=new Date(start);e.endAt=new Date(end);e.cstarMin=min;e.cstarMax=max;for(const m of e.materials)m.dropRate=Math.min(1,m.dropRate*mult);await e.save();return i.reply({content:`✅ Seasonal event **${key}** updated.`,flags:64});}catch(e){return i.reply({content:`❌ ${e.message}`,flags:64});}}
     if(i.customId==='dev:modal:tournamentCreate'){try{const t=await require('../services/tournamentService').create({name:i.fields.getTextInputValue('name'),gameId:i.fields.getTextInputValue('gameId').trim().toLowerCase(),registrationAt:i.fields.getTextInputValue('registrationAt'),startsAt:i.fields.getTextInputValue('startsAt'),endsAt:i.fields.getTextInputValue('endsAt').split('|')[0].trim(),maxPlayers:Number((i.fields.getTextInputValue('endsAt').split('|')[1]||'32').trim()),rewardCstar:Number((i.fields.getTextInputValue('endsAt').split('|')[2]||'0').trim()),rules:(i.fields.getTextInputValue('endsAt').split('|').slice(3).join('|')||'').trim(),createdBy:i.user.id});return i.reply({content:`✅ Tournament **${t.name}** scheduled for <t:${Math.floor(t.startsAt.getTime()/1000)}:F>. Registration opens automatically.`,flags:64});}catch(e){return i.reply({content:`❌ ${e.message}`,flags:64});}}
     if(i.customId==='dev:modal:fishingGeneral'){const F=require('../services/fishingSettings'),on=x=>String(x).trim().toUpperCase()==='ON',feat=i.fields.getTextInputValue('features').split('|');await F.setGeneral({enabled:on(i.fields.getTextInputValue('enabled')),cooldownMs:Number(i.fields.getTextInputValue('cooldown'))*1000,starterBait:Number(i.fields.getTextInputValue('starter')),maxBag:Number(i.fields.getTextInputValue('bag')),sellAllEnabled:on(feat[0]),rankingEnabled:on(feat[1])},i.user.id);await sendDeveloperLog(client,{title:'🎣 Fishing General Updated',description:`Developer: ${i.user.id}`});return i.reply({content:'✅ Fishing general settings saved.',flags:64});}
@@ -205,7 +416,7 @@ if(i.customId?.startsWith('dev:')){
   }
   return;
 }
-if(i.customId?.startsWith('social:')&&i.isButton()){
+if(i.customId?.startsWith('social:')&&i.isButton()&&!i.customId.startsWith('social:collection:')){
   const lang=await require('../services/i18n').guildLang(i.guildId),Social=require('../services/socialProfile');const [,action,targetId]=i.customId.split(':');
   if(action==='collection'){const p=await Social.ensure(targetId);return i.reply({content:mtx(lang,`🎨 Collection: **${p.ownedCosmetics.length}** cosmetic(s)\n${p.ownedCosmetics.map(x=>`• ${x}`).join('\n').slice(0,1500)}`,`🎨 Bộ sưu tập: **${p.ownedCosmetics.length}** cosmetic\n${p.ownedCosmetics.map(x=>`• ${x}`).join('\n').slice(0,1500)}`),flags:64});}
   try{const r=action==='like'?await Social.toggleLike(i.user.id,targetId):await Social.toggleFollow(i.user.id,targetId);return i.reply({content:action==='like'?(r.liked?mtx(lang,'❤️ Profile liked.','❤️ Đã thích hồ sơ.'):mtx(lang,'💔 Like removed.','💔 Đã bỏ thích.')):(r.following?mtx(lang,'➕ Now following this profile.','➕ Đã theo dõi hồ sơ.'):mtx(lang,'➖ Unfollowed.','➖ Đã bỏ theo dõi.')),flags:64});}catch(e){return i.reply({content:mtx(lang,'❌ You cannot use this action on your own profile.','❌ Bạn không thể dùng thao tác này với hồ sơ của chính mình.'),flags:64});}
@@ -231,6 +442,75 @@ if(i.customId?.startsWith('guild:')){
   }
   return;
 }
+
+// ===== GLOBAL PROFILE COLLECTION =====
+if(i.customId?.startsWith('social:collection:')){
+  const targetId=i.customId.split(':')[2];
+
+  if(!targetId)
+    return i.reply({content:`❌ ${require('../services/i18n').t(await require('../services/i18n').guildLang(i.guildId),'v6.collection.invalidProfile')}`,flags:64});
+
+  const lang=await require('../services/i18n').guildLang(i.guildId);
+
+  const payload=await GlobalCollection.home(
+    targetId,
+    i.user.id,
+    lang
+  );
+
+  return i.reply({...payload,flags:64});
+}
+
+if(i.isStringSelectMenu()&&i.customId?.startsWith('collection:type:')){
+  const targetId=i.customId.split(':')[2];
+
+  if(!targetId)
+    return i.reply({content:`❌ ${require('../services/i18n').t(await require('../services/i18n').guildLang(i.guildId),'v6.collection.invalidProfile')}`,flags:64});
+
+  const type=i.values[0];
+  const lang=await require('../services/i18n').guildLang(i.guildId);
+
+  const payload=await GlobalCollection.category(
+    targetId,
+    i.user.id,
+    type,
+    lang
+  );
+
+  return i.update(payload);
+}
+
+if(i.isStringSelectMenu()&&i.customId?.startsWith('collection:equip:')){
+  const targetId=i.customId.split(':')[2];
+
+  if(targetId!==i.user.id)
+    return i.reply({
+      content:`❌ ${require('../services/i18n').t(await require('../services/i18n').guildLang(i.guildId),'v6.collection.ownProfileOnly')}`,
+      flags:64
+    });
+
+  const key=i.values[0];
+
+  await GlobalCollection.equip(
+    targetId,
+    key
+  );
+
+  const lang=await require('../services/i18n').guildLang(i.guildId);
+
+  const type=String(key).split(':')[0].toUpperCase();
+
+  const payload=await GlobalCollection.category(
+    targetId,
+    i.user.id,
+    type,
+    lang
+  );
+
+  return i.update(payload);
+}
+// ===== END GLOBAL PROFILE COLLECTION =====
+
 if(!i.customId?.startsWith('setup:'))return;if(!(await guard(i)))return;
 if(i.isButton()){if(i.customId==='setup:close'){const s=await getGuildSettings(i.guildId);return i.update({content:mtx(s.language,'Control Center closed.','Đã đóng Trung tâm điều khiển.'),embeds:[],components:[]});}if(i.customId==='setup:home'||i.customId==='setup:refresh'){const s=await getGuildSettings(i.guildId);return i.update(await UI.buildSetupHome(i.guild,s));}if(i.customId==='setup:premium:corgiEmoji'){if(!(await isPremiumGuild(i.guildId))){const s=await getGuildSettings(i.guildId);return i.reply({content:mtx(s.language,'💎 Premium is required for this customization.','💎 Tùy chỉnh này yêu cầu Corgi Premium đang hoạt động.'),flags:64});}const s=await getGuildSettings(i.guildId);const enabled=!s.premiumBranding?.useCorgiStudioEmoji;await setPremiumBranding(i.guildId,{useCorgiStudioEmoji:enabled});await recordPremiumAudit({guildId:i.guildId,userId:i.user.id,actorId:i.user.id,action:'BRANDING',source:'setup',details:`Corgi Studio emoji ${enabled?'enabled':'disabled'}`});const n=await getGuildSettings(i.guildId);return i.update(await UI.buildPremium(i.guild,n));}if(i.customId.startsWith('setup:premium:')){if(!(await isPremiumGuild(i.guildId)))return i.reply({content:'💎 Premium is required for this customization.',flags:64});const kind=i.customId.split(':')[2];const s=await getGuildSettings(i.guildId);return i.showModal(UI.premiumModal(kind,s.premiumBranding?.[kind==='name'?'botName':'emojiTheme']||'',s));}}
 if(i.isStringSelectMenu()){const s=await getGuildSettings(i.guildId);if(i.customId==='setup:page'){const p=i.values[0];if(p==='modules')return i.update(await UI.buildModules(i.guild,s));if(p==='channels')return i.update(await UI.buildChannels(i.guild,s));if(p==='stats')return i.update(await require('../ui/stats').buildStatsPage(i.guild,s));if(p==='events'){const EventUI=require('../ui/events');return i.update(await EventUI.buildEventCenter(i.guild,s));}if(p==='community'){const CUI=require('../ui/community');return i.update(await CUI.home(i.guildId,s));}if(p==='premium')return i.update(await UI.buildPremium(i.guild,s));if(p==='language')return i.update(await UI.buildLanguage(i.guild,s));}if(i.customId==='setup:toggle'){const mod=i.values[0];if(mod==='pet')return i.reply({content:mtx(s.language,'🐾 Pet Game is Coming Soon and cannot be enabled yet.','🐾 Pet Game sắp ra mắt và hiện chưa thể bật.'),flags:64});if(PREMIUM_MODULES.has(mod)&&!(await isPremiumGuild(i.guildId)))return i.reply({content:mtx(s.language,'💎 This module requires active Corgi Premium.','💎 Tính năng này yêu cầu Corgi Premium đang hoạt động.'),flags:64});const n=await toggleModule(i.guildId,mod);return i.update(await UI.buildModules(i.guild,n));}if(i.customId==='setup:setlanguage'){const n=await setLanguage(i.guildId,i.values[0]);const lang=await require('../services/i18n').guildLang(i.guildId);await i.update(await UI.buildLanguage(i.guild,n));try{const gs=await Giveaway.find({guildId:i.guildId,status:{$in:['active','paused']}});for(const g of gs){const ch=await i.guild.channels.fetch(g.channelId).catch(()=>null);const msg=ch?.isTextBased()?await ch.messages.fetch(g.messageId).catch(()=>null):null;if(msg)await msg.edit(buildGiveawayMessage(g,lang)).catch(()=>{});}const cs=await Contest.find({guildId:i.guildId,status:{$in:['SUBMISSION','REVIEW','VOTING','ENDED','PUBLISHED']}});const {refreshContestMessage,refreshGallery}=require('../modules/contest');for(const c of cs){await refreshContestMessage(client,c,lang).catch(()=>{});await refreshGallery(client,c,lang).catch(()=>{});}}catch(e){console.warn('Language UI sync failed:',e.message);}return;}if(i.customId==='setup:channelkey'){return i.update({embeds:i.message.embeds,components:[UI.channelPicker(i.values[0],s),(await UI.buildChannels(i.guild,s)).components[1]]});}}
