@@ -107,16 +107,8 @@ async function updateProgressionConfig(patch){
 }
 async function updateRewardConfig(patch){const set={};for(const [k,v] of Object.entries(patch))set[`rankingRewards.${k}`]=Math.max(0,Math.min(1e12,Math.floor(Number(v)||0)));return DeveloperSettings.findOneAndUpdate({key:'global'},{$set:set},{returnDocument:'after'});}
 function vipField(tier){return tier==='VIP+'?'VIP_PLUS':tier;}
-async function buyVip(userId,tier){
-  if(!VIP_TIERS.includes(tier))throw new Error('Invalid VIP tier.');const s=await settings(),price=s.vipPrices[vipField(tier)];
-  await ensureWallet(userId);const wallet=await UserEconomy.findOne(walletFilter(userId));if(wallet.cstar<price)throw new Error(`Not enough <:cxu_coin:1551759873241251912> CXu. Need ${Number(price).toLocaleString()} <:cxu_coin:1551759873241251912> CXu.`);
-  wallet.cstar-=price;await wallet.save();const p=await ensureProgress(userId),now=Date.now(),base=p.vipTier===tier&&p.vipExpiresAt&&p.vipExpiresAt>new Date()?p.vipExpiresAt.getTime():now;
-  p.vipTier=tier;p.vipExpiresAt=new Date(base+30*86400000);p.vipSource='CSTAR';await p.save();return {profile:p,price,balance:wallet.cstar};
-}
-async function grantVip(userId,tier,duration='30d',source='CDKEY'){
-  if(!VIP_TIERS.includes(tier)||!VIP_DURATION_MS[duration])throw new Error('Invalid VIP tier or duration.');const p=await ensureProgress(userId),now=Date.now(),base=p.vipTier===tier&&p.vipExpiresAt&&p.vipExpiresAt>new Date()?p.vipExpiresAt.getTime():now;
-  p.vipTier=tier;p.vipExpiresAt=new Date(base+VIP_DURATION_MS[duration]);p.vipSource=source;await p.save();return p;
-}
-async function activeVip(userId){const p=await ensureProgress(userId);if(p.vipTier&&p.vipExpiresAt&&p.vipExpiresAt<=new Date()){p.vipTier='';p.vipExpiresAt=null;p.vipSource='';await p.save();}return p;}
+
+
+
 async function clearExpiredTitle(p){if(p.activeTitle&&p.activeTitleExpiresAt&&p.activeTitleExpiresAt<=new Date()){p.activeTitle='';p.activeTitleExpiresAt=null;await p.save();}return p;}
-module.exports={VIP_TIERS,VIP_DURATION_MS,TITLE_RULES,settings,weekInfo,xpNeeded,ensureProgress,awardMessageXp,ranks,leaderboard,approveRewards,setUserLevelXp,updateProgressionConfig,updateRewardConfig,buyVip,grantVip,activeVip,clearExpiredTitle};
+module.exports={VIP_TIERS,VIP_DURATION_MS,TITLE_RULES,settings,weekInfo,xpNeeded,ensureProgress,awardMessageXp,ranks,leaderboard,approveRewards,setUserLevelXp,updateProgressionConfig,updateRewardConfig,clearExpiredTitle};

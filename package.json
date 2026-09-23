@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "5.1.0",
+  "version": "6.0.0",
   "private": true,
-  "description": "Corgi-Bot V5.1 Global Expansion • Corgi Market • Seasonal Events • 12-language localization foundation.",
+  "description": "Corgi-Bot V6 Social Game Network • Global Profile/Cosmetics/Missions • Independent Guild Economy & Rewards • 12-language localization.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {

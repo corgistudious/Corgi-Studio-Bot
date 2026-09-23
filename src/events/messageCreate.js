@@ -59,6 +59,11 @@ module.exports = {
         .catch((e) => console.warn('Progression XP failed:', e.message));
     }
 
+    // V6 automatic mission progress: normal activity advances Global and Guild mission engines without manual setup.
+    if (!isPrefixCommand && message.content.trim().length > 0) {
+      require('../services/missionTracker').recordMessage(message.guildId,message.author.id).catch(e=>console.warn('Mission tracker:',e.message));
+    }
+
     if (!isPrefixCommand) return;
 
     const parts = message.content.slice(prefix.length).trim().split(/\s+/);
@@ -99,7 +104,7 @@ module.exports = {
       await c.executePrefix(message, parts, client);
     } catch (e) {
       console.error(e);
-      await message.reply(mtx(s.language, 'Command error.', 'Lệnh gặp lỗi.'));
+      await message.channel.send(mtx(s.language, 'Command error.', 'Lệnh gặp lỗi.')).catch(() => {});
     }
   }
 };

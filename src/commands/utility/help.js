@@ -17,7 +17,7 @@ function lines(lang, category) {
       '🎮 `games` — Game Hub Direct Action, 50 game, Fishing 2.0 và Tournament.',
       '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
-      '💎 `premium` — Premium Server, VIP Profile, Redeem CD Key.',
+      '💎 `premium` — Premium Server and Redeem CD Key.',
       '🤖 `ai` — Corgi AI.',
       '🧑‍💻 `developer` — CD Key tùy chỉnh, xác minh Profile và công cụ Developer.',
       '',
@@ -41,7 +41,7 @@ function lines(lang, category) {
       '🎮 `games` — Direct Action Game Hub, 50 games, Fishing 2.0 and Tournaments.',
       '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
-      '💎 `premium` — Server Premium, VIP Profile, CD Key redemption.',
+      '💎 `premium` — Server Premium and CD Key redemption.',
       '🤖 `ai` — Corgi AI.',
       '🧑‍💻 `developer` — custom CD Keys, Profile verification and Developer tools.',
       '',
@@ -344,15 +344,6 @@ function lines(lang, category) {
       '',
       '**🎟️ Redeem CD Key**',
       '`/redeem` • `?redeem` — mở Panel → nhấn **🔑 Nhập CD Key** → nhập key trong Modal riêng.',
-      '',
-      '**💎 VIP Profile cá nhân**',
-      '`/vip shop` • `?vip shop` — bảng giá.',
-      '`/vip status` • `?vip status` — trạng thái cá nhân.',
-      '`/vip buy tier:<VIP|VIP+|VVIP|SVIP|SSVIP|SSSVIP>`',
-      'Prefix: `?vip buy VIP`, `?vip buy VIP+`, `?vip buy VVIP`...',
-      'Gói mua bằng <:cxu_coin:1551759873241251912> CXu có thời hạn 30 ngày.',
-      '',
-      'Lưu ý: **Server Premium** và **VIP Profile cá nhân** là hai hệ thống riêng.'
     ] : [
       '**💎 Server Premium**',
       '`/premium status` — server Premium status.',
@@ -363,15 +354,6 @@ function lines(lang, category) {
       '',
       '**🎟️ Redeem CD Key**',
       '`/redeem` • `?redeem` — open Panel → press **🔑 Enter CD Key** → enter the key privately.',
-      '',
-      '**💎 Personal VIP Profile**',
-      '`/vip shop` • `?vip shop` — pricing.',
-      '`/vip status` • `?vip status` — personal status.',
-      '`/vip buy tier:<VIP|VIP+|VVIP|SVIP|SSVIP|SSSVIP>`',
-      'Prefix: `?vip buy VIP`, `?vip buy VIP+`, `?vip buy VVIP`...',
-      '<:cxu_coin:1551759873241251912> CXu purchases last 30 days.',
-      '',
-      'Note: **Server Premium** and **personal VIP Profile** are separate systems.'
     ],
 
     developer: vi ? [
@@ -381,7 +363,7 @@ function lines(lang, category) {
       '**🔑 Custom CD Key**',
       'Developer có thể tạo CD Key với tên tự chọn hoặc để trống để bot tạo tự động.',
       'Ví dụ key tùy chỉnh: `Corgi2026`, `CorgiTanThu`.',
-      'Loại phần thưởng hiện hỗ trợ: <:cxu_coin:1551759873241251912> CXu, Server Premium và VIP Profile.',
+      'Loại phần thưởng hiện hỗ trợ: <:cxu_coin:1551759873241251912> CXu và Server Premium.',
       'Có thể đặt số lượt dùng, thời hạn key và tắt key khi cần.',
       '',
       '**✅ Profile Verification**',
@@ -400,7 +382,7 @@ function lines(lang, category) {
       '**🔑 Custom CD Keys**',
       'Developers can choose a custom key name or leave it blank for automatic generation.',
       'Examples: `Corgi2026`, `CorgiTanThu`.',
-      'Current reward types include <:cxu_coin:1551759873241251912> CXu, Server Premium and VIP Profile.',
+      'Current reward types include <:cxu_coin:1551759873241251912> CXu and Server Premium.',
       'Maximum uses, expiry and key disabling are supported.',
       '',
       '**✅ Profile Verification**',
@@ -455,7 +437,7 @@ function title(lang, category) {
     games: vi ? '🎮 Hướng dẫn trò chơi' : '🎮 Games Guide',
     community: vi ? '🧡 Hướng dẫn Community' : '🧡 Community Guide',
     moderation: vi ? '🛡️ Hướng dẫn Moderation' : '🛡️ Moderation Guide',
-    premium: vi ? '💎 Hướng dẫn Premium & VIP' : '💎 Premium & VIP Guide',
+    premium: vi ? '💎 Hướng dẫn Premium' : '💎 Premium Guide',
     developer: vi ? '🧑‍💻 Hướng dẫn Developer' : '🧑‍💻 Developer Guide',
     ai: '🤖 Corgi AI • FREE'
   };
@@ -479,7 +461,7 @@ const choices = [
   ['Games','Trò chơi','games'],
   ['Community','Cộng đồng','community'],
   ['Moderation','Kiểm duyệt','moderation'],
-  ['Premium & VIP','Premium & VIP','premium'],
+  ['Premium','Premium','premium'],
   ['Developer','Developer','developer'],
   ['AI','AI','ai']
 ];
@@ -504,7 +486,7 @@ module.exports = {
   },
   async executePrefix(m,args) {
     const lang = await guildLang(m.guildId);
-    const aliases = { commands:'all', command:'all', config:'setup', profile:'member', cstar:'economy', game:'games', event:'community', admin:'moderation', mod:'moderation', vip:'premium', dev:'developer', developer:'developer' };
+    const aliases = { commands:'all', command:'all', config:'setup', profile:'member', cstar:'economy', game:'games', event:'community', admin:'moderation', mod:'moderation', dev:'developer', developer:'developer' };
     const raw = String(args[0] || 'all').toLowerCase();
     const category = aliases[raw] || raw;
     return m.reply({ embeds:[embedFor(lang,category)] });

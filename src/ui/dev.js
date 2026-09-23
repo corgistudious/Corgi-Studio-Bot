@@ -38,7 +38,6 @@ async function home(client) {
     {label:'Fishing',value:'fishing',emoji:'🎣',description:'Global Fishing gameplay configuration'},
     {label:'Game Tournaments',value:'tournaments',emoji:'🏆',description:'Schedule monthly Game Hub tournaments'},
     {label:'Seasonal Events',value:'seasonal',emoji:'🎊',description:'Enable holidays, dates, drops and CXu boxes'},
-    {label:'VIP Profile',value:'vipprofile',emoji:'👑',description:'VIP CD Keys and 🌟 CXu prices'},
     {label:'Custom Profile Titles',value:'titles',emoji:'🏷️',description:'Create, grant and revoke profile titles'},
     {label:'Profile Verification',value:'verification',emoji:'✅',description:'Review and assign verification badges'},
     {label:'Global Mail',value:'globalmail',emoji:'📬',description:'Broadcast announcements + optional 🌟 CXu'},

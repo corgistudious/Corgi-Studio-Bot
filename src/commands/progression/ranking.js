@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const P = require('../../services/progression');
-const { guildLang, mtx } = require('../../services/i18n');
+const { guildLang, t } = require('../../services/i18n');
 
 async function resolveGlobalName(client, userId) {
   try {
@@ -41,44 +41,24 @@ async function build(client, kind, lang) {
     .setColor(0xF59E0B)
     .setTitle(
       kind === 'global'
-        ? mtx(
-            lang,
-            '🌐 Global EXP Ranking • Cross-server',
-            '🌐 Xếp hạng EXP Global • Liên server'
-          )
-        : mtx(
-            lang,
-            '🏆 Weekly Global EXP Race • Cross-server',
-            '🏆 Đua Top EXP tuần Global • Liên server'
-          )
+        ? t(lang, 'v6.rank.globalTitle')
+        : t(lang, 'v6.rank.weeklyTitle')
     )
     .setDescription(
       lines.join('\n') ||
-      mtx(
-        lang,
-        'No global ranking data yet.',
-        'Chưa có dữ liệu xếp hạng Global.'
-      )
+      t(lang, 'v6.rank.noData')
     )
     .setFooter({
-      text: mtx(
-        lang,
-        'Players are ranked globally regardless of server',
-        'Người chơi được xếp hạng Global, không phụ thuộc server'
-      )
+      text: t(lang, 'v6.rank.footer')
     })
     .setTimestamp();
 
   if (kind === 'weekly') {
     e.addFields({
-      name: mtx(lang, '⏳ Countdown', '⏳ Đếm ngược'),
+      name: t(lang, 'v6.rank.countdown'),
       value:
         `<t:${Math.floor(w.end.getTime() / 1000)}:R>\n` +
-        mtx(
-          lang,
-          'Resets every Monday 00:00 UTC. Rewards are sent only when Developer presses Approve Reward.',
-          'Reset mỗi Thứ Hai 00:00 UTC. Phần thưởng chỉ được gửi khi Developer bấm Approve Reward.'
-        )
+        t(lang, 'v6.rank.reset')
     });
   }
 

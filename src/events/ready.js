@@ -12,4 +12,6 @@ module.exports={name:Events.ClientReady,once:true,async execute(client){
   require('../services/marketNotifier').start(client);
   require('../services/seasonalNotifier').start(client);
   await require('../services/seasonalService').seed().catch(e=>console.warn('Seasonal seed:',e.message));
+  await require('../services/globalCosmetics').seed().catch(e=>console.warn('Cosmetic seed:',e.message));
+  require('../services/guildScheduler').start(client);
 }};
