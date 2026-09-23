@@ -1,21 +1,290 @@
-const path=require('path');const sharp=require('sharp');const P=require('./progression');const {ensureWallet}=require('./economyWallet');const Social=require('./socialProfile');const Verification=require('./profileVerification');
-const BG=path.join(__dirname,'../../assets/profile/default-background.png');
-const CXU='CXu';
-const LABELS={
- en:['Good games • Good people • Brighter days','Corgi Player','LEVEL','GLOBAL','SOCIAL','ABOUT ME','PROGRESS','Total EXP','Messages','COLLECTION','Cosmetics owned','CORGI-BOT • GLOBAL PROFILE'],
- vi:['Chơi vui • Bạn tốt • Ngày tươi sáng','Người chơi Corgi','CẤP','TOÀN CẦU','XÃ HỘI','GIỚI THIỆU','TIẾN TRÌNH','Tổng EXP','Tin nhắn','BỘ SƯU TẬP','Vật phẩm ngoại hình','CORGI-BOT • HỒ SƠ TOÀN CẦU'],
- es:['Buenas partidas • Buena gente • Días mejores','Jugador Corgi','NIVEL','GLOBAL','SOCIAL','SOBRE MÍ','PROGRESO','EXP total','Mensajes','COLECCIÓN','Cosméticos obtenidos','CORGI-BOT • PERFIL GLOBAL'],
- fr:['Bonnes parties • Bonnes rencontres • Beaux jours','Joueur Corgi','NIVEAU','GLOBAL','SOCIAL','À PROPOS','PROGRESSION','EXP totale','Messages','COLLECTION','Cosmétiques obtenus','CORGI-BOT • PROFIL GLOBAL'],
- de:['Gute Spiele • Gute Leute • Bessere Tage','Corgi-Spieler','LEVEL','GLOBAL','SOZIAL','ÜBER MICH','FORTSCHRITT','Gesamt-EXP','Nachrichten','SAMMLUNG','Kosmetik im Besitz','CORGI-BOT • GLOBALES PROFIL'],
- 'pt-BR':['Boas partidas • Boas pessoas • Dias melhores','Jogador Corgi','NÍVEL','GLOBAL','SOCIAL','SOBRE MIM','PROGRESSO','EXP total','Mensagens','COLEÇÃO','Cosméticos obtidos','CORGI-BOT • PERFIL GLOBAL'],
- 'pt-PT':['Bons jogos • Boas pessoas • Dias melhores','Jogador Corgi','NÍVEL','GLOBAL','SOCIAL','SOBRE MIM','PROGRESSO','EXP total','Mensagens','COLEÇÃO','Cosméticos obtidos','CORGI-BOT • PERFIL GLOBAL'],
- id:['Game seru • Teman baik • Hari lebih cerah','Pemain Corgi','LEVEL','GLOBAL','SOSIAL','TENTANG SAYA','PROGRES','Total EXP','Pesan','KOLEKSI','Kosmetik dimiliki','CORGI-BOT • PROFIL GLOBAL'],
- ja:['楽しいゲーム • 素敵な仲間 • 明るい毎日','Corgiプレイヤー','レベル','グローバル','ソーシャル','自己紹介','進行状況','合計EXP','メッセージ','コレクション','所持コスメ','CORGI-BOT • グローバルプロフィール'],
- ko:['즐거운 게임 • 좋은 사람들 • 더 밝은 날','Corgi 플레이어','레벨','글로벌','소셜','소개','진행도','총 EXP','메시지','컬렉션','보유 코스메틱','CORGI-BOT • 글로벌 프로필'],
- 'zh-TW':['好遊戲 • 好夥伴 • 更美好的日子','Corgi 玩家','等級','全球','社交','關於我','進度','總 EXP','訊息','收藏','已擁有造型','CORGI-BOT • 全球個人資料'],
- 'zh-CN':['好游戏 • 好伙伴 • 更美好的日子','Corgi 玩家','等级','全球','社交','关于我','进度','总 EXP','消息','收藏','已拥有外观','CORGI-BOT • 全球个人资料']
+const path = require('path');
+const sharp = require('sharp');
+
+const P = require('./progression');
+const { ensureWallet } = require('./economyWallet');
+const Social = require('./socialProfile');
+const Verification = require('./profileVerification');
+
+const BG = path.join(__dirname, '../../assets/profile/default-background.png');
+const CXU_ICON = path.join(__dirname, '../../assets/currency/cxu_coin_128.png');
+
+const LABELS = {
+  en: {
+    player: 'Corgi Player', level: 'LEVEL', xp: 'LEVEL PROGRESS',
+    cxu: 'CXu', likes: 'LIKES', followers: 'FOLLOWERS', following: 'FOLLOWING',
+    progress: 'PROGRESS', totalXp: 'Total XP', messages: 'Messages',
+    collection: 'COLLECTION', cosmetics: 'Cosmetics owned',
+    about: 'ABOUT ME', defaultBio: 'Good games • Good people • Brighter days',
+    footer: 'CORGI-BOT • GLOBAL PROFILE', max: 'MAX LEVEL'
+  },
+  vi: {
+    player: 'Người chơi Corgi', level: 'CẤP', xp: 'TIẾN ĐỘ CẤP',
+    cxu: 'CXu', likes: 'LƯỢT THÍCH', followers: 'NGƯỜI THEO DÕI', following: 'ĐANG THEO DÕI',
+    progress: 'TIẾN TRÌNH', totalXp: 'Tổng XP', messages: 'Tin nhắn',
+    collection: 'BỘ SƯU TẬP', cosmetics: 'Vật phẩm ngoại hình',
+    about: 'GIỚI THIỆU', defaultBio: 'Chơi vui • Bạn tốt • Ngày tươi sáng',
+    footer: 'CORGI-BOT • HỒ SƠ TOÀN CẦU', max: 'CẤP TỐI ĐA'
+  },
+  es: {
+    player:'Jugador Corgi',level:'NIVEL',xp:'PROGRESO DE NIVEL',cxu:'CXu',
+    likes:'ME GUSTA',followers:'SEGUIDORES',following:'SIGUIENDO',
+    progress:'PROGRESO',totalXp:'XP total',messages:'Mensajes',
+    collection:'COLECCIÓN',cosmetics:'Cosméticos obtenidos',
+    about:'SOBRE MÍ',defaultBio:'Buenas partidas • Buena gente • Días mejores',
+    footer:'CORGI-BOT • PERFIL GLOBAL',max:'NIVEL MÁXIMO'
+  },
+  fr: {
+    player:'Joueur Corgi',level:'NIVEAU',xp:'PROGRESSION DU NIVEAU',cxu:'CXu',
+    likes:'J’AIME',followers:'ABONNÉS',following:'ABONNEMENTS',
+    progress:'PROGRESSION',totalXp:'XP totale',messages:'Messages',
+    collection:'COLLECTION',cosmetics:'Cosmétiques obtenus',
+    about:'À PROPOS',defaultBio:'Bonnes parties • Bonnes rencontres • Beaux jours',
+    footer:'CORGI-BOT • PROFIL GLOBAL',max:'NIVEAU MAX'
+  },
+  de: {
+    player:'Corgi-Spieler',level:'LEVEL',xp:'LEVEL-FORTSCHRITT',cxu:'CXu',
+    likes:'LIKES',followers:'FOLLOWER',following:'FOLGT',
+    progress:'FORTSCHRITT',totalXp:'Gesamt-XP',messages:'Nachrichten',
+    collection:'SAMMLUNG',cosmetics:'Kosmetik im Besitz',
+    about:'ÜBER MICH',defaultBio:'Gute Spiele • Gute Leute • Bessere Tage',
+    footer:'CORGI-BOT • GLOBALES PROFIL',max:'MAX. LEVEL'
+  },
+  'pt-BR': {
+    player:'Jogador Corgi',level:'NÍVEL',xp:'PROGRESSO DO NÍVEL',cxu:'CXu',
+    likes:'CURTIDAS',followers:'SEGUIDORES',following:'SEGUINDO',
+    progress:'PROGRESSO',totalXp:'XP total',messages:'Mensagens',
+    collection:'COLEÇÃO',cosmetics:'Cosméticos obtidos',
+    about:'SOBRE MIM',defaultBio:'Boas partidas • Boas pessoas • Dias melhores',
+    footer:'CORGI-BOT • PERFIL GLOBAL',max:'NÍVEL MÁXIMO'
+  },
+  'pt-PT': {
+    player:'Jogador Corgi',level:'NÍVEL',xp:'PROGRESSO DO NÍVEL',cxu:'CXu',
+    likes:'GOSTOS',followers:'SEGUIDORES',following:'A SEGUIR',
+    progress:'PROGRESSO',totalXp:'XP total',messages:'Mensagens',
+    collection:'COLEÇÃO',cosmetics:'Cosméticos obtidos',
+    about:'SOBRE MIM',defaultBio:'Bons jogos • Boas pessoas • Dias melhores',
+    footer:'CORGI-BOT • PERFIL GLOBAL',max:'NÍVEL MÁXIMO'
+  },
+  id: {
+    player:'Pemain Corgi',level:'LEVEL',xp:'PROGRES LEVEL',cxu:'CXu',
+    likes:'SUKA',followers:'PENGIKUT',following:'MENGIKUTI',
+    progress:'PROGRES',totalXp:'Total XP',messages:'Pesan',
+    collection:'KOLEKSI',cosmetics:'Kosmetik dimiliki',
+    about:'TENTANG SAYA',defaultBio:'Game seru • Teman baik • Hari lebih cerah',
+    footer:'CORGI-BOT • PROFIL GLOBAL',max:'LEVEL MAKS'
+  },
+  ja: {
+    player:'Corgiプレイヤー',level:'レベル',xp:'レベル進行度',cxu:'CXu',
+    likes:'いいね',followers:'フォロワー',following:'フォロー中',
+    progress:'進行状況',totalXp:'合計XP',messages:'メッセージ',
+    collection:'コレクション',cosmetics:'所持コスメ',
+    about:'自己紹介',defaultBio:'楽しいゲーム • 素敵な仲間 • 明るい毎日',
+    footer:'CORGI-BOT • グローバルプロフィール',max:'最大レベル'
+  },
+  ko: {
+    player:'Corgi 플레이어',level:'레벨',xp:'레벨 진행도',cxu:'CXu',
+    likes:'좋아요',followers:'팔로워',following:'팔로잉',
+    progress:'진행도',totalXp:'총 XP',messages:'메시지',
+    collection:'컬렉션',cosmetics:'보유 코스메틱',
+    about:'소개',defaultBio:'즐거운 게임 • 좋은 사람들 • 더 밝은 날',
+    footer:'CORGI-BOT • 글로벌 프로필',max:'최대 레벨'
+  },
+  'zh-TW': {
+    player:'Corgi 玩家',level:'等級',xp:'等級進度',cxu:'CXu',
+    likes:'讚',followers:'追蹤者',following:'追蹤中',
+    progress:'進度',totalXp:'總 XP',messages:'訊息',
+    collection:'收藏',cosmetics:'已擁有造型',
+    about:'關於我',defaultBio:'好遊戲 • 好夥伴 • 更美好的日子',
+    footer:'CORGI-BOT • 全球個人資料',max:'最高等級'
+  },
+  'zh-CN': {
+    player:'Corgi 玩家',level:'等级',xp:'等级进度',cxu:'CXu',
+    likes:'赞',followers:'粉丝',following:'关注中',
+    progress:'进度',totalXp:'总 XP',messages:'消息',
+    collection:'收藏',cosmetics:'已拥有外观',
+    about:'关于我',defaultBio:'好游戏 • 好伙伴 • 更美好的日子',
+    footer:'CORGI-BOT • 全球个人资料',max:'最高等级'
+  }
 };
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-async function avatarBuffer(user){const r=await fetch(user.displayAvatarURL({extension:'png',size:256}));return Buffer.from(await r.arrayBuffer());}
-async function render(user,lang='en'){const z=LABELS[lang]||LABELS.en;const [p,w,social,verify]=await Promise.all([P.ensureProgress(user.id),ensureWallet(user.id),Social.ensure(user.id),Verification.get(user.id)]);const bg=await sharp(BG).resize(900,1600,{fit:'cover'}).png().toBuffer();const av=await sharp(await avatarBuffer(user)).resize(220,220).composite([{input:Buffer.from('<svg width="220" height="220"><circle cx="110" cy="110" r="106" fill="white"/></svg>'),blend:'dest-in'}]).png().toBuffer();const accent={ice:'#64c8ff',gold:'#ffd36a',sakura:'#ff8fca',emerald:'#67e8a5'}[social.cosmetics?.accent]||'#64c8ff';const bio=esc((social.bio||z[0]).slice(0,110));const name=esc((user.globalName||user.username).slice(0,30));const title=esc((social.cosmetics?.title||p.activeTitle||z[1]).slice(0,32));const verified=verify?.status==='APPROVED'?' ✓':'';const svg=`<svg width="900" height="1600" xmlns="http://www.w3.org/2000/svg"><style>.t{font-family:Arial,sans-serif;fill:#fff}.muted{fill:#cbdaf0}.a{fill:${accent}}.box{fill:#07172dcc;stroke:${accent};stroke-width:2}</style><rect x="105" y="105" width="690" height="1390" rx="42" fill="#06152ab8" stroke="#ffffff26" stroke-width="2"/><circle cx="450" cy="260" r="122" fill="#07172d" stroke="${accent}" stroke-width="8"/><text x="450" y="430" text-anchor="middle" class="t" font-size="48" font-weight="700">${name}${verified}</text><text x="450" y="474" text-anchor="middle" class="a" font-size="24" font-weight="700">${title}</text><rect class="box" x="150" y="520" width="600" height="130" rx="24"/><text x="225" y="572" class="muted" font-size="20">${z[2]}</text><text x="225" y="615" class="t" font-size="34" font-weight="700">${Number(p.level).toLocaleString()}</text><text x="450" y="572" class="muted" font-size="20">${z[3]} ${CXU}</text><text x="450" y="615" class="t" font-size="34" font-weight="700">${Number(w.cstar).toLocaleString()}</text><text x="650" y="572" text-anchor="end" class="muted" font-size="20">${z[4]}</text><text x="650" y="615" text-anchor="end" class="t" font-size="28" font-weight="700">♥ ${social.likes.length}  + ${social.followers.length}</text><rect class="box" x="150" y="685" width="600" height="170" rx="24"/><text x="180" y="735" class="a" font-size="23" font-weight="700">${z[5]}</text><foreignObject x="180" y="760" width="540" height="75"><div xmlns="http://www.w3.org/1999/xhtml" style="color:#fff;font:22px Arial;line-height:1.35">${bio}</div></foreignObject><rect class="box" x="150" y="890" width="600" height="205" rx="24"/><text x="180" y="940" class="a" font-size="23" font-weight="700">${z[6]}</text><text x="180" y="990" class="t" font-size="25">${z[7]}</text><text x="720" y="990" text-anchor="end" class="t" font-size="25" font-weight="700">${Number(p.totalXp).toLocaleString()}</text><text x="180" y="1040" class="t" font-size="25">${z[8]}</text><text x="720" y="1040" text-anchor="end" class="t" font-size="25" font-weight="700">${Number(p.totalMessages).toLocaleString()}</text><rect class="box" x="150" y="1130" width="600" height="180" rx="24"/><text x="180" y="1180" class="a" font-size="23" font-weight="700">${z[9]}</text><text x="180" y="1230" class="t" font-size="25">${z[10]}</text><text x="720" y="1230" text-anchor="end" class="t" font-size="25" font-weight="700">${social.ownedCosmetics.length}</text><text x="450" y="1415" text-anchor="middle" class="muted" font-size="20">${z[11]}</text></svg>`;return sharp(bg).composite([{input:Buffer.from(svg),top:0,left:0},{input:av,top:150,left:340}]).png().toBuffer();}
-module.exports={render};
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+}
+
+function num(value) {
+  return Number(value || 0).toLocaleString('en-US');
+}
+
+async function avatarBuffer(user) {
+  const response = await fetch(
+    user.displayAvatarURL({ extension: 'png', size: 256 })
+  );
+  return Buffer.from(await response.arrayBuffer());
+}
+
+async function render(user, lang = 'en') {
+  const z = LABELS[lang] || LABELS.en;
+
+  const [p, wallet, social, verify, cfg] = await Promise.all([
+    P.ensureProgress(user.id),
+    ensureWallet(user.id),
+    Social.ensure(user.id),
+    Verification.get(user.id),
+    P.settings()
+  ]);
+
+  const progressionCfg = cfg?.progression;
+  if (!progressionCfg) throw new Error('Missing progression configuration');
+
+  const level = Number(p.level || 1);
+  const currentXp = Number(p.xp || 0);
+  const neededXp = Number(P.xpNeeded(level, progressionCfg) || 0);
+  const maxLevel = level >= Number(progressionCfg.maxLevel || 100000);
+
+  const xpRatio = maxLevel
+    ? 1
+    : Math.max(0, Math.min(1, currentXp / Math.max(1, neededXp)));
+
+  const barWidth = Math.round(540 * xpRatio);
+
+  const bg = await sharp(BG)
+    .resize(900, 1600, { fit: 'cover' })
+    .png()
+    .toBuffer();
+
+  const avatar = await sharp(await avatarBuffer(user))
+    .resize(220, 220)
+    .composite([{
+      input: Buffer.from(
+        '<svg width="220" height="220"><circle cx="110" cy="110" r="106" fill="white"/></svg>'
+      ),
+      blend: 'dest-in'
+    }])
+    .png()
+    .toBuffer();
+
+  const cxuIcon = await sharp(CXU_ICON)
+    .resize(30, 30, { fit: 'contain' })
+    .png()
+    .toBuffer();
+
+  const accent = {
+    ice: '#64c8ff',
+    gold: '#ffd36a',
+    sakura: '#ff8fca',
+    emerald: '#67e8a5'
+  }[social.cosmetics?.accent] || '#64c8ff';
+
+  const name = esc((user.globalName || user.username).slice(0, 30));
+  const title = esc(
+    (social.cosmetics?.title || p.activeTitle || z.player).slice(0, 32)
+  );
+  const bio = esc((social.bio || z.defaultBio).slice(0, 150));
+  const verified = verify?.status === 'APPROVED' ? ' ✓' : '';
+
+  const likes = social.likes?.length || 0;
+  const followers = social.followers?.length || 0;
+  const following = social.following?.length || 0;
+  const cosmetics = social.ownedCosmetics?.length || 0;
+
+  const xpText = maxLevel
+    ? z.max
+    : `${num(currentXp)} / ${num(neededXp)} XP`;
+
+  const svg = `
+  <svg width="900" height="1600" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .t{font-family:Arial,sans-serif;fill:#fff}
+      .m{font-family:Arial,sans-serif;fill:#cbdaf0}
+      .a{font-family:Arial,sans-serif;fill:${accent}}
+      .box{fill:#07172ddd;stroke:${accent};stroke-width:2}
+      .label{font-size:18px;font-weight:700;letter-spacing:1px}
+      .value{font-size:31px;font-weight:700}
+    </style>
+
+    <rect x="105" y="70" width="690" height="1460" rx="42"
+          fill="#06152ac4" stroke="#ffffff26" stroke-width="2"/>
+
+    <circle cx="450" cy="220" r="122"
+            fill="#07172d" stroke="${accent}" stroke-width="8"/>
+
+    <text x="450" y="390" text-anchor="middle"
+          class="t" font-size="46" font-weight="700">${name}${verified}</text>
+
+    <text x="450" y="432" text-anchor="middle"
+          class="a" font-size="23" font-weight="700">${title}</text>
+
+    <!-- LEVEL + CXU -->
+    <rect class="box" x="150" y="475" width="600" height="220" rx="24"/>
+
+    <text x="180" y="520" class="m label">${z.level}</text>
+    <text x="180" y="565" class="t value">LV. ${num(level)}</text>
+
+    <text x="720" y="520" text-anchor="end" class="m label">${z.cxu}</text>
+    <text x="720" y="565" text-anchor="end" class="t value">${num(wallet.cstar)}</text>
+
+    <text x="180" y="610" class="a" font-size="18" font-weight="700">${z.xp}</text>
+    <text x="720" y="610" text-anchor="end" class="m" font-size="18">${xpText}</text>
+
+    <rect x="180" y="635" width="540" height="18" rx="9" fill="#ffffff20"/>
+    <rect x="180" y="635" width="${barWidth}" height="18" rx="9" fill="${accent}"/>
+
+    <!-- SOCIAL -->
+    <rect class="box" x="150" y="725" width="600" height="125" rx="24"/>
+
+    <text x="245" y="770" text-anchor="middle" class="m label">${z.likes}</text>
+    <text x="245" y="815" text-anchor="middle" class="t value">♥ ${num(likes)}</text>
+
+    <text x="450" y="770" text-anchor="middle" class="m label">${z.followers}</text>
+    <text x="450" y="815" text-anchor="middle" class="t value">${num(followers)}</text>
+
+    <text x="655" y="770" text-anchor="middle" class="m label">${z.following}</text>
+    <text x="655" y="815" text-anchor="middle" class="t value">${num(following)}</text>
+
+    <!-- PROGRESS -->
+    <rect class="box" x="150" y="880" width="600" height="175" rx="24"/>
+
+    <text x="180" y="925" class="a" font-size="22" font-weight="700">${z.progress}</text>
+
+    <text x="180" y="975" class="t" font-size="23">${z.totalXp}</text>
+    <text x="720" y="975" text-anchor="end" class="t" font-size="23" font-weight="700">${num(p.totalXp)}</text>
+
+    <text x="180" y="1020" class="t" font-size="23">${z.messages}</text>
+    <text x="720" y="1020" text-anchor="end" class="t" font-size="23" font-weight="700">${num(p.totalMessages)}</text>
+
+    <!-- COLLECTION -->
+    <rect class="box" x="150" y="1085" width="600" height="135" rx="24"/>
+
+    <text x="180" y="1130" class="a" font-size="22" font-weight="700">${z.collection}</text>
+    <text x="180" y="1180" class="t" font-size="23">${z.cosmetics}</text>
+    <text x="720" y="1180" text-anchor="end" class="t" font-size="25" font-weight="700">${num(cosmetics)}</text>
+
+    <!-- ABOUT -->
+    <rect class="box" x="150" y="1250" width="600" height="155" rx="24"/>
+
+    <text x="180" y="1295" class="a" font-size="22" font-weight="700">${z.about}</text>
+
+    <text x="180" y="1340" class="t" font-size="20">${bio}</text>
+
+    <text x="450" y="1470" text-anchor="middle"
+          class="m" font-size="18">${z.footer}</text>
+  </svg>`;
+
+  return sharp(bg)
+    .composite([
+      { input: Buffer.from(svg), top: 0, left: 0 },
+      { input: avatar, top: 110, left: 340 },
+      { input: cxuIcon, top: 493, left: 645 }
+    ])
+    .png()
+    .toBuffer();
+}
+
+module.exports = { render };
