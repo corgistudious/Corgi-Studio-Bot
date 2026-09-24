@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const UserEconomy = require('../../models/UserEconomy');
 const { GLOBAL_WALLET_SCOPE } = require('../../services/economyWallet');
 const { guildLang, mtx } = require('../../services/i18n');
+const { compactNumber } = require('../../services/numberFormat');
 
 const CXU = '<:cxu_coin:1551759873241251912>';
 
@@ -35,7 +36,7 @@ async function build(client, lang) {
     const rank = medals[n] || `**${n + 1}.**`;
     const name = names[n];
 
-    return `${rank} **${name}** — **${Number(x.cstar || 0).toLocaleString()} ${CXU} CXu**`;
+    return `${rank} **${name}** — **${compactNumber(x.cstar)} ${CXU} CXu**`;
   });
 
   return new EmbedBuilder()
