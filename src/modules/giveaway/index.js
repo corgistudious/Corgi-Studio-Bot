@@ -1,4 +1,4 @@
-const {compactNumber}=require('../services/numberFormat');
+const {compactNumber}=require('../../services/numberFormat');
 const {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle}=require('discord.js');
 const {AMBER}=require('../../ui/theme');
 const Giveaway=require('../../models/Giveaway');

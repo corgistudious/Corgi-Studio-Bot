@@ -1,4 +1,4 @@
-const {compactNumber}=require('../services/numberFormat');
+const {compactNumber}=require('../../services/numberFormat');
 const {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,StringSelectMenuBuilder}=require('discord.js');
 const FishingProfile=require('../../models/FishingProfile');
 const UserEconomy=require('../../models/UserEconomy');
