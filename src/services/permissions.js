@@ -16,4 +16,16 @@ function canSetup(member) {
     member?.permissions?.has(PermissionFlagsBits.Administrator);
 }
 
-module.exports = { isDeveloper, canSetup, developerIds };
+async function isAuthorizedDeveloper(userId) {
+  if (isDeveloper(userId)) return true;
+  try {
+    const WebRole = require('../models/WebRole');
+    const row = await WebRole.findOne({ discordId: String(userId), role: 'developer' }).select('_id').lean();
+    return Boolean(row);
+  } catch (error) {
+    console.error('[Developer Access] Failed to verify global developer role:', error.message);
+    return false;
+  }
+}
+
+module.exports = { isDeveloper, isAuthorizedDeveloper, canSetup, developerIds };

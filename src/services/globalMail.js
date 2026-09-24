@@ -1,3 +1,4 @@
+const {compactNumber}=require('./numberFormat');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits } = require('discord.js');
 const GlobalMail=require('../models/GlobalMail');
 const Delivery=require('../models/GlobalMailDelivery');
@@ -28,8 +29,8 @@ function messagePayload(mail,lang='en',options={}){
   const content=localizedContent(mail,lang);
   const e=new EmbedBuilder().setColor(0xF59E0B).setTitle(`📬 ${content.title}`).setDescription(content.body).setFooter({text:'Corgi-Bot • Global Mail'}).setTimestamp(mail.publishedAt||mail.createdAt||new Date());
   if(mail.imageUrl)e.setImage(mail.imageUrl);
-  if(mail.cstarAmount>0)e.addFields({name:'<:cxu_coin:1551759873241251912> CXu',value:mtx(lang,`Attachment: **${Number(mail.cstarAmount).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**
-Claim once per Discord account.`,`Đính kèm: **${Number(mail.cstarAmount).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**
+  if(mail.cstarAmount>0)e.addFields({name:'<:cxu_coin:1551759873241251912> CXu',value:mtx(lang,`Attachment: **${compactNumber(mail.cstarAmount)} <:cxu_coin:1551759873241251912> CXu**
+Claim once per Discord account.`,`Đính kèm: **${compactNumber(mail.cstarAmount)} <:cxu_coin:1551759873241251912> CXu**
 Mỗi tài khoản Discord chỉ nhận 1 lần.`)});
   if(mail.expiresAt)e.addFields({name:mtx(lang,'⏳ Claim deadline','⏳ Hạn nhận'),value:`<t:${Math.floor(new Date(mail.expiresAt).getTime()/1000)}:F>`});
   const components=[];
