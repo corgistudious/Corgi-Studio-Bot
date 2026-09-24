@@ -143,6 +143,10 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:key:disable')return i.showModal(DevUI.keyDisableModal());
     if(i.customId==='dev:verification:manage')return i.showModal(DevUI.verificationModal());
     if(i.customId==='dev:cstar:adjust')return i.showModal(DevUI.cstarModal());
+    if(i.customId==='dev:ctoken:adjust')return i.showModal(DevUI.ctokenModal());
+    if(i.customId==='dev:bankads:configure')return i.showModal(DevUI.bankAdsModal());
+    if(i.customId==='dev:ads:multipliers')return i.showModal(DevUI.adsMultipliersModal());
+    if(i.customId==='dev:ads:cancel')return i.showModal(DevUI.adsCancelModal());
     if(i.customId==='dev:blacklist:guild')return i.showModal(DevUI.blacklistModal('guild'));
     if(i.customId==='dev:blacklist:user')return i.showModal(DevUI.blacklistModal('user'));
     if(i.customId==='dev:title:create')return i.showModal(DevUI.titleCreateModal());
@@ -191,6 +195,9 @@ if(i.customId?.startsWith('dev:')){
     if(p==='premium')return i.update(await DevUI.premium());
     if(p==='keys')return i.update(await DevUI.keys());
     if(p==='cstar')return i.update(DevUI.cstar());
+    if(p==='bankads')return i.update(await DevUI.bankAds());
+    if(p==='ctoken')return i.update(await DevUI.ctoken());
+    if(p==='adsanalytics')return i.update(await DevUI.adsAnalytics());
     if(p==='leveling')return i.update(await require('../services/progressionDev').levelPage());
     if(p==='ranking')return i.update(await require('../services/progressionDev').rankingPage());
     if(p==='fishing')return i.update(await DevUI.fishing());
@@ -202,6 +209,54 @@ if(i.customId?.startsWith('dev:')){
     if(p==='globalmail')return i.update(await DevUI.globalMail(i.user.id));
     if(p==='blacklist')return i.update(await DevUI.blacklist());
   }
+  if(i.isModalSubmit()&&i.customId==='dev:modal:adsMultipliers'){
+    try{
+      const parse=(id)=>{
+        const a=i.fields.getTextInputValue(id).split('|').map(x=>Number(x.trim()));
+        if(a.length!==3||a.some(x=>!Number.isFinite(x)||x<0.1||x>100))throw new Error('INVALID_MULTIPLIERS');
+        return a;
+      };
+      const a=parse('group1'),b=parse('group2'),c=parse('group3');
+      const D=require('../models/DeveloperSettings');
+      await D.findOneAndUpdate(
+        {key:'global'},
+        {$set:{
+          'ads.placementMultipliers.HOME':a[0],
+          'ads.placementMultipliers.TRENDING':a[1],
+          'ads.placementMultipliers.VOTE':a[2],
+          'ads.placementMultipliers.GAME_HUB':b[0],
+          'ads.placementMultipliers.MARKETPLACE':b[1],
+          'ads.placementMultipliers.LEADERBOARD':b[2],
+          'ads.placementMultipliers.PROFILE':c[0],
+          'ads.placementMultipliers.NEWS_FORUM':c[1],
+          'ads.placementMultipliers.NETWORK':c[2]
+        },$setOnInsert:{key:'global'}},
+        {upsert:true,returnDocument:'after',setDefaultsOnInsert:true}
+      );
+      return i.reply({content:'✅ Ads placement multipliers updated.',flags:64});
+    }catch(e){
+      return i.reply({content:`❌ ${e.message}`,flags:64});
+    }
+  }
+
+  if(i.isModalSubmit()&&i.customId==='dev:modal:adsCancel'){
+    try{
+      const id=i.fields.getTextInputValue('campaignId').trim();
+      if(!/^[a-f0-9]{24}$/i.test(id))return i.reply({content:'❌ Invalid campaign ID.',flags:64});
+      const Ad=require('../models/AdCampaign');
+      const row=await Ad.findOneAndUpdate(
+        {_id:id,status:'ACTIVE'},
+        {$set:{status:'CANCELLED',endsAt:new Date()}},
+        {returnDocument:'after'}
+      );
+      if(!row)return i.reply({content:'❌ Campaign not found or no longer active.',flags:64});
+      return i.reply({content:`✅ Campaign \`${id}\` cancelled. CToken is not refunded.`,flags:64});
+    }catch(e){
+      return i.reply({content:`❌ ${e.message}`,flags:64});
+    }
+  }
+
+  if(i.isModalSubmit()&&i.customId==='dev:modal:bankads'){try{const [on,apy,hours]=i.fields.getTextInputValue('bank').split('|').map(x=>x.trim()),[min,max]=i.fields.getTextInputValue('limits').split('|').map(x=>x.trim()),[adsOn,budget,days]=i.fields.getTextInputValue('ads').split('|').map(x=>x.trim());const num=(v,a,b)=>Math.max(a,Math.min(b,Number(v)||0));await require('../services/bankService').setConfig({enabled:on.toUpperCase()==='ON',annualRatePercent:num(apy,0,1000),compoundHours:num(hours,1,8760),minDeposit:num(min,0,1e9),maxBalance:num(max,1,1e12)});const D=require('../models/DeveloperSettings'),d=await D.findOneAndUpdate({key:'global'},{$setOnInsert:{key:'global'}},{upsert:true,returnDocument:'after',setDefaultsOnInsert:true});d.ads.enabled=adsOn.toUpperCase()==='ON';d.ads.minBudget=num(budget,1,1e12);d.ads.defaultDays=num(days,1,30);await d.save();return i.reply({content:'✅ CXu Bank & Ads configuration saved.',flags:64});}catch(e){return i.reply({content:`❌ ${e.message}`,flags:64});}}
   if(i.isModalSubmit()){
 
     if(i.customId.startsWith('dev:modal:cosmeticCreateImage:')){
@@ -405,6 +460,37 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:modal:keyPremium'){const k=await DevControl.createRedeemKey({type:'PREMIUM',customCode:i.fields.getTextInputValue('customCode').trim(),premiumTier:'STANDARD',duration:i.fields.getTextInputValue('duration').trim(),maxUses:Number(i.fields.getTextInputValue('maxUses')),expiresDays:Number(i.fields.getTextInputValue('expiresDays'))});await sendDeveloperLog(client,{title:'🔑 Premium Key Created',description:`Developer: ${i.user.id}\nKey: ${k.code}\nDuration: ${k.premiumDuration}\nMax uses: ${k.maxUses}`});return i.reply({content:`✅ Premium key created: \`${k.code}\` • **${k.premiumDuration}** • max uses **${k.maxUses}**`,flags:64});}
     if(i.customId==='dev:modal:keyDisable'){const k=await DevControl.disableKey(i.fields.getTextInputValue('code'));if(k)await sendDeveloperLog(client,{title:'🔑 CD Key Disabled',description:`Developer: ${i.user.id}\nKey: ${k.code}`});return i.reply({content:k?`✅ Disabled \`${k.code}\`.`:'❌ Key not found.',flags:64});}
     if(i.customId==='dev:modal:cstar'){const uid=i.fields.getTextInputValue('userId'),delta=Number(i.fields.getTextInputValue('delta'));const u=await DevControl.adjustCstar(null,uid,delta);await sendDeveloperLog(client,{title:'⭐ Global <:cxu_coin:1551759873241251912> CXu Adjusted',description:`Developer: ${i.user.id}\nUser: ${uid}\nDelta: ${delta}\nGlobal balance: ${u.cstar}`});return i.reply({content:`✅ New global <:cxu_coin:1551759873241251912> CXu balance: **${u.cstar} <:cxu_coin:1551759873241251912> CXu**.`,flags:64});}
+    if(i.customId==='dev:modal:ctoken'){
+      const uid=i.fields.getTextInputValue('userId').trim();
+      const raw=i.fields.getTextInputValue('delta').trim();
+      if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});
+      if(!/^[+-]?\d+$/.test(raw))return i.reply({content:'❌ CToken amount must be a whole number, for example `100` or `-50`.',flags:64});
+      const delta=Number(raw);
+      if(!Number.isSafeInteger(delta)||delta===0)return i.reply({content:'❌ CToken amount must be a non-zero safe integer.',flags:64});
+
+      const CToken=require('../services/cTokenService');
+      try{
+        const wallet=delta>0
+          ? await CToken.grant(uid,delta)
+          : await CToken.remove(uid,Math.abs(delta));
+
+        await sendDeveloperLog(client,{
+          title:'🎟️ CToken Adjusted',
+          description:`Developer: ${i.user.id}\nUser: ${uid}\nDelta: ${delta>0?'+':''}${delta}\nBalance: ${wallet.balance}`
+        });
+
+        return i.reply({
+          content:`✅ <@${uid}> CToken ${delta>0?'granted':'removed'}: **${delta>0?'+':''}${delta.toLocaleString()}**\n🎟️ New balance: **${Number(wallet.balance).toLocaleString()} CToken**.`,
+          flags:64
+        });
+      }catch(e){
+        if(e?.message==='INSUFFICIENT_CTOKEN')
+          return i.reply({content:'❌ Cannot remove that amount: the user does not have enough CToken.',flags:64});
+        if(e?.message==='INVALID_CTOKEN_AMOUNT')
+          return i.reply({content:'❌ Invalid CToken amount.',flags:64});
+        throw e;
+      }
+    }
     if(i.customId==='dev:modal:verification'){const V=require('../services/profileVerification');const row=await V.manage({userId:i.fields.getTextInputValue('userId'),action:i.fields.getTextInputValue('action'),badgeType:i.fields.getTextInputValue('badgeType'),note:i.fields.getTextInputValue('note'),actorId:i.user.id});const badge=V.BADGES[row.badgeType];await sendDeveloperLog(client,{title:'✅ Profile Verification Updated',description:`Developer: ${i.user.id}\nUser: ${row.userId}\nStatus: ${row.status}\nBadge: ${row.badgeType||'NONE'}`});return i.reply({content:`✅ Verification for <@${row.userId}> → **${row.status}**${badge?` • ${badge.icon} **${badge.en}**`:''}.`,flags:64});}
     if(i.customId==='dev:modal:titleCreate'){const T=require('../services/customTitles');const t=await T.create({key:i.fields.getTextInputValue('key'),name:i.fields.getTextInputValue('name'),emoji:i.fields.getTextInputValue('emoji'),durationDays:i.fields.getTextInputValue('durationDays'),description:i.fields.getTextInputValue('description'),actorId:i.user.id});await sendDeveloperLog(client,{title:'🏷️ Custom Title Created',description:`Developer: ${i.user.id}\n${t.emoji} ${t.name} (${t.key})`});return i.reply({content:`✅ Created ${t.emoji} **${t.name}** • \`${t.key}\`.`,flags:64});}
     if(i.customId==='dev:modal:titleGrant'){const uid=i.fields.getTextInputValue('userId').trim();if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});const r=await require('../services/customTitles').grant(uid,i.fields.getTextInputValue('key'),i.user.id);await sendDeveloperLog(client,{title:'🏷️ Custom Title Granted',description:`Developer: ${i.user.id}\nUser: ${uid}\nTitle: ${r.title.key}`});return i.reply({content:`✅ Granted ${r.title.emoji} **${r.title.name}** to <@${uid}>${r.expiresAt?` until <t:${Math.floor(r.expiresAt.getTime()/1000)}:F>`:' permanently'}.`,flags:64});}

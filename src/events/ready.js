@@ -9,6 +9,7 @@ module.exports={name:Events.ClientReady,once:true,async execute(client){
   console.log('====================================');
   await syncCorgiPremiumEmojis(client).catch(e=>console.warn('Corgi Premium emoji sync:',e.message));
   await syncCurrencyEmoji(client).catch(e=>console.warn('CXu emoji sync:',e.message));
+  require('../services/webApi').start(client);
   require('../services/topggStats').startTopggStats(client);
   require('../services/marketNotifier').start(client);
   require('../services/seasonalNotifier').start(client);

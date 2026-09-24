@@ -28,7 +28,6 @@ const schema = new Schema({
   activeCustomTitleKey: { type: String, default: '', uppercase: true, trim: true },
   weeklyWins: { type: Number, default: 0, min: 0 },
   bestWeeklyRank: { type: Number, default: null },
-  vipTier: { type: String, enum: ['', 'VIP', 'VIP+', 'VVIP', 'SVIP', 'SSVIP', 'SSSVIP'], default: '' },
   vipExpiresAt: Date,
   vipSource: { type: String, enum: ['', 'CDKEY', 'CSTAR'], default: '' },
   joinedAt: { type: Date, default: Date.now }

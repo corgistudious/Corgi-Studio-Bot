@@ -1,6 +1,6 @@
 const { PermissionFlagsBits } = require('discord.js');
 const Warning = require('../../models/Warning');
-const { sendLog } = require('../../services/log');
+const { sendModerationCase: sendLog } = require('../../services/moderationLog');
 const { guildLang, mtx } = require('../../services/i18n');
 function parseUserId(raw='') { return raw.replace(/[<@!>]/g, ''); }
 async function memberFromPrefix(m, raw) { const id=parseUserId(raw); if(!id)return null; return m.guild.members.fetch(id).catch(()=>null); }

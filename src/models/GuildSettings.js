@@ -9,7 +9,7 @@ const schema = new Schema({
     ticket:{type:Boolean,default:true}, moderation:{type:Boolean,default:true}, poll:{type:Boolean,default:true}, logs:{type:Boolean,default:true},
     contest:{type:Boolean,default:true}, economy:{type:Boolean,default:true}, leveling:{type:Boolean,default:true}, premium:{type:Boolean,default:true}, pet:{type:Boolean,default:false}, ai:{type:Boolean,default:true}, games:{type:Boolean,default:true}
   },
-  channels: { welcome:String, leave:String, logs:String, ticketCategory:String, stats:String, globalMail:String, marketAnnouncements:String, seasonalAnnouncements:String },
+  channels: { welcome:String, leave:String, logs:String, moderationLogs:String, ticketCategory:String, stats:String, globalMail:String, marketAnnouncements:String, seasonalAnnouncements:String },
   marketNotifications:{enabled:{type:Boolean,default:true},thresholdPercent:{type:Number,default:5},cooldownMinutes:{type:Number,default:60},direction:{type:String,enum:['both','up','down'],default:'both'}},
   messages: {
     welcome:{type:String,default:'Welcome {user} to **{server}**! You are member **#{count}**.'},
@@ -26,6 +26,7 @@ const schema = new Schema({
     emojiTheme:{type:String,default:'default'},
     useCorgiStudioEmoji:{type:Boolean,default:false}
   },
+  moderationCaseCounter: {type:Number,default:0,min:0},
   statsMessageId: String,
   statsConfig: {
     freeEnabled: { type: [String], default: ['members','humans','bots','roles'] },

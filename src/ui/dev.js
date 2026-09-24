@@ -32,6 +32,9 @@ async function home(client) {
     {label:'Servers',value:'servers',emoji:'🌐',description:'View guilds using Corgi-Bot'},
     {label:'Premium',value:'premium',emoji:'💎',description:'Grant, revoke and inspect Premium'},
     {label:'CD Keys',value:'keys',emoji:'🔑',description:'Create, list and disable redeem keys'},
+    {label:'CXu Bank & Ads',value:'bankads',emoji:'🏦',description:'Bank and advertising configuration'},
+    {label:'CToken Management',value:'ctoken',emoji:'🎟️',description:'Manage advertising-only CToken'},
+    {label:'Ads Analytics',value:'adsanalytics',emoji:'📊',description:'Global advertising performance and CToken spend'},
     {label:'🌟 CXu Economy',value:'cstar',emoji:'⭐',description:'Add or subtract 🌟 CXu'},
     {label:'Level & EXP',value:'leveling',emoji:'⚔️',description:'Global EXP curve and cooldown'},
     {label:'Global Ranking',value:'ranking',emoji:'🏆',description:'Weekly rewards and Approve Reward'},
@@ -84,7 +87,7 @@ async function premium() {
 
 async function keys() {
   const rows = await Dev.listRecentKeys(10);
-  const desc = rows.length ? rows.map(k=>`🔑 \`${k.code}\` • **${k.type}** • ${k.enabled?'✅':'⛔'} • ${k.maxUses===0?`${k.uses}/♾️ Unlimited`:`${k.uses}/${k.maxUses}`}${k.type==='PREMIUM'?` • ${k.premiumDuration}`:k.type==='VIP'?` • ${k.vipTier} ${k.vipDuration}`:` • ${k.cstarAmount} <:cxu_coin:1551759873241251912> CXu`}`).join('\n') : 'No redeem keys.';
+  const desc = rows.length ? rows.map(k=>`🔑 \`${k.code}\` • **${k.type}** • ${k.enabled?'✅':'⛔'} • ${k.maxUses===0?`${k.uses}/♾️ Unlimited`:`${k.uses}/${k.maxUses}`}${k.type==='PREMIUM'?` • ${k.premiumDuration}`:` • ${k.cstarAmount} <:cxu_coin:1551759873241251912> CXu`}`).join('\n') : 'No redeem keys.';
   const e = footer(new EmbedBuilder().setTitle('🔑 CD Key Administration').setDescription(desc));
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('dev:key:cstar').setLabel('Create CXu Key').setEmoji('1551759873241251912').setStyle(ButtonStyle.Success),
@@ -237,6 +240,108 @@ function keyCstarModal(){return new ModalBuilder().setCustomId('dev:modal:keyCst
 function keyPremiumModal(){return new ModalBuilder().setCustomId('dev:modal:keyPremium').setTitle('Create Premium Key').addComponents(input('customCode','Custom Key (optional)','Corgi2026 / CorgiTanThu',false),input('duration','Premium Duration','7d, 14d, 21d, 30d, 1y, 2y, 5y, 10y'),input('maxUses','Maximum Uses (0 = Unlimited)','1'),input('expiresDays','Key Expires After Days (0 = never)','0'));}
 function keyDisableModal(){return new ModalBuilder().setCustomId('dev:modal:keyDisable').setTitle('Disable CD Key').addComponents(input('code','CD Key','PREM-XXXXXX-XXXXXX-XXXXXX'));}
 function cstarModal(){return new ModalBuilder().setCustomId('dev:modal:cstar').setTitle('Adjust Global CXu').addComponents(input('userId','User ID','123456789012345678'),input('delta','Amount (+ add / - subtract)','1000 or -500'));}
+
+async function ctoken(){
+  const CTokenWallet=require('../models/CTokenWallet');
+  const [wallets,total]=await Promise.all([
+    CTokenWallet.countDocuments({balance:{$gt:0}}),
+    CTokenWallet.aggregate([{$group:{_id:null,balance:{$sum:'$balance'},granted:{$sum:'$lifetimeGranted'},spent:{$sum:'$lifetimeSpent'}}}])
+  ]);
+  const stats=total[0]||{balance:0,granted:0,spent:0};
+  const e=footer(new EmbedBuilder()
+    .setTitle('🎟️ CToken Management')
+    .setDescription('CToken is a global advertising-only currency. It is separate from CXu and cannot be used for Bank, Marketplace, or games.')
+    .addFields(
+      {name:'Active Wallets',value:Number(wallets).toLocaleString(),inline:true},
+      {name:'Circulating',value:`🎟️ ${Number(stats.balance).toLocaleString()} CToken`,inline:true},
+      {name:'Lifetime Granted',value:`🎟️ ${Number(stats.granted).toLocaleString()}`,inline:true},
+      {name:'Lifetime Spent on Ads',value:`🎟️ ${Number(stats.spent).toLocaleString()}`,inline:true}
+    ));
+  const row=new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('dev:ctoken:adjust').setLabel('Adjust CToken').setEmoji('🎟️').setStyle(ButtonStyle.Primary)
+  );
+  return {embeds:[e],components:[row,backRow()]};
+}
+
+function ctokenModal(){
+  return new ModalBuilder()
+    .setCustomId('dev:modal:ctoken')
+    .setTitle('Adjust CToken')
+    .addComponents(
+      input('userId','Discord User ID','123456789012345678'),
+      input('delta','CToken (+ add / - subtract)','100 or -50')
+    );
+}
+
+async function adsAnalytics(){
+  const Ad=require('../models/AdCampaign');
+
+  const [active,totals,placements]=await Promise.all([
+    Ad.countDocuments({status:'ACTIVE',endsAt:{$gt:new Date()}}),
+    Ad.aggregate([{$group:{
+      _id:null,
+      campaigns:{$sum:1},
+      chargedCToken:{$sum:'$chargedCToken'},
+      impressions:{$sum:'$impressions'},
+      clicks:{$sum:'$clicks'}
+    }}]),
+    Ad.aggregate([
+      {$group:{
+        _id:'$placement',
+        campaigns:{$sum:1},
+        impressions:{$sum:'$impressions'},
+        clicks:{$sum:'$clicks'},
+        chargedCToken:{$sum:'$chargedCToken'}
+      }},
+      {$sort:{impressions:-1}}
+    ])
+  ]);
+
+  const t=totals[0]||{campaigns:0,chargedCToken:0,impressions:0,clicks:0};
+  const ctr=t.impressions?((t.clicks/t.impressions)*100).toFixed(2):'0.00';
+
+  const placementText=placements.length
+    ? placements.map(x=>{
+        const pctr=x.impressions?((x.clicks/x.impressions)*100).toFixed(2):'0.00';
+        return `**${x._id||'UNKNOWN'}** • ${Number(x.impressions||0).toLocaleString()} imp • ${Number(x.clicks||0).toLocaleString()} clicks • ${pctr}% CTR • 🎟️ ${Number(x.chargedCToken||0).toLocaleString()}`;
+      }).join('\n').slice(0,1024)
+    : 'No advertising data yet.';
+
+  const e=footer(new EmbedBuilder()
+    .setTitle('📊 Global Ads Analytics')
+    .setDescription('Developer-only overview of Corgi Ads across all campaigns.')
+    .addFields(
+      {name:'Campaigns',value:`Total: **${Number(t.campaigns||0).toLocaleString()}**\nActive: **${Number(active).toLocaleString()}**`,inline:true},
+      {name:'Performance',value:`Impressions: **${Number(t.impressions||0).toLocaleString()}**\nClicks: **${Number(t.clicks||0).toLocaleString()}**\nCTR: **${ctr}%**`,inline:true},
+      {name:'CToken Sink',value:`🎟️ **${Number(t.chargedCToken||0).toLocaleString()} CToken**`,inline:true},
+      {name:'Placement Performance',value:placementText,inline:false}
+    ));
+
+  const controls=new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('dev:ads:multipliers').setLabel('Placement Multipliers').setEmoji('⚙️').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId('dev:ads:cancel').setLabel('Cancel Campaign').setEmoji('🛑').setStyle(ButtonStyle.Danger)
+  );
+  return {embeds:[e],components:[controls,backRow()]};
+}
+
+function adsMultipliersModal(){
+  return new ModalBuilder()
+    .setCustomId('dev:modal:adsMultipliers')
+    .setTitle('Ads Placement Multipliers')
+    .addComponents(
+      input('group1','HOME | TRENDING | VOTE','1 | 1.25 | 1'),
+      input('group2','GAME_HUB | MARKETPLACE | LEADERBOARD','1.25 | 1.25 | 1.5'),
+      input('group3','PROFILE | NEWS_FORUM | NETWORK','1 | 1 | 2')
+    );
+}
+
+function adsCancelModal(){
+  return new ModalBuilder()
+    .setCustomId('dev:modal:adsCancel')
+    .setTitle('Cancel Ad Campaign')
+    .addComponents(input('campaignId','Campaign ID','MongoDB campaign ID'));
+}
+
 function blacklistModal(kind){return new ModalBuilder().setCustomId(`dev:modal:blacklist:${kind}`).setTitle(`Toggle ${kind} blacklist`).addComponents(input('id',`${kind==='guild'?'Guild':'User'} ID`,'123456789012345678'));}
 
 
@@ -326,4 +431,8 @@ function tournamentModal(){return new ModalBuilder().setCustomId('dev:modal:tour
 async function seasonal(){const S=require('../models/SeasonalEvent');await require('../services/seasonalService').seed();const rows=await S.find().sort({key:1}).lean();const e=footer(new EmbedBuilder().setTitle('🎊 Seasonal Event Control').setDescription('Global holiday events. Valid Game Hub actions can drop event materials. Crafting exchanges **1 crafted item → 1 Gift Box**.').addFields({name:'Events',value:rows.map(x=>`${x.enabled?'🟢':'⚫'} **${x.key}** • ${x.startAt?`<t:${Math.floor(new Date(x.startAt).getTime()/1000)}:d>`:'no start'} → ${x.endAt?`<t:${Math.floor(new Date(x.endAt).getTime()/1000)}:d>`:'no end'} • 🎁 ${x.cstarMin}-${x.cstarMax} CXu`).join('\n').slice(0,1024)}));const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:seasonal:configure').setLabel('Configure Event').setEmoji('⚙️').setStyle(ButtonStyle.Primary));return{embeds:[e],components:[row,backRow()]};}
 function seasonalModal(){return new ModalBuilder().setCustomId('dev:modal:seasonal').setTitle('Seasonal Event Configuration').addComponents(input('key','Event key','christmas'),input('enabled','Enabled: ON / OFF','ON'),input('dates','Start ISO | End ISO','2026-12-01T00:00:00-05:00 | 2026-12-31T23:59:59-05:00'),input('reward','Gift Box CXu min | max','250 | 5000'),input('dropMultiplier','Drop multiplier (0.1 - 10)','1'));}
 
-module.exports={cosmetics,cosmeticImageModal,cosmeticTextModal,cosmeticKeyModal,home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal,seasonal,seasonalModal};
+
+async function bankAds(){const B=require('../services/bankService'),D=require('../models/DeveloperSettings');const [b,d]=await Promise.all([B.config(),D.findOne({key:'global'}).lean()]);const e=footer(new EmbedBuilder().setTitle('🏦 CXu Bank & 📣 CToken Ads').setDescription('Global economy controls shared by Discord and the website.').addFields({name:'CXu Bank',value:`Enabled: **${b.enabled?'ON':'OFF'}**\nAPY: **${b.annualRatePercent}%**\nCompound: **${b.compoundHours}h**\nMin deposit: **${Number(b.minDeposit).toLocaleString()} CXu**`,inline:true},{name:'Corgi Ads',value:`Enabled: **${d?.ads?.enabled!==false?'ON':'OFF'}**\nMinimum budget: **🎟️ ${Number(d?.ads?.minBudget||100000).toLocaleString()} CToken**\nDefault duration: **${d?.ads?.defaultDays||7} days**`,inline:true}));const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:bankads:configure').setLabel('Configure Bank & Ads').setStyle(ButtonStyle.Primary));return {embeds:[e],components:[row,backRow()]};}
+function bankAdsModal(){return new ModalBuilder().setCustomId('dev:modal:bankads').setTitle('Configure CXu Bank & Ads').addComponents(new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('bank').setLabel('Bank: ON | APY | hours').setStyle(TextInputStyle.Short).setPlaceholder('ON | 5 | 24').setRequired(true)),new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('limits').setLabel('Bank: min deposit | max balance').setStyle(TextInputStyle.Short).setPlaceholder('100 | 1000000000').setRequired(true)),new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('ads').setLabel('Ads: ON | min budget | days').setStyle(TextInputStyle.Short).setPlaceholder('ON | 100000 | 7').setRequired(true)));}
+
+module.exports={adsMultipliersModal,adsCancelModal,ctoken,ctokenModal,adsAnalytics,bankAds,bankAdsModal,cosmetics,cosmeticImageModal,cosmeticTextModal,cosmeticKeyModal,home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal,seasonal,seasonalModal};

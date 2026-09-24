@@ -5,8 +5,6 @@ const DeveloperSettings = require('../models/DeveloperSettings');
 const UserEconomy = require('../models/UserEconomy');
 const { ensureWallet, walletFilter } = require('./economyWallet');
 
-const VIP_TIERS = ['VIP','VIP+','VVIP','SVIP','SSVIP','SSSVIP'];
-const VIP_DURATION_MS = { '7d':7*86400000, '14d':14*86400000, '21d':21*86400000, '30d':30*86400000, '90d':90*86400000, '1y':365*86400000 };
 const TITLE_RULES = [
   { min:1,max:1,title:'Thần Vương Vô Địch' },
   { min:2,max:2,title:'Á Vương Vô Địch' },
@@ -106,9 +104,8 @@ async function updateProgressionConfig(patch){
   return DeveloperSettings.findOneAndUpdate({key:'global'},{$set:{progression:next}},{returnDocument:'after'});
 }
 async function updateRewardConfig(patch){const set={};for(const [k,v] of Object.entries(patch))set[`rankingRewards.${k}`]=Math.max(0,Math.min(1e12,Math.floor(Number(v)||0)));return DeveloperSettings.findOneAndUpdate({key:'global'},{$set:set},{returnDocument:'after'});}
-function vipField(tier){return tier==='VIP+'?'VIP_PLUS':tier;}
 
 
 
 async function clearExpiredTitle(p){if(p.activeTitle&&p.activeTitleExpiresAt&&p.activeTitleExpiresAt<=new Date()){p.activeTitle='';p.activeTitleExpiresAt=null;await p.save();}return p;}
-module.exports={VIP_TIERS,VIP_DURATION_MS,TITLE_RULES,settings,weekInfo,xpNeeded,ensureProgress,awardMessageXp,ranks,leaderboard,approveRewards,setUserLevelXp,updateProgressionConfig,updateRewardConfig,clearExpiredTitle};
+module.exports={TITLE_RULES,settings,weekInfo,xpNeeded,ensureProgress,awardMessageXp,ranks,leaderboard,approveRewards,setUserLevelXp,updateProgressionConfig,updateRewardConfig,clearExpiredTitle};
