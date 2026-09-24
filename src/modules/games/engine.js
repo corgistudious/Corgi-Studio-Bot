@@ -1,3 +1,4 @@
+const {compactNumber}=require('../../services/numberFormat');
 const {
   EmbedBuilder,
   ActionRowBuilder,
@@ -29,7 +30,7 @@ function validateBet(value) {
   return Number.isInteger(bet) && bet >= MIN_BET && bet <= MAX_BET;
 }
 
-function money(n) { return Number(n || 0).toLocaleString('en-US'); }
+function money(n) { return compactNumber(n); }
 function outcomeLine(lang, net) {
   if (net > 0) return mtx(lang, `✅ Profit: **+${money(net)} ${CURRENCY}**`, `✅ Lãi: **+${money(net)} ${CURRENCY}**`);
   if (net < 0) return mtx(lang, `❌ Loss: **${money(net)} ${CURRENCY}**`, `❌ Thua: **${money(net)} ${CURRENCY}**`);
