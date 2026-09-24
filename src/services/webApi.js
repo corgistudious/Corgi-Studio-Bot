@@ -43,7 +43,7 @@ async function handler(req,res){cors(req,res);if(req.method==='OPTIONS'){res.wri
  return json(res,200,{items:pool.slice(0,placement?5:30)});
 }
  const imp=u.pathname.match(/^\/v1\/ads\/([a-f0-9]{24})\/impression$/i);if(req.method==='POST'&&imp){const row=await Ad.findOne({_id:imp[1],status:'ACTIVE',startsAt:{$lte:new Date()},endsAt:{$gt:new Date()}}).select('_id').lean();if(!row)return json(res,404,{error:'AD_NOT_ACTIVE'});if(allowAdEvent(req,imp[1],'i',30*60*1000))await addAdMetric(imp[1],'impressions');return json(res,204,{});}
- const clk=u.pathname.match(/^\/v1\/ads\/([a-f0-9]{24})\/click$/i);if(req.method==='GET'&&clk){const row=await Ad.findOne({_id:clk[1],status:'ACTIVE',startsAt:{$lte:new Date()},endsAt:{$gt:new Date()}}).select('targetUrl').lean();if(!row)return json(res,404,{error:'AD_NOT_ACTIVE'});if(allowAdEvent(req,clk[1],'c',10*60*1000))await addAdMetric(clk[1],'clicks');res.writeHead(302,{Location:row.targetUrl,'Cache-Control':'no-store'});return res.end();}
+ const clk=u.pathname.match(/^\/v1\/ads\/([a-f0-9]{24})\/click$/i);if(req.method==='GET'&&clk){const row=await Ad.findOne({_id:clk[1],status:'ACTIVE',startsAt:{$lte:new Date()},endsAt:{$gt:new Date()}}).select('targetUrl').lean();if(!row)return json(res,404,{error:'AD_NOT_ACTIVE'});if(!row.targetUrl)return json(res,404,{error:'AD_HAS_NO_LINK'});if(allowAdEvent(req,clk[1],'c',10*60*1000))await addAdMetric(clk[1],'clicks');res.writeHead(302,{Location:row.targetUrl,'Cache-Control':'no-store'});return res.end();}
  const user=await auth(req);
  if(req.method==='GET'&&u.pathname==='/v1/me'){const role=await require('./webRoleService').get(user.discordId);return json(res,200,{discordId:user.discordId,role});}
  if(req.method==='GET'&&u.pathname==='/v1/ads/mine'){await Ad.updateMany({ownerId:user.discordId,status:'ACTIVE',endsAt:{$lte:new Date()}},{$set:{status:'ENDED'}});const items=await Ad.find({ownerId:user.discordId}).sort({createdAt:-1}).limit(100).lean();return json(res,200,{items});}
@@ -125,7 +125,7 @@ async function handler(req,res){cors(req,res);if(req.method==='OPTIONS'){res.wri
    return x.protocol==='https:'&&!['localhost','127.0.0.1','::1'].includes(x.hostname.toLowerCase());
   }catch{return false;}
  };
- if(!title||title.length>80||description.length>240||!safeHttps(targetUrl))
+ if(!title||title.length>80||description.length>240||(targetUrl&&!safeHttps(targetUrl)))
   return json(res,400,{error:'INVALID_AD'});
  if(imageUrl&&(!safeHttps(imageUrl)||imageUrl.length>1000))
   return json(res,400,{error:'INVALID_IMAGE_URL'});

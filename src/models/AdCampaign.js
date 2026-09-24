@@ -15,7 +15,7 @@ const schema = new Schema({
 
   targetUrl: {
     type: String,
-    required: true,
+    default: '',
     maxlength: 500
   },
 
