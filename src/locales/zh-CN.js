@@ -8,7 +8,7 @@ module.exports = {
   dailyWait: '今日奖励已领取，请稍后再试。',
   invalidKey: '此兑换码无效、已过期、已停用或已达到使用上限。',
   redeemed: '兑换成功：{reward}。',
-  "v6.guild.separate": "Guild 进度与 Corgi-Bot Global 完全分开。🌟 Guild Points 永远不能转换为 Global CXu。",
+  "v6.guild.separate": "Guild 进度与 Corgi-Bot Global 完全分开。🌟 Clan Currency 永远不能转换为 Global CXu。",
   "v6.guild.missions": "🎯 任务",
   "v6.guild.events": "🎉 活动",
   "v6.guild.shopRewards": "🏪 商店奖励",
@@ -57,7 +57,7 @@ module.exports = {
   "v6.common.back": "返回",
   "v6.guildMissions.title": "🎯 Guild 任务",
   "v6.guildMissions.empty": "目前没有进行中的 Guild 任务。",
-  "v6.guildRanking.title": "🏆 Guild Points 排行榜",
+  "v6.guildRanking.title": "🏆 Clan Currency 排行榜",
   "v6.guildRanking.empty": "目前没有 Guild Point 活动。",
   "v6.guildAdmin.title": "⚙️ Guild 管理",
   "v6.guildAdmin.desc": "Owner/Manager 只能管理此服务器。Global CXu、Market 与 Global 进度受到保护。",
@@ -98,4 +98,5 @@ module.exports = {
   'v6.bank.error.INSUFFICIENT_BANK': '银行账户中的 CXu 不足。',
   'v6.bank.error.INVALID_AMOUNT': '金额无效。',
   'v6.bank.error.unknown': '银行操作失败。',
+  'profile.partnerNotice': '你是 Corgi-Bot 的官方合作伙伴。',
 };

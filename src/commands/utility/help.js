@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { guildLang, mtx } = require('../../services/i18n');
 
 function lines(lang, category) {
+  if(!['en','vi'].includes(lang)) return lines('en',category).split('\n').map(x=>mtx(lang,x,x)).join('\n');
   const vi = lang === 'vi';
   const pages = {
     all: vi ? [
@@ -15,7 +16,7 @@ function lines(lang, category) {
       '👤 `member` — Profile, Ranking, ví và các lệnh thường dùng.',
       '⭐ `economy` — <:cxu_coin:1551759873241251912> CXu, Daily, chuyển tiền, Inventory.',
       '🎮 `games` — Game Hub Direct Action, 50 game, Fishing 2.0 và Tournament.',
-      '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats.',
+      '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats, Clan Guild.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Premium Server and Redeem CD Key.',
       '🤖 `ai` — Corgi AI.',
@@ -39,7 +40,7 @@ function lines(lang, category) {
       '👤 `member` — Profile, Ranking and common member commands.',
       '⭐ `economy` — <:cxu_coin:1551759873241251912> CXu, Daily, transfers and Inventory.',
       '🎮 `games` — Direct Action Game Hub, 50 games, Fishing 2.0 and Tournaments.',
-      '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats.',
+      '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats, Clan Guild.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Server Premium and CD Key redemption.',
       '🤖 `ai` — Corgi AI.',
@@ -117,10 +118,8 @@ function lines(lang, category) {
       '',
       '**✅ Xác minh Profile**',
       'Profile có thể được Developer xét duyệt theo từng giai đoạn.',
-      '• 🔵 Identity — định danh tài khoản thật.',
-      '• 🔴 Developer — tài khoản Developer.',
-      '• 🟡 Admin — quản trị chung.',
-      '• 🟣 Partner — đối tác Corgi-Bot.',
+      '• 🔵 Verified — tài khoản đã được Corgi-Bot xác minh.',
+      '• 🟣 Partner — đối tác chính thức của Corgi-Bot.',
       'Khi APPROVED, badge Application Emoji hiển thị nhỏ ngay cạnh tên Discord trên `/profile`.',
       'Góc phải Profile dùng logo Corgi-Bot thường; server có Premium active sẽ tự đổi sang logo Corgi-Bot Premium.',
       '',
@@ -151,10 +150,8 @@ function lines(lang, category) {
       '',
       '**✅ Profile Verification**',
       'Profiles can be reviewed by a Developer through staged verification.',
-      '• 🔵 Identity — real-account identity verification.',
-      '• 🔴 Developer — Developer account.',
-      '• 🟡 Admin — general administration.',
-      '• 🟣 Partner — Corgi-Bot partner.',
+      '• 🔵 Verified — account verified by Corgi-Bot.',
+      '• 🟣 Partner — official Corgi-Bot partner.',
       'When APPROVED, the Application Emoji badge appears inline next to the Discord name on `/profile`.',
       'The Profile thumbnail uses the normal Corgi-Bot logo; an active Premium server automatically uses the Premium logo.',
       '',
@@ -207,7 +204,8 @@ function lines(lang, category) {
     ],
 
     games: vi ? [
-      '**🎮 Game Hub Direct Action • 50 Game**','`/games` • `?games` — mở Hub và chơi bằng Button/Select. `?game <id>` hoặc `/game name:<id>` để vào game bằng lệnh.','`/tournaments` • `?tournaments` — Tournament Center.','Fishing 2.0, Pet Hunt, Pet Arena, Expedition, Dungeon, Mining và nhiều game khác dùng chung Game Hub.','',
+      '**🎮 Game Hub Direct Action • 50 Game**','`/games` • `?games` — mở Hub và chơi bằng Button/Select. `?game <id>` hoặc `/game name:<id>` để vào game bằng lệnh.','`/tournaments` • `?tournaments` — Tournament Center.',
+      '`/clan` — Clan Guild: tạo/tham gia Clan, cấp bậc Hội Trưởng → Phó Hội → Quân Sư → Tinh Anh → Thành Viên, Contribution, Trust, tiền tệ, Shop, Mission/Event và quản trị song song Web + Discord.','Fishing 2.0, Pet Hunt, Pet Arena, Expedition, Dungeon, Mining và nhiều game khác dùng chung Game Hub.','',
       '**🎮 Game dùng <:cxu_coin:1551759873241251912> CXu**','Mức cược: **10 → 1.000.000 <:cxu_coin:1551759873241251912> CXu**. <:cxu_coin:1551759873241251912> CXu chỉ là tiền ảo giải trí.','',
       '**🎣 Corgi Fishing**','`/fish` • `?fish` — mở Trung tâm Câu Cá. `/fishing` • `?fishing` — câu ngay.','Trung tâm Câu Cá gồm Túi cá, Fishdex, Cửa hàng mồi, nâng cấp cần và **1 bảng xếp hạng câu cá toàn cầu**.','Nâng cần yêu cầu đồng thời số cá đã câu tích lũy + tổng cân nặng tích lũy + <:cxu_coin:1551759873241251912> CXu. Bán cá không làm mất Fishdex/kỷ lục.','',
       '**🎲 Tài Xỉu / Sic Bo nâng cao**','`/taixiu` • `?taixiu` — mở panel • vẫn hỗ trợ cược nhanh bằng tham số','Cửa: `tai/xiu`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, hoặc cặp hai mặt như `pair12`.','',
@@ -258,7 +256,17 @@ function lines(lang, category) {
       '`/stats` — tạo/sửa Stats Board.',
       'Trong Stats Config có thể bật/tắt riêng từng mục: Members, Humans, Bots, Roles và các Premium Stats nếu server đủ quyền.',
       'Có nút **Bật tất cả / Tắt tất cả** để dọn các Stats không sử dụng.',
-      'Hai lệnh này hiện dùng Slash.'
+      'Hai lệnh này hiện dùng Slash.',
+      '',
+      '**🏯 Clan Guild**',
+      '`/clan info` — hồ sơ Clan, Level/XP, Contribution, Trust, tiền tệ và ngân quỹ.',
+      '`/clan create name:<tên> [tag]` • `/clan apply name:<Clan> [message]` • `/clan leave`.',
+      'Quản lý: `/clan applications`, `/clan review`, `/clan rank`, `/clan trust`, `/clan contribute`, `/clan kick`.',
+      'Shop: `/clan shop` • `/clan buy item_id:<ID>`. Shop hỗ trợ vật phẩm ảo và hiện vật; hiện vật đi qua trạng thái đơn hàng để staff xử lý.',
+      'Cấp bậc: **Hội Trưởng → Phó Hội → Quân Sư → Tinh Anh → Thành Viên** với permission matrix riêng.',
+      'Clan có Level/XP, Contribution, Trust Score có audit, tiền tệ riêng, Treasury, Applications, Missions, Events, Achievements/tiến trình, Shop/Orders và Audit Log.',
+      'Level Card dùng nền **16:9** do member upload bằng tệp. Logo/banner/ảnh sản phẩm cũng upload tệp — không yêu cầu URL.',
+      'Clan và Server Setup được quản trị song song trên Discord + Website và dùng chung dữ liệu.'
     ] : [
       '**🧡 Giveaway**',
       '`/giveaway panel` — open Builder.',
@@ -289,7 +297,17 @@ function lines(lang, category) {
       '`/stats` — create/repair Stats Board.',
       'Stats Config can toggle Members, Humans, Bots, Roles and unlocked Premium Stats individually.',
       'Bulk **Enable All / Disable All** controls are available for unused stats.',
-      'These currently use Slash.'
+      'These currently use Slash.',
+      '',
+      '**🏯 Clan Guild**',
+      '`/clan info` — Clan profile, Level/XP, Contribution, Trust, currency and treasury.',
+      '`/clan create name:<name> [tag]` • `/clan apply name:<Clan> [message]` • `/clan leave`.',
+      'Management: `/clan applications`, `/clan review`, `/clan rank`, `/clan trust`, `/clan contribute`, `/clan kick`.',
+      'Shop: `/clan shop` • `/clan buy item_id:<ID>`. The shop supports virtual and physical rewards; physical rewards use staff-managed order status.',
+      'Ranks: **Leader → Deputy → Strategist → Elite → Member**, backed by a permission matrix.',
+      'Clan includes Level/XP, Contribution, audited Trust Score, custom currency, Treasury, Applications, Missions, Events, progression, Shop/Orders and Audit Log.',
+      'Level Cards use a member-uploaded **16:9** background. Clan logos/banners/product images are file uploads too — no image URL field.',
+      'Clan and Server Setup can be managed in parallel from Discord + Website with shared data.'
     ],
 
     moderation: vi ? [
@@ -428,6 +446,7 @@ function lines(lang, category) {
 }
 
 function title(lang, category) {
+  if(!['en','vi'].includes(lang)) return mtx(lang,title('en',category),title('en',category));
   const vi = lang === 'vi';
   const map = {
     all: vi ? '🐶 Corgi-Bot • Trung tâm hướng dẫn' : '🐶 Corgi-Bot • Help Center',

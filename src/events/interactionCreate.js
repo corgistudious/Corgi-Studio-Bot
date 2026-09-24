@@ -142,7 +142,17 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:key:cstar')return i.showModal(DevUI.keyCstarModal());
     if(i.customId==='dev:key:premium')return i.showModal(DevUI.keyPremiumModal());
     if(i.customId==='dev:key:disable')return i.showModal(DevUI.keyDisableModal());
-    if(i.customId==='dev:verification:manage')return i.showModal(DevUI.verificationModal());
+    if(i.customId==='dev:verification:review')
+      return i.showModal(DevUI.verificationUserModal('REVIEW'));
+
+    if(i.customId==='dev:verification:approve')
+      return i.showModal(DevUI.verificationUserModal('APPROVE'));
+
+    if(i.customId==='dev:verification:reject')
+      return i.showModal(DevUI.verificationUserModal('REJECT'));
+
+    if(i.customId==='dev:verification:revoke')
+      return i.showModal(DevUI.verificationUserModal('REVOKE'));
     if(i.customId==='dev:cstar:adjust')return i.showModal(DevUI.cstarModal());
     if(i.customId==='dev:ctoken:adjust')return i.showModal(DevUI.ctokenModal());
     if(i.customId==='dev:bankads:configure')return i.showModal(DevUI.bankAdsModal());
@@ -188,6 +198,17 @@ if(i.customId?.startsWith('dev:')){
     if(['ACCENT','TITLE'].includes(type))
       return i.showModal(DevUI.cosmeticTextModal(type));
     return i.reply({content:'❌ Invalid cosmetic type.',flags:64});
+  }
+
+  
+  if(i.isStringSelectMenu()&&i.customId==='dev:verification:badge'){
+    const badgeType=i.values[0];
+    if(!['BLUE','PURPLE'].includes(badgeType))
+      return i.reply({content:'❌ Invalid verification badge.',flags:64});
+
+    return i.showModal(
+      DevUI.verificationUserModal('APPROVE',badgeType)
+    );
   }
 
   if(i.isStringSelectMenu()&&i.customId==='dev:page'){
@@ -493,7 +514,42 @@ if(i.customId?.startsWith('dev:')){
         throw e;
       }
     }
-    if(i.customId==='dev:modal:verification'){const V=require('../services/profileVerification');const row=await V.manage({userId:i.fields.getTextInputValue('userId'),action:i.fields.getTextInputValue('action'),badgeType:i.fields.getTextInputValue('badgeType'),note:i.fields.getTextInputValue('note'),actorId:i.user.id});const badge=V.BADGES[row.badgeType];await sendDeveloperLog(client,{title:'✅ Profile Verification Updated',description:`Developer: ${i.user.id}\nUser: ${row.userId}\nStatus: ${row.status}\nBadge: ${row.badgeType||'NONE'}`});return i.reply({content:`✅ Verification for <@${row.userId}> → **${row.status}**${badge?` • ${badge.icon} **${badge.en}**`:''}.`,flags:64});}
+    if(i.customId?.startsWith('dev:modal:verification:')){
+      const V=require('../services/profileVerification');
+      const parts=i.customId.split(':');
+      const action=parts[3];
+      const badgeType=parts[4]==='NONE'?'':parts[4];
+
+      const userId=i.fields.getTextInputValue('userId');
+      const note=i.fields.getTextInputValue('note');
+
+      const row=await V.manage({
+        userId,
+        action,
+        badgeType,
+        note,
+        actorId:i.user.id
+      });
+
+      const badge=V.BADGES[row.badgeType];
+
+      await sendDeveloperLog(client,{
+        title:'✅ Profile Verification Updated',
+        description:
+          `Developer: ${i.user.id}\n`+
+          `User: ${row.userId}\n`+
+          `Status: ${row.status}\n`+
+          `Badge: ${row.badgeType||'NONE'}`
+      });
+
+      return i.reply({
+        content:
+          `✅ Verification for <@${row.userId}> → **${row.status}**`+
+          (badge?` • ${badge.icon} **${badge.en}**`:'')+
+          '.',
+        flags:64
+      });
+    }
     if(i.customId==='dev:modal:titleCreate'){const T=require('../services/customTitles');const t=await T.create({key:i.fields.getTextInputValue('key'),name:i.fields.getTextInputValue('name'),emoji:i.fields.getTextInputValue('emoji'),durationDays:i.fields.getTextInputValue('durationDays'),description:i.fields.getTextInputValue('description'),actorId:i.user.id});await sendDeveloperLog(client,{title:'🏷️ Custom Title Created',description:`Developer: ${i.user.id}\n${t.emoji} ${t.name} (${t.key})`});return i.reply({content:`✅ Created ${t.emoji} **${t.name}** • \`${t.key}\`.`,flags:64});}
     if(i.customId==='dev:modal:titleGrant'){const uid=i.fields.getTextInputValue('userId').trim();if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});const r=await require('../services/customTitles').grant(uid,i.fields.getTextInputValue('key'),i.user.id);await sendDeveloperLog(client,{title:'🏷️ Custom Title Granted',description:`Developer: ${i.user.id}\nUser: ${uid}\nTitle: ${r.title.key}`});return i.reply({content:`✅ Granted ${r.title.emoji} **${r.title.name}** to <@${uid}>${r.expiresAt?` until <t:${Math.floor(r.expiresAt.getTime()/1000)}:F>`:' permanently'}.`,flags:64});}
     if(i.customId==='dev:modal:titleRevoke'){const uid=i.fields.getTextInputValue('userId').trim();if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});const key=i.fields.getTextInputValue('key').trim().toUpperCase();await require('../services/customTitles').revoke(uid,key);await sendDeveloperLog(client,{title:'🏷️ Custom Title Revoked',description:`Developer: ${i.user.id}\nUser: ${uid}\nTitle: ${key}`});return i.reply({content:`✅ Revoked \`${key}\` from <@${uid}>.`,flags:64});}
@@ -510,28 +566,6 @@ if(i.customId?.startsWith('social:')&&i.isButton()&&!i.customId.startsWith('soci
   if(action==='collection'){const p=await Social.ensure(targetId);return i.reply({content:mtx(lang,`🎨 Collection: **${p.ownedCosmetics.length}** cosmetic(s)\n${p.ownedCosmetics.map(x=>`• ${x}`).join('\n').slice(0,1500)}`,`🎨 Bộ sưu tập: **${p.ownedCosmetics.length}** cosmetic\n${p.ownedCosmetics.map(x=>`• ${x}`).join('\n').slice(0,1500)}`),flags:64});}
   try{const r=action==='like'?await Social.toggleLike(i.user.id,targetId):await Social.toggleFollow(i.user.id,targetId);return i.reply({content:action==='like'?(r.liked?mtx(lang,'❤️ Profile liked.','❤️ Đã thích hồ sơ.'):mtx(lang,'💔 Like removed.','💔 Đã bỏ thích.')):(r.following?mtx(lang,'➕ Now following this profile.','➕ Đã theo dõi hồ sơ.'):mtx(lang,'➖ Unfollowed.','➖ Đã bỏ theo dõi.')),flags:64});}catch(e){return i.reply({content:mtx(lang,'❌ You cannot use this action on your own profile.','❌ Bạn không thể dùng thao tác này với hồ sơ của chính mình.'),flags:64});}
 }
-if(i.customId?.startsWith('guild:')){
-  const lang=await require('../services/i18n').guildLang(i.guildId),GUI=require('../ui/guild'),GS=require('../services/guildSystem');
-  if(i.isButton()){
-    if(i.customId==='guild:home')return i.update(await require('../commands/community/guild').home(i.guild,i.user,lang));
-    if(i.customId==='guild:shop')return i.update(await GUI.shop(i.guildId,lang));
-    if(i.customId==='guild:missions')return i.update(await GUI.missions(i.guildId,lang));
-    if(i.customId==='guild:ranking')return i.update(await GUI.ranking(i.guildId,lang));
-    if(i.customId==='guild:redeem')return i.showModal(GUI.redeemModal());
-    if(i.customId==='guild:admin'){if(!(await GS.canManage(i.member,'events')))return i.reply({content:mtx(lang,'❌ Guild Owner/Manager access required.','❌ Cần quyền Owner/Manager của Guild.'),flags:64});return i.update(GUI.admin(lang));}
-    if(i.customId.startsWith('guild:admin:')){const area=i.customId.split(':')[2];if(!(await GS.canManage(i.member,area==='points'?'rewards':area)))return i.reply({content:mtx(lang,'❌ Guild management permission required.','❌ Cần quyền quản lý Guild.'),flags:64});if(area==='reward')return i.showModal(GUI.rewardModal());if(area==='mission')return i.showModal(GUI.missionModal());if(area==='event')return i.showModal(GUI.eventModal());if(area==='points')return i.showModal(GUI.pointsModal());}
-  }
-  if(i.isModalSubmit()){
-    if(i.customId==='guild:modal:redeem'){const Reward=require('../models/GuildReward'),Red=require('../models/GuildRedemption'),id=i.fields.getTextInputValue('rewardId').trim(),r=await Reward.findOne({_id:id,guildId:i.guildId,enabled:true}).catch(()=>null);if(!r)return i.reply({content:'❌ Reward not found.',flags:64});const w=await GS.wallet(i.guildId,i.user.id);if(w.points<r.price)return i.reply({content:mtx(lang,'❌ Not enough 🌟 Guild Points.','❌ Không đủ 🌟 Guild Point.'),flags:64});if(r.stock===0)return i.reply({content:mtx(lang,'❌ Reward is out of stock.','❌ Phần thưởng đã hết.'),flags:64});await GS.adjust(i.guildId,i.user.id,-r.price);if(r.stock>0){r.stock--;await r.save();}if(r.type==='ROLE'&&r.roleId){const role=await i.guild.roles.fetch(r.roleId).catch(()=>null);if(role)await i.member.roles.add(role).catch(()=>{});}const red=await Red.create({guildId:i.guildId,userId:i.user.id,rewardId:r._id,rewardName:r.name,type:r.type,price:r.price,status:['ROLE','TITLE'].includes(r.type)?'COMPLETE':'PENDING'});if(['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)){const owner=await i.guild.fetchOwner().catch(()=>null);await owner?.send(`🎁 **Guild Reward Redemption**\nGuild: **${i.guild.name}**\nUser: ${i.user.tag} (${i.user.id})\nReward: **${r.name}**\nType: **${r.type}**\nRedemption: \`${red._id}\`\nStatus: PENDING\nPlease contact the member directly for fulfillment. Do not store shipping address in Corgi-Bot.`).catch(()=>{});}return i.reply({content:mtx(lang,`✅ Redeemed **${r.name}** for **${compactNumber(r.price)} 🌟**.${['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)?' Owner/Manager has been notified for manual fulfillment.':''}`,`✅ Đã đổi **${r.name}** với **${compactNumber(r.price)} 🌟**.${['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)?' Owner/Manager đã được báo để giao quà thủ công.':''}`),flags:64});}
-    if(!(await GS.canManage(i.member,'rewards')))return i.reply({content:'❌ Guild management permission required.',flags:64});
-    if(i.customId==='guild:modal:reward'){const Reward=require('../models/GuildReward'),type=i.fields.getTextInputValue('type').trim().toUpperCase();if(!['ROLE','TITLE','DIGITAL','PHYSICAL','MYSTERY'].includes(type))return i.reply({content:'❌ Invalid reward type.',flags:64});const r=await Reward.create({guildId:i.guildId,name:i.fields.getTextInputValue('name').trim(),type,price:Math.max(0,Number(i.fields.getTextInputValue('price'))||0),stock:Number(i.fields.getTextInputValue('stock')),roleId:i.fields.getTextInputValue('roleId').trim().replace('-',''),createdBy:i.user.id});return i.reply({content:`✅ Guild reward created: **${r.name}** • ${r.price} 🌟`,flags:64});}
-    if(i.customId==='guild:modal:mission'){const Mission=require('../models/GuildMission'),metric=i.fields.getTextInputValue('metric').trim().toUpperCase(),hours=Math.max(1,Number(i.fields.getTextInputValue('hours'))||168);const r=await Mission.create({guildId:i.guildId,name:i.fields.getTextInputValue('name').trim(),metric,target:Math.max(1,Number(i.fields.getTextInputValue('target'))||1),rewardPoints:Math.max(0,Number(i.fields.getTextInputValue('reward'))||0),endsAt:new Date(Date.now()+hours*3600000),createdBy:i.user.id});return i.reply({content:`✅ Guild mission created: **${r.name}**`,flags:64});}
-    if(i.customId==='guild:modal:event'){const Event=require('../models/GuildEvent'),r=await Event.create({guildId:i.guildId,name:i.fields.getTextInputValue('name').trim(),description:i.fields.getTextInputValue('description').trim(),startsAt:new Date(i.fields.getTextInputValue('start')),endsAt:new Date(i.fields.getTextInputValue('end')),rewardPoints:Math.max(0,Number(i.fields.getTextInputValue('reward'))||0),createdBy:i.user.id});return i.reply({content:`✅ Guild event scheduled: **${r.name}**`,flags:64});}
-    if(i.customId==='guild:modal:points'){const uid=i.fields.getTextInputValue('userId').trim(),amount=Math.trunc(Number(i.fields.getTextInputValue('amount'))||0);const w=await GS.adjust(i.guildId,uid,amount);return i.reply({content:`✅ <@${uid}>: **${compactNumber(w.points)} 🌟**`,flags:64});}
-  }
-  return;
-}
-
 // ===== GLOBAL PROFILE COLLECTION =====
 if(i.customId?.startsWith('social:collection:')){
   const targetId=i.customId.split(':')[2];

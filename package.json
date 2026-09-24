@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "6.0.0",
+  "version": "6.2.0",
   "private": true,
-  "description": "Corgi-Bot V6 Social Game Network • Global Profile/Cosmetics/Missions • Independent Guild Economy & Rewards • 12-language localization.",
+  "description": "Corgi-Bot V6.2 • Clan Guild replacement • Full Web/Discord shared setup • Verified + Partner • 12-language help sync.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
@@ -13,7 +13,9 @@
     "migrate:fishing": "node scripts/migrate-fishing.js",
     "migrate:v5": "node scripts/migrate-v5.js",
     "migrate:v51": "node scripts/migrate-v51.js",
-    "audit:i18n": "node scripts/audit-i18n.js"
+    "audit:i18n": "node scripts/audit-i18n.js",
+    "migrate:clan": "node scripts/migrate-clan-guild.js",
+    "validate": "node --check src/index.js && node --check src/services/webApi.js && node --check src/services/clanSystem.js && node --check src/commands/community/clan.js && node scripts/audit-i18n.js"
   },
   "engines": {
     "node": ">=20"

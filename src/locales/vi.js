@@ -98,4 +98,5 @@ module.exports = {
   'v6.bank.error.INSUFFICIENT_BANK': 'Tài khoản ngân hàng không đủ CXu.',
   'v6.bank.error.INVALID_AMOUNT': 'Số tiền không hợp lệ.',
   'v6.bank.error.unknown': 'Giao dịch ngân hàng thất bại.',
+  'profile.partnerNotice': 'Bạn đang là đối tác chính thức của Corgi-Bot.',
 };

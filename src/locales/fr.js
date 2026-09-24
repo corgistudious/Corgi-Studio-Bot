@@ -98,4 +98,5 @@ module.exports = {
   'v6.bank.error.INSUFFICIENT_BANK': 'Pas assez de CXu en banque.',
   'v6.bank.error.INVALID_AMOUNT': 'Montant invalide.',
   'v6.bank.error.unknown': 'Échec de l’opération bancaire.',
+  'profile.partnerNotice': 'Vous êtes un partenaire officiel de Corgi-Bot.',
 };

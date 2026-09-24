@@ -27,6 +27,7 @@ const schema = new Schema({
     useCorgiStudioEmoji:{type:Boolean,default:false}
   },
   moderationCaseCounter: {type:Number,default:0,min:0},
+  webSetup: { type:Schema.Types.Mixed, default:()=>({ giveaway:{}, contest:{}, ticket:{}, verification:{badges:['BLUE','PURPLE']}, welcome:{}, autoRole:{}, reactionRole:{}, moderation:{}, stats:{}, ai:{}, economy:{}, fishing:{}, gameHub:{}, tournament:{}, market:{}, premium:{}, clan:{} }) },
   statsMessageId: String,
   statsConfig: {
     freeEnabled: { type: [String], default: ['members','humans','bots','roles'] },

@@ -8,7 +8,7 @@ module.exports = {
   dailyWait: 'Hadiah harian sudah diklaim. Coba lagi nanti.',
   invalidKey: 'Kunci penukaran ini tidak valid, kedaluwarsa, dinonaktifkan, atau sudah mencapai batas penggunaan.',
   redeemed: 'Penukaran berhasil: {reward}.',
-  "v6.guild.separate": "Progres Guild terpisah dari Corgi-Bot Global. 🌟 Guild Points tidak pernah dapat dikonversi menjadi CXu Global.",
+  "v6.guild.separate": "Progres Guild terpisah dari Corgi-Bot Global. 🌟 Clan Currency tidak pernah dapat dikonversi menjadi CXu Global.",
   "v6.guild.missions": "🎯 Misi",
   "v6.guild.events": "🎉 Acara",
   "v6.guild.shopRewards": "🏪 Hadiah toko",
@@ -57,7 +57,7 @@ module.exports = {
   "v6.common.back": "Kembali",
   "v6.guildMissions.title": "🎯 Misi Guild",
   "v6.guildMissions.empty": "Tidak ada misi Guild aktif.",
-  "v6.guildRanking.title": "🏆 Peringkat Guild Points",
+  "v6.guildRanking.title": "🏆 Peringkat Clan Currency",
   "v6.guildRanking.empty": "Belum ada aktivitas Guild Point.",
   "v6.guildAdmin.title": "⚙️ Pengelolaan Guild",
   "v6.guildAdmin.desc": "Owner/Manager hanya mengelola server ini. CXu Global, Market, dan progres global tetap terlindungi.",
@@ -98,4 +98,5 @@ module.exports = {
   'v6.bank.error.INSUFFICIENT_BANK': 'CXu di bank tidak cukup.',
   'v6.bank.error.INVALID_AMOUNT': 'Jumlah tidak valid.',
   'v6.bank.error.unknown': 'Operasi bank gagal.',
+  'profile.partnerNotice': 'Anda adalah mitra resmi Corgi-Bot.',
 };

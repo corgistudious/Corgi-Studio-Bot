@@ -244,7 +244,18 @@ async function render(user, lang = 'en') {
     ).slice(0, 32)
   );
   const bio = esc((social.bio || z.defaultBio).slice(0, 150));
-  const verified = verify?.status === 'APPROVED' ? ' ✓' : '';
+  const verificationBadges = Verification.approvedBadges(verify);
+
+  const verificationBadgeAssets = verificationBadges.map(type => ({
+    type,
+    asset:
+      type === 'PURPLE'
+        ? path.join(__dirname, '../../assets/verification/verified-purple.png')
+        : type === 'BLUE'
+          ? path.join(__dirname, '../../assets/verification/verified-blue.png')
+          : null
+  })).filter(x => x.asset);
+
 
   const likes = social.likes?.length || 0;
   const followers = social.followers?.length || 0;
@@ -273,7 +284,7 @@ async function render(user, lang = 'en') {
             fill="#07172d" stroke="${accent}" stroke-width="8"/>
 
     <text x="450" y="390" text-anchor="middle"
-          class="t" font-size="46" font-weight="700">${name}${verified}</text>
+          class="t" font-size="46" font-weight="700">${name}</text>
 
     <text x="450" y="432" text-anchor="middle"
           class="a" font-size="23" font-weight="700">${title}</text>
@@ -338,6 +349,50 @@ async function render(user, lang = 'en') {
     { input: Buffer.from(svg), top: 0, left: 0 },
     { input: avatar, top: 110, left: 340 }
   ];
+
+  if (verificationBadgeAssets.length) {
+    try {
+      const badgeSize = 48;
+      const badgeGap = 5;
+
+      const renderedBadges = [];
+
+      for (const entry of verificationBadgeAssets) {
+        const input = await sharp(entry.asset)
+          .resize(badgeSize, badgeSize, {
+            fit: 'contain',
+            withoutEnlargement: true
+          })
+          .png()
+          .toBuffer();
+
+        renderedBadges.push(input);
+      }
+
+      const estimatedNameWidth = Math.min(
+        520,
+        Math.max(40, name.length * 25)
+      );
+
+      let badgeLeft = Math.min(
+        735,
+        Math.round(450 + (estimatedNameWidth / 2) + 8)
+      );
+
+      // If the user owns both badges they appear next to each other:
+      // VERIFIED -> PARTNER.
+      for (const badge of renderedBadges) {
+        layers.push({
+          input: badge,
+          top: 348,
+          left: badgeLeft
+        });
+
+        badgeLeft += badgeSize + badgeGap;
+      }
+    } catch {}
+  }
+
 
   if (frameAsset) {
     try {

@@ -377,23 +377,101 @@ async function globalMail(actorId){
 async function verification(){
   const V=require('../services/profileVerification');
   const rows=await V.recent(12);
-  const labels={PENDING:'🕓 PENDING',REVIEW:'🔎 REVIEW',APPROVED:'✅ APPROVED',REJECTED:'❌ REJECTED',REVOKED:'⛔ REVOKED'};
-  const desc=rows.length?rows.map(x=>{const b=V.BADGES[x.badgeType];return `${labels[x.status]||x.status} • <@${x.userId}>${b?` • ${b.icon} ${b.en}`:''}\n\`${x.userId}\``;}).join('\n'):'No verification records yet.';
-  const e=footer(new EmbedBuilder().setTitle('✅ Profile Verification Review').setDescription(`${desc}\n\nVerification is Developer-reviewed in stages. Corgi-Bot stores only review status/type/note — do not store raw identity documents in the bot database.`).addFields(
-    {name:'🔵 Blue',value:'Verified real-account identity',inline:true},
-    {name:'🔴 Red',value:'Corgi-Bot Developer',inline:true},
-    {name:'🟡 Yellow',value:'Administration / management',inline:true},
-    {name:'🟣 Purple',value:'Corgi-Bot Partner',inline:true}
-  ));
-  const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:verification:manage').setLabel('Review / Update Verification').setEmoji('✅').setStyle(ButtonStyle.Primary));
-  return {embeds:[e],components:[row,backRow()]};
+  const labels={
+    PENDING:'🕓 PENDING',
+    REVIEW:'🔎 REVIEW',
+    APPROVED:'✅ APPROVED',
+    REJECTED:'❌ REJECTED',
+    REVOKED:'⛔ REVOKED'
+  };
+  const desc=rows.length
+    ? rows.map(x=>{
+        const b=V.BADGES[x.badgeType];
+        return `${labels[x.status]||x.status} • <@${x.userId}>${b ? ` • ${b.icon} ${b.en}` : ''}\n\`${x.userId}\``;
+      }).join('\n')
+    : 'No verification records yet.';
+
+  const e=footer(
+    new EmbedBuilder()
+      .setTitle('✅ Profile Verification')
+      .setDescription(
+        `${desc}\n\n**Current badge system**\n🔵 **Verified** — verified Corgi-Bot account\n🟣 **Partner** — official Corgi-Bot partner\n\nOnly these two verification badges are active.`
+      )
+  );
+
+  const badgeMenu=new StringSelectMenuBuilder()
+    .setCustomId('dev:verification:badge')
+    .setPlaceholder('Choose verification badge…')
+    .addOptions(
+      {
+        label:'Verified',
+        value:'BLUE',
+        emoji:'🔵',
+        description:'Verified Corgi-Bot account'
+      },
+      {
+        label:'Partner',
+        value:'PURPLE',
+        emoji:'🟣',
+        description:'Official Corgi-Bot partner'
+      }
+    );
+
+  const row1=new ActionRowBuilder().addComponents(badgeMenu);
+
+  const row2=new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('dev:verification:review')
+      .setLabel('Review User')
+      .setEmoji('🔎')
+      .setStyle(ButtonStyle.Secondary),
+
+    new ButtonBuilder()
+      .setCustomId('dev:verification:approve')
+      .setLabel('Approve')
+      .setEmoji('✅')
+      .setStyle(ButtonStyle.Success),
+
+    new ButtonBuilder()
+      .setCustomId('dev:verification:reject')
+      .setLabel('Reject')
+      .setEmoji('❌')
+      .setStyle(ButtonStyle.Danger),
+
+    new ButtonBuilder()
+      .setCustomId('dev:verification:revoke')
+      .setLabel('Revoke')
+      .setEmoji('⛔')
+      .setStyle(ButtonStyle.Secondary)
+  );
+
+  return {embeds:[e],components:[row1,row2,backRow()]};
 }
-function verificationModal(){return new ModalBuilder().setCustomId('dev:modal:verification').setTitle('Profile Verification Review').addComponents(
-  input('userId','Discord User ID','123456789012345678'),
-  input('action','Action','PENDING / REVIEW / APPROVE / REJECT / REVOKE'),
-  input('badgeType','Badge: BLUE / RED / YELLOW / PURPLE','BLUE',false),
-  input('note','Internal review note (optional)','Reviewed by Developer',false,TextInputStyle.Paragraph)
-);}
+
+function verificationUserModal(action,badgeType=''){
+  const pretty={
+    REVIEW:'Review Verification',
+    APPROVE:'Approve Verification',
+    REJECT:'Reject Verification',
+    REVOKE:'Revoke Verification'
+  }[action]||'Verification';
+
+  return new ModalBuilder()
+    .setCustomId(`dev:modal:verification:${action}:${badgeType||'NONE'}`)
+    .setTitle(pretty)
+    .addComponents(
+      input('userId','Discord User ID','123456789012345678'),
+      input(
+        'note',
+        'Internal note (optional)',
+        action==='APPROVE'
+          ? 'Approved by Developer'
+          : 'Optional review note',
+        false,
+        TextInputStyle.Paragraph
+      )
+    );
+}
 
 function titleCreateModal(){return new ModalBuilder().setCustomId('dev:modal:titleCreate').setTitle('Create Custom Profile Title').addComponents(input('key','Unique Key','FOUNDER'),input('name','Display Name','Founder'),input('emoji','Emoji / icon','👑',false),input('durationDays','Duration days (0 = permanent)','0'),input('description','Description','Optional title description',false,TextInputStyle.Paragraph));}
 function titleGrantModal(){return new ModalBuilder().setCustomId('dev:modal:titleGrant').setTitle('Grant Custom Title').addComponents(input('userId','Discord User ID','123456789012345678'),input('key','Title Key','FOUNDER'));}
@@ -449,4 +527,4 @@ function webRoleModal(){return new ModalBuilder().setCustomId('dev:modal:webrole
   new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('userId').setLabel('Discord User ID').setPlaceholder('123456789012345678').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(25)),
   new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('role').setLabel('Role: member / reviewer / admin / developer').setPlaceholder('reviewer').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(20))
 );}
-module.exports={webRoles,webRoleModal,adsMultipliersModal,adsCancelModal,ctoken,ctokenModal,adsAnalytics,bankAds,bankAdsModal,cosmetics,cosmeticImageModal,cosmeticTextModal,cosmeticKeyModal,home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal,seasonal,seasonalModal};
+module.exports={webRoles,webRoleModal,adsMultipliersModal,adsCancelModal,ctoken,ctokenModal,adsAnalytics,bankAds,bankAdsModal,cosmetics,cosmeticImageModal,cosmeticTextModal,cosmeticKeyModal,home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationUserModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal,seasonal,seasonalModal};
