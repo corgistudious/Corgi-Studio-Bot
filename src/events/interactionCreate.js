@@ -149,6 +149,7 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:ads:cancel')return i.showModal(DevUI.adsCancelModal());
     if(i.customId==='dev:blacklist:guild')return i.showModal(DevUI.blacklistModal('guild'));
     if(i.customId==='dev:blacklist:user')return i.showModal(DevUI.blacklistModal('user'));
+    if(i.customId==='dev:webroles:set')return i.showModal(DevUI.webRoleModal());
     if(i.customId==='dev:title:create')return i.showModal(DevUI.titleCreateModal());
     if(i.customId==='dev:title:grant')return i.showModal(DevUI.titleGrantModal());
     if(i.customId==='dev:title:revoke')return i.showModal(DevUI.titleRevokeModal());
@@ -207,6 +208,7 @@ if(i.customId?.startsWith('dev:')){
     if(p==='verification')return i.update(await DevUI.verification());
     if(p==='cosmetics')return i.update(await DevUI.cosmetics());
     if(p==='globalmail')return i.update(await DevUI.globalMail(i.user.id));
+    if(p==='webroles')return i.update(await DevUI.webRoles());
     if(p==='blacklist')return i.update(await DevUI.blacklist());
   }
   if(i.isModalSubmit()&&i.customId==='dev:modal:adsMultipliers'){
@@ -498,6 +500,7 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:modal:titleToggle'){const t=await require('../services/customTitles').toggle(i.fields.getTextInputValue('key'),i.user.id);return i.reply({content:`✅ ${t.emoji} **${t.name}** is now **${t.enabled?'ENABLED':'DISABLED'}**.`,flags:64});}
     if(i.customId==='dev:modal:mailCompose'){const M=require('../services/globalMail');const raw=i.fields.getTextInputValue('options').trim(),parts=raw?raw.split('|').map(x=>x.trim()):[],cstar=parts[0]||'0',expiresDays=parts[1]||'0';const d=await M.createDraft({actorId:i.user.id,titleEn:i.fields.getTextInputValue('titleEn'),bodyEn:i.fields.getTextInputValue('bodyEn'),titleVi:i.fields.getTextInputValue('titleVi'),bodyVi:i.fields.getTextInputValue('bodyVi'),cstarAmount:cstar,expiresDays});return i.reply({content:`✅ Global Mail draft saved in **EN + VI**.\n🇺🇸 **${d.titleEn}**\n🇻🇳 **${d.titleVi}**\n<:cxu_coin:1551759873241251912> CXu attachment: **${Number(d.cstarAmount).toLocaleString()}**\nUse **Image** in the panel if you want to attach artwork, then Preview or Broadcast.`,flags:64});}
     if(i.customId==='dev:modal:mailImage'){const M=require('../services/globalMail');const att=i.fields.getUploadedFiles('imageFile',true)?.first();if(!att||!(att.contentType||'').startsWith('image/'))return i.reply({content:'❌ Please upload an image file.',flags:64});const d=await M.setDraftImage(i.user.id,att.url);return i.reply({content:`✅ Global Mail image attached to draft **${d._id}**.`,flags:64});}
+        if(i.customId==='dev:modal:webrole'){const uid=i.fields.getTextInputValue('userId').trim(),role=i.fields.getTextInputValue('role').trim().toLowerCase();const r=await require('../services/webRoleService').set(uid,role,i.user.id);await sendDeveloperLog(client,{title:'👥 Website Role Changed',description:`Developer: ${i.user.id}\nUser: ${uid}\nRole: ${r.role}`});return i.reply({content:`✅ Website role for <@${uid}> is now **${r.role.toUpperCase()}**.`,flags:64});}
         if(i.customId.startsWith('dev:modal:blacklist:')){const kind=i.customId.split(':')[3];const r=await DevControl.toggleBlacklist(kind,i.fields.getTextInputValue('id'));await sendDeveloperLog(client,{title:'🛡️ Blacklist Changed',description:`Developer: ${i.user.id}\n${kind}: ${r.id}\nState: ${r.blocked?'BLACKLISTED':'UNBLOCKED'}`});return i.reply({content:`✅ ${kind} \`${r.id}\` is now **${r.blocked?'BLACKLISTED':'UNBLOCKED'}**.`,flags:64});}
   }
   return;
