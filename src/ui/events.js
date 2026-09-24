@@ -1,3 +1,4 @@
+const {compactNumber}=require('../services/numberFormat');
 const {
   EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   ChannelSelectMenuBuilder, RoleSelectMenuBuilder, ChannelType,
@@ -59,7 +60,7 @@ async function buildGiveawayBuilder(guildId, lang) {
       { name: L(lang, '⏱️ Duration / Winners', '⏱️ Thời gian / Người thắng'), value: `**${v(d.duration)}** • **${v(d.winnerCount, 1)}**`, inline: true },
       { name: L(lang, '📡 Channel', '📡 Kênh'), value: d.channelId ? `<#${d.channelId}>` : L(lang, 'Not set', 'Chưa đặt'), inline: true },
       { name: L(lang, '🎭 Required role', '🎭 Role bắt buộc'), value: d.requiredRoleId ? `<@&${d.requiredRoleId}>` : L(lang, 'None', 'Không'), inline: true },
-      { name: L(lang, '🛡️ Requirements', '🛡️ Điều kiện'), value: `${L(lang, 'Account age', 'Tuổi tài khoản')}: **${d.minAccountAgeDays || 0}d**\n${L(lang, 'Server age', 'Thời gian server')}: **${d.minServerAgeDays || 0}d**\n<:cxu_coin:1551759873241251912> CXu: **${Number(d.minCstar || 0).toLocaleString()}**`, inline: true },
+      { name: L(lang, '🛡️ Requirements', '🛡️ Điều kiện'), value: `${L(lang, 'Account age', 'Tuổi tài khoản')}: **${d.minAccountAgeDays || 0}d**\n${L(lang, 'Server age', 'Thời gian server')}: **${d.minServerAgeDays || 0}d**\n<:cxu_coin:1551759873241251912> CXu: **${compactNumber(d.minCstar)}**`, inline: true },
       { name: L(lang, '🖼️ Visual', '🖼️ Hình ảnh'), value: `${d.imageUrl ? '✅' : '⚫'} ${L(lang, 'Image', 'Ảnh')} • **${d.imageShape || '16:9'}**\n${L(lang, 'Join emoji', 'Emoji tham gia')}: ${d.joinEmoji || '🔥'}`, inline: true }
     ).setFooter({ text: L(lang, 'Amber Builder • changes are saved as draft', 'Amber Builder • thay đổi được lưu dạng bản nháp') });
   const controls = new ActionRowBuilder().addComponents(
@@ -193,7 +194,7 @@ function giveawayPreview(d, lang) {
     { name: L(lang, '🎁 Prize', '🎁 Phần thưởng'), value: `**${d.prize || '—'}**` },
     { name: L(lang, '👑 Winners', '👑 Người thắng'), value: `**${d.winnerCount || 1}**`, inline: true },
     { name: L(lang, '⏱️ Duration', '⏱️ Thời gian'), value: `**${d.duration || '—'}**`, inline: true },
-    { name: L(lang, '📋 Requirements', '📋 Điều kiện'), value: `${d.requiredRoleId ? `<@&${d.requiredRoleId}>\n` : ''}${L(lang, 'Account', 'Tài khoản')} ≥ ${d.minAccountAgeDays || 0}d\n${L(lang, 'Server', 'Server')} ≥ ${d.minServerAgeDays || 0}d\n<:cxu_coin:1551759873241251912> CXu ≥ ${Number(d.minCstar || 0).toLocaleString()}` }
+    { name: L(lang, '📋 Requirements', '📋 Điều kiện'), value: `${d.requiredRoleId ? `<@&${d.requiredRoleId}>\n` : ''}${L(lang, 'Account', 'Tài khoản')} ≥ ${d.minAccountAgeDays || 0}d\n${L(lang, 'Server', 'Server')} ≥ ${d.minServerAgeDays || 0}d\n<:cxu_coin:1551759873241251912> CXu ≥ ${compactNumber(d.minCstar)}` }
   ).setFooter({ text: 'Amber Preview • not published' });
   if (d.imageUrl) e.setImage(d.imageUrl);
   return e;

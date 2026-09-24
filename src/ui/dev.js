@@ -1,3 +1,4 @@
+const {compactNumber}=require('../services/numberFormat');
 const {
   EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle,
@@ -121,7 +122,7 @@ async function cosmetics() {
 
   const recent = rows.slice(0, 12).map(x =>
     `${x.enabled ? '🟢' : '⚫'} **${x.name}** • \`${x.key}\`\n` +
-    `   ${x.type} • ${x.rarity} • ${Number(x.price || 0).toLocaleString()} <:cxu_coin:1551759873241251912> CXu`
+    `   ${x.type} • ${x.rarity} • ${compactNumber(x.price)} <:cxu_coin:1551759873241251912> CXu`
   );
 
   const e = footer(
@@ -254,7 +255,7 @@ async function ctoken(){
     .setDescription('CToken is a global advertising-only currency. It is separate from CXu and cannot be used for Bank, Marketplace, or games.')
     .addFields(
       {name:'Active Wallets',value:Number(wallets).toLocaleString(),inline:true},
-      {name:'Circulating',value:`🎟️ ${Number(stats.balance).toLocaleString()} CToken`,inline:true},
+      {name:'Circulating',value:`🎟️ ${compactNumber(stats.balance)} CToken`,inline:true},
       {name:'Lifetime Granted',value:`🎟️ ${Number(stats.granted).toLocaleString()}`,inline:true},
       {name:'Lifetime Spent on Ads',value:`🎟️ ${Number(stats.spent).toLocaleString()}`,inline:true}
     ));
@@ -304,7 +305,7 @@ async function adsAnalytics(){
   const placementText=placements.length
     ? placements.map(x=>{
         const pctr=x.impressions?((x.clicks/x.impressions)*100).toFixed(2):'0.00';
-        return `**${x._id||'UNKNOWN'}** • ${Number(x.impressions||0).toLocaleString()} imp • ${Number(x.clicks||0).toLocaleString()} clicks • ${pctr}% CTR • 🎟️ ${Number(x.chargedCToken||0).toLocaleString()}`;
+        return `**${x._id||'UNKNOWN'}** • ${Number(x.impressions||0).toLocaleString()} imp • ${Number(x.clicks||0).toLocaleString()} clicks • ${pctr}% CTR • 🎟️ ${compactNumber(x.chargedCToken)}`;
       }).join('\n').slice(0,1024)
     : 'No advertising data yet.';
 
@@ -314,7 +315,7 @@ async function adsAnalytics(){
     .addFields(
       {name:'Campaigns',value:`Total: **${Number(t.campaigns||0).toLocaleString()}**\nActive: **${Number(active).toLocaleString()}**`,inline:true},
       {name:'Performance',value:`Impressions: **${Number(t.impressions||0).toLocaleString()}**\nClicks: **${Number(t.clicks||0).toLocaleString()}**\nCTR: **${ctr}%**`,inline:true},
-      {name:'CToken Sink',value:`🎟️ **${Number(t.chargedCToken||0).toLocaleString()} CToken**`,inline:true},
+      {name:'CToken Sink',value:`🎟️ **${compactNumber(t.chargedCToken)} CToken**`,inline:true},
       {name:'Placement Performance',value:placementText,inline:false}
     ));
 
@@ -360,7 +361,7 @@ async function titles(){
 }
 async function globalMail(actorId){
   const M=require('../services/globalMail');const [draft,recent]=await Promise.all([M.latestDraft(actorId),M.latest(5)]);
-  const draftText=draft?`🇺🇸 **${draft.titleEn||draft.title}**\n🇻🇳 **${draft.titleVi||draft.title}**\n<:cxu_coin:1551759873241251912> CXu: **${Number(draft.cstarAmount||0).toLocaleString()}**\nExpires: ${draft.expiresAt?`<t:${Math.floor(new Date(draft.expiresAt).getTime()/1000)}:R>`:'Never'}\nDraft ID: \`${draft._id}\``:'No active draft.';
+  const draftText=draft?`🇺🇸 **${draft.titleEn||draft.title}**\n🇻🇳 **${draft.titleVi||draft.title}**\n<:cxu_coin:1551759873241251912> CXu: **${compactNumber(draft.cstarAmount)}**\nExpires: ${draft.expiresAt?`<t:${Math.floor(new Date(draft.expiresAt).getTime()/1000)}:R>`:'Never'}\nDraft ID: \`${draft._id}\``:'No active draft.';
   const hist=recent.length?recent.map(x=>`• **${x.title}** — ${x.deliverySummary?.sent||0} sent / ${x.deliverySummary?.failed||0} failed / ${x.deliverySummary?.skipped||0} skipped`).join('\n'):'No broadcasts yet.';
   const e=footer(new EmbedBuilder().setTitle('📬 Global Mail Center').setDescription('Developer-only broadcast panel. One message is posted to every server where Corgi-Bot can find a writable text/announcement channel. CXu attachments can be claimed only once per Discord account, even if the same user is in multiple servers.').addFields({name:'Current Draft',value:draftText.slice(0,1024)},{name:'Recent Broadcasts',value:hist.slice(0,1024)}));
   const row=new ActionRowBuilder().addComponents(
