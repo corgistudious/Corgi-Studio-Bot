@@ -16,10 +16,11 @@ const CommunityPanel=require('../models/CommunityPanel');
 const {deliverTranscript}=require('../services/ticketTranscript');
 const {sendLog}=require('../services/log');
 const UI=require('../ui/setup');
+const {compactNumber,parseMoney}=require('../services/numberFormat');
 const DevUI=require('../ui/dev');
 const DevControl=require('../services/devControl');
 const EventControl=require('../modules/eventControl');
-const {isDeveloper}=require('../services/permissions');
+const {isDeveloper,isAuthorizedDeveloper}=require('../services/permissions');
 const {mtx}=require('../services/i18n');
 const ProgressionDev=require('../modules/progressionDev');
 const GlobalCollection=require('../services/globalCollection');
@@ -118,7 +119,7 @@ if(i.customId?.startsWith('globalmail:view:')&&i.isButton()){
 if(i.customId?.startsWith('globalmail:claim:')&&i.isButton()){
   await i.deferReply({flags:64});
   const s=i.guildId?await getGuildSettings(i.guildId).catch(()=>({language:'en'})):{language:'en'},lang=s?.language||'en';
-  try{const r=await require('../services/globalMail').claim(i.customId.split(':')[2],i.user.id);return i.editReply(mtx(lang,`🎁 Claimed **${Number(r.mail.cstarAmount).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**!\nGlobal balance: **${Number(r.wallet.cstar).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**.`,`🎁 Đã nhận **${Number(r.mail.cstarAmount).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**!\nSố dư toàn cầu: **${Number(r.wallet.cstar).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**.`));}catch(e){return i.editReply(`❌ ${e.message}`);}
+  try{const r=await require('../services/globalMail').claim(i.customId.split(':')[2],i.user.id);return i.editReply(mtx(lang,`🎁 Claimed **${compactNumber(r.mail.cstarAmount)} <:cxu_coin:1551759873241251912> CXu**!\nGlobal balance: **${compactNumber(r.wallet.cstar)} <:cxu_coin:1551759873241251912> CXu**.`,`🎁 Đã nhận **${compactNumber(r.mail.cstarAmount)} <:cxu_coin:1551759873241251912> CXu**!\nSố dư toàn cầu: **${compactNumber(r.wallet.cstar)} <:cxu_coin:1551759873241251912> CXu**.`));}catch(e){return i.editReply(`❌ ${e.message}`);}
 }
 if(i.customId?.startsWith('redeem:')){
   const Redeem=require('../commands/premium/redeem');const lang=await require('../services/i18n').guildLang(i.guildId);const parts=i.customId.split(':'),action=parts[1],ownerId=parts[2];
@@ -128,9 +129,9 @@ if(i.customId?.startsWith('redeem:')){
 ${r.msg}`,`✅ **Đổi CD Key thành công!**
 ${r.msg}`):`❌ ${r.msg}`);}return;
 }
-if(i.customId?.startsWith('progdev:')){if(!isDeveloper(i.user.id))return i.reply({content:'Developer access only.',flags:64});return ProgressionDev.handle(i,client);}
+if(i.customId?.startsWith('progdev:')){if(!(await isAuthorizedDeveloper(i.user.id)))return i.reply({content:'Developer access only.',flags:64});return ProgressionDev.handle(i,client);}
 if(i.customId?.startsWith('dev:')){
-  if(!isDeveloper(i.user.id))return i.reply({content:'Developer access only.',flags:64});
+  if(!(await isAuthorizedDeveloper(i.user.id)))return i.reply({content:'Developer access only.',flags:64});
   if(i.isButton()){
     if(i.customId==='dev:close')return i.update({content:'Developer Control Center closed.',embeds:[],components:[]});
     if(i.customId==='dev:home'||i.customId==='dev:refresh')return i.update(await DevUI.home(client));
@@ -299,7 +300,7 @@ if(i.customId?.startsWith('dev:')){
               `Key: ${item.key}\n`+
               `Type: ${item.type}\n`+
               `Name: ${item.name}\n`+
-              `Price: ${Number(item.price).toLocaleString()} CXu`
+              `Price: ${compactNumber(item.price)} CXu`
           });
 
           return i.reply({
@@ -307,7 +308,7 @@ if(i.customId?.startsWith('dev:')){
               `✅ Created **${item.name}**\n`+
               `Type: **${item.type}**\n`+
               `Key: \`${item.key}\`\n`+
-              `Price: **${Number(item.price).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**\n`+
+              `Price: **${compactNumber(item.price)} <:cxu_coin:1551759873241251912> CXu**\n`+
               `Rarity: **${item.rarity}**`,
             flags:64
           });
@@ -342,7 +343,7 @@ if(i.customId?.startsWith('dev:')){
             `Key: ${item.key}\n`+
             `Type: ${item.type}\n`+
             `Name: ${item.name}\n`+
-            `Price: ${Number(item.price).toLocaleString()} CXu`
+            `Price: ${compactNumber(item.price)} CXu`
         });
 
         return i.reply({
@@ -350,7 +351,7 @@ if(i.customId?.startsWith('dev:')){
             `✅ Created **${item.name}**\n`+
             `Type: **${item.type}**\n`+
             `Key: \`${item.key}\`\n`+
-            `Price: **${Number(item.price).toLocaleString()} <:cxu_coin:1551759873241251912> CXu**\n`+
+            `Price: **${compactNumber(item.price)} <:cxu_coin:1551759873241251912> CXu**\n`+
             `Rarity: **${item.rarity}**`,
           flags:64
         });
@@ -458,17 +459,16 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:modal:fishingScore'){await require('../services/fishingSettings').setScore(i.fields.getTextInputValue('values'),i.user.id);return i.reply({content:'✅ Fishing ranking score weights saved.',flags:64});}
     if(i.customId==='dev:modal:premiumGrant'){const p=await DevControl.addPremium(i.fields.getTextInputValue('guildId').trim(),i.fields.getTextInputValue('userId').trim(),i.fields.getTextInputValue('duration').trim(),i.user.id);await sendDeveloperLog(client,{title:'💎 Premium Granted / Extended',description:`Developer: ${i.user.id}\nGuild: ${p.guildId}\nUntil: ${p.expiresAt.toISOString()}`});const g=client.guilds.cache.get(p.guildId);if(g)await applyPremiumBranding(g);return i.reply({content:`✅ Premium granted/extended until <t:${Math.floor(p.expiresAt.getTime()/1000)}:F>.`,flags:64});}
     if(i.customId==='dev:modal:premiumRevoke'){const gid=i.fields.getTextInputValue('guildId').trim();const n=await DevControl.revokePremium(gid,i.user.id);const g=client.guilds.cache.get(gid);if(g)await applyPremiumBranding(g);await sendDeveloperLog(client,{title:'💎 Premium Revoked',description:`Developer: ${i.user.id}\nGuild: ${gid}\nRecords removed: ${n}`});return i.reply({content:`✅ Revoked **${n}** Premium record(s).`,flags:64});}
-    if(i.customId==='dev:modal:keyCstar'){const k=await DevControl.createRedeemKey({type:'CSTAR',customCode:i.fields.getTextInputValue('customCode').trim(),amount:Number(i.fields.getTextInputValue('amount')),maxUses:Number(i.fields.getTextInputValue('maxUses')),expiresDays:Number(i.fields.getTextInputValue('expiresDays'))});await sendDeveloperLog(client,{title:'🔑 <:cxu_coin:1551759873241251912> CXu Key Created',description:`Developer: ${i.user.id}\nKey: ${k.code}\nAmount: ${k.cstarAmount}\nMax uses: ${k.maxUses}`});return i.reply({content:`✅ <:cxu_coin:1551759873241251912> CXu key created: \`${k.code}\` • **${k.cstarAmount} <:cxu_coin:1551759873241251912> CXu** • max uses **${k.maxUses}**`,flags:64});}
+    if(i.customId==='dev:modal:keyCstar'){const k=await DevControl.createRedeemKey({type:'CSTAR',customCode:i.fields.getTextInputValue('customCode').trim(),amount:parseMoney(i.fields.getTextInputValue('amount'),{min:1}),maxUses:Number(i.fields.getTextInputValue('maxUses')),expiresDays:Number(i.fields.getTextInputValue('expiresDays'))});await sendDeveloperLog(client,{title:'🔑 <:cxu_coin:1551759873241251912> CXu Key Created',description:`Developer: ${i.user.id}\nKey: ${k.code}\nAmount: ${k.cstarAmount}\nMax uses: ${k.maxUses}`});return i.reply({content:`✅ <:cxu_coin:1551759873241251912> CXu key created: \`${k.code}\` • **${k.cstarAmount} <:cxu_coin:1551759873241251912> CXu** • max uses **${k.maxUses}**`,flags:64});}
     if(i.customId==='dev:modal:keyPremium'){const k=await DevControl.createRedeemKey({type:'PREMIUM',customCode:i.fields.getTextInputValue('customCode').trim(),premiumTier:'STANDARD',duration:i.fields.getTextInputValue('duration').trim(),maxUses:Number(i.fields.getTextInputValue('maxUses')),expiresDays:Number(i.fields.getTextInputValue('expiresDays'))});await sendDeveloperLog(client,{title:'🔑 Premium Key Created',description:`Developer: ${i.user.id}\nKey: ${k.code}\nDuration: ${k.premiumDuration}\nMax uses: ${k.maxUses}`});return i.reply({content:`✅ Premium key created: \`${k.code}\` • **${k.premiumDuration}** • max uses **${k.maxUses}**`,flags:64});}
     if(i.customId==='dev:modal:keyDisable'){const k=await DevControl.disableKey(i.fields.getTextInputValue('code'));if(k)await sendDeveloperLog(client,{title:'🔑 CD Key Disabled',description:`Developer: ${i.user.id}\nKey: ${k.code}`});return i.reply({content:k?`✅ Disabled \`${k.code}\`.`:'❌ Key not found.',flags:64});}
-    if(i.customId==='dev:modal:cstar'){const uid=i.fields.getTextInputValue('userId'),delta=Number(i.fields.getTextInputValue('delta'));const u=await DevControl.adjustCstar(null,uid,delta);await sendDeveloperLog(client,{title:'⭐ Global <:cxu_coin:1551759873241251912> CXu Adjusted',description:`Developer: ${i.user.id}\nUser: ${uid}\nDelta: ${delta}\nGlobal balance: ${u.cstar}`});return i.reply({content:`✅ New global <:cxu_coin:1551759873241251912> CXu balance: **${u.cstar} <:cxu_coin:1551759873241251912> CXu**.`,flags:64});}
+    if(i.customId==='dev:modal:cstar'){const uid=i.fields.getTextInputValue('userId'),delta=parseMoney(i.fields.getTextInputValue('delta'),{min:-Number.MAX_SAFE_INTEGER,max:Number.MAX_SAFE_INTEGER});const u=await DevControl.adjustCstar(null,uid,delta);await sendDeveloperLog(client,{title:'⭐ Global <:cxu_coin:1551759873241251912> CXu Adjusted',description:`Developer: ${i.user.id}\nUser: ${uid}\nDelta: ${delta}\nGlobal balance: ${u.cstar}`});return i.reply({content:`✅ New global <:cxu_coin:1551759873241251912> CXu balance: **${u.cstar} <:cxu_coin:1551759873241251912> CXu**.`,flags:64});}
     if(i.customId==='dev:modal:ctoken'){
       const uid=i.fields.getTextInputValue('userId').trim();
       const raw=i.fields.getTextInputValue('delta').trim();
       if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});
-      if(!/^[+-]?\d+$/.test(raw))return i.reply({content:'❌ CToken amount must be a whole number, for example `100` or `-50`.',flags:64});
-      const delta=Number(raw);
-      if(!Number.isSafeInteger(delta)||delta===0)return i.reply({content:'❌ CToken amount must be a non-zero safe integer.',flags:64});
+      const delta=parseMoney(raw,{min:-Number.MAX_SAFE_INTEGER,max:Number.MAX_SAFE_INTEGER});
+      if(!Number.isSafeInteger(delta)||delta===0)return i.reply({content:'❌ CToken amount must be valid, for example `100`, `2.5K` or `-50`.',flags:64});
 
       const CToken=require('../services/cTokenService');
       try{
@@ -482,7 +482,7 @@ if(i.customId?.startsWith('dev:')){
         });
 
         return i.reply({
-          content:`✅ <@${uid}> CToken ${delta>0?'granted':'removed'}: **${delta>0?'+':''}${delta.toLocaleString()}**\n🎟️ New balance: **${Number(wallet.balance).toLocaleString()} CToken**.`,
+          content:`✅ <@${uid}> CToken ${delta>0?'granted':'removed'}: **${delta>0?'+':''}${compactNumber(delta)}**\n🎟️ New balance: **${compactNumber(wallet.balance)} CToken**.`,
           flags:64
         });
       }catch(e){
@@ -498,7 +498,7 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:modal:titleGrant'){const uid=i.fields.getTextInputValue('userId').trim();if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});const r=await require('../services/customTitles').grant(uid,i.fields.getTextInputValue('key'),i.user.id);await sendDeveloperLog(client,{title:'🏷️ Custom Title Granted',description:`Developer: ${i.user.id}\nUser: ${uid}\nTitle: ${r.title.key}`});return i.reply({content:`✅ Granted ${r.title.emoji} **${r.title.name}** to <@${uid}>${r.expiresAt?` until <t:${Math.floor(r.expiresAt.getTime()/1000)}:F>`:' permanently'}.`,flags:64});}
     if(i.customId==='dev:modal:titleRevoke'){const uid=i.fields.getTextInputValue('userId').trim();if(!/^\d{15,25}$/.test(uid))return i.reply({content:'❌ Invalid Discord User ID.',flags:64});const key=i.fields.getTextInputValue('key').trim().toUpperCase();await require('../services/customTitles').revoke(uid,key);await sendDeveloperLog(client,{title:'🏷️ Custom Title Revoked',description:`Developer: ${i.user.id}\nUser: ${uid}\nTitle: ${key}`});return i.reply({content:`✅ Revoked \`${key}\` from <@${uid}>.`,flags:64});}
     if(i.customId==='dev:modal:titleToggle'){const t=await require('../services/customTitles').toggle(i.fields.getTextInputValue('key'),i.user.id);return i.reply({content:`✅ ${t.emoji} **${t.name}** is now **${t.enabled?'ENABLED':'DISABLED'}**.`,flags:64});}
-    if(i.customId==='dev:modal:mailCompose'){const M=require('../services/globalMail');const raw=i.fields.getTextInputValue('options').trim(),parts=raw?raw.split('|').map(x=>x.trim()):[],cstar=parts[0]||'0',expiresDays=parts[1]||'0';const d=await M.createDraft({actorId:i.user.id,titleEn:i.fields.getTextInputValue('titleEn'),bodyEn:i.fields.getTextInputValue('bodyEn'),titleVi:i.fields.getTextInputValue('titleVi'),bodyVi:i.fields.getTextInputValue('bodyVi'),cstarAmount:cstar,expiresDays});return i.reply({content:`✅ Global Mail draft saved in **EN + VI**.\n🇺🇸 **${d.titleEn}**\n🇻🇳 **${d.titleVi}**\n<:cxu_coin:1551759873241251912> CXu attachment: **${Number(d.cstarAmount).toLocaleString()}**\nUse **Image** in the panel if you want to attach artwork, then Preview or Broadcast.`,flags:64});}
+    if(i.customId==='dev:modal:mailCompose'){const M=require('../services/globalMail');const raw=i.fields.getTextInputValue('options').trim(),parts=raw?raw.split('|').map(x=>x.trim()):[],cstar=parts[0]||'0',expiresDays=parts[1]||'0';const d=await M.createDraft({actorId:i.user.id,titleEn:i.fields.getTextInputValue('titleEn'),bodyEn:i.fields.getTextInputValue('bodyEn'),titleVi:i.fields.getTextInputValue('titleVi'),bodyVi:i.fields.getTextInputValue('bodyVi'),cstarAmount:cstar,expiresDays});return i.reply({content:`✅ Global Mail draft saved in **EN + VI**.\n🇺🇸 **${d.titleEn}**\n🇻🇳 **${d.titleVi}**\n<:cxu_coin:1551759873241251912> CXu attachment: **${compactNumber(d.cstarAmount)}**\nUse **Image** in the panel if you want to attach artwork, then Preview or Broadcast.`,flags:64});}
     if(i.customId==='dev:modal:mailImage'){const M=require('../services/globalMail');const att=i.fields.getUploadedFiles('imageFile',true)?.first();if(!att||!(att.contentType||'').startsWith('image/'))return i.reply({content:'❌ Please upload an image file.',flags:64});const d=await M.setDraftImage(i.user.id,att.url);return i.reply({content:`✅ Global Mail image attached to draft **${d._id}**.`,flags:64});}
         if(i.customId==='dev:modal:webrole'){const uid=i.fields.getTextInputValue('userId').trim(),role=i.fields.getTextInputValue('role').trim().toLowerCase();const r=await require('../services/webRoleService').set(uid,role,i.user.id);await sendDeveloperLog(client,{title:'👥 Website Role Changed',description:`Developer: ${i.user.id}\nUser: ${uid}\nRole: ${r.role}`});return i.reply({content:`✅ Website role for <@${uid}> is now **${r.role.toUpperCase()}**.`,flags:64});}
         if(i.customId.startsWith('dev:modal:blacklist:')){const kind=i.customId.split(':')[3];const r=await DevControl.toggleBlacklist(kind,i.fields.getTextInputValue('id'));await sendDeveloperLog(client,{title:'🛡️ Blacklist Changed',description:`Developer: ${i.user.id}\n${kind}: ${r.id}\nState: ${r.blocked?'BLACKLISTED':'UNBLOCKED'}`});return i.reply({content:`✅ ${kind} \`${r.id}\` is now **${r.blocked?'BLACKLISTED':'UNBLOCKED'}**.`,flags:64});}
@@ -522,12 +522,12 @@ if(i.customId?.startsWith('guild:')){
     if(i.customId.startsWith('guild:admin:')){const area=i.customId.split(':')[2];if(!(await GS.canManage(i.member,area==='points'?'rewards':area)))return i.reply({content:mtx(lang,'❌ Guild management permission required.','❌ Cần quyền quản lý Guild.'),flags:64});if(area==='reward')return i.showModal(GUI.rewardModal());if(area==='mission')return i.showModal(GUI.missionModal());if(area==='event')return i.showModal(GUI.eventModal());if(area==='points')return i.showModal(GUI.pointsModal());}
   }
   if(i.isModalSubmit()){
-    if(i.customId==='guild:modal:redeem'){const Reward=require('../models/GuildReward'),Red=require('../models/GuildRedemption'),id=i.fields.getTextInputValue('rewardId').trim(),r=await Reward.findOne({_id:id,guildId:i.guildId,enabled:true}).catch(()=>null);if(!r)return i.reply({content:'❌ Reward not found.',flags:64});const w=await GS.wallet(i.guildId,i.user.id);if(w.points<r.price)return i.reply({content:mtx(lang,'❌ Not enough 🌟 Guild Points.','❌ Không đủ 🌟 Guild Point.'),flags:64});if(r.stock===0)return i.reply({content:mtx(lang,'❌ Reward is out of stock.','❌ Phần thưởng đã hết.'),flags:64});await GS.adjust(i.guildId,i.user.id,-r.price);if(r.stock>0){r.stock--;await r.save();}if(r.type==='ROLE'&&r.roleId){const role=await i.guild.roles.fetch(r.roleId).catch(()=>null);if(role)await i.member.roles.add(role).catch(()=>{});}const red=await Red.create({guildId:i.guildId,userId:i.user.id,rewardId:r._id,rewardName:r.name,type:r.type,price:r.price,status:['ROLE','TITLE'].includes(r.type)?'COMPLETE':'PENDING'});if(['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)){const owner=await i.guild.fetchOwner().catch(()=>null);await owner?.send(`🎁 **Guild Reward Redemption**\nGuild: **${i.guild.name}**\nUser: ${i.user.tag} (${i.user.id})\nReward: **${r.name}**\nType: **${r.type}**\nRedemption: \`${red._id}\`\nStatus: PENDING\nPlease contact the member directly for fulfillment. Do not store shipping address in Corgi-Bot.`).catch(()=>{});}return i.reply({content:mtx(lang,`✅ Redeemed **${r.name}** for **${r.price.toLocaleString()} 🌟**.${['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)?' Owner/Manager has been notified for manual fulfillment.':''}`,`✅ Đã đổi **${r.name}** với **${r.price.toLocaleString()} 🌟**.${['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)?' Owner/Manager đã được báo để giao quà thủ công.':''}`),flags:64});}
+    if(i.customId==='guild:modal:redeem'){const Reward=require('../models/GuildReward'),Red=require('../models/GuildRedemption'),id=i.fields.getTextInputValue('rewardId').trim(),r=await Reward.findOne({_id:id,guildId:i.guildId,enabled:true}).catch(()=>null);if(!r)return i.reply({content:'❌ Reward not found.',flags:64});const w=await GS.wallet(i.guildId,i.user.id);if(w.points<r.price)return i.reply({content:mtx(lang,'❌ Not enough 🌟 Guild Points.','❌ Không đủ 🌟 Guild Point.'),flags:64});if(r.stock===0)return i.reply({content:mtx(lang,'❌ Reward is out of stock.','❌ Phần thưởng đã hết.'),flags:64});await GS.adjust(i.guildId,i.user.id,-r.price);if(r.stock>0){r.stock--;await r.save();}if(r.type==='ROLE'&&r.roleId){const role=await i.guild.roles.fetch(r.roleId).catch(()=>null);if(role)await i.member.roles.add(role).catch(()=>{});}const red=await Red.create({guildId:i.guildId,userId:i.user.id,rewardId:r._id,rewardName:r.name,type:r.type,price:r.price,status:['ROLE','TITLE'].includes(r.type)?'COMPLETE':'PENDING'});if(['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)){const owner=await i.guild.fetchOwner().catch(()=>null);await owner?.send(`🎁 **Guild Reward Redemption**\nGuild: **${i.guild.name}**\nUser: ${i.user.tag} (${i.user.id})\nReward: **${r.name}**\nType: **${r.type}**\nRedemption: \`${red._id}\`\nStatus: PENDING\nPlease contact the member directly for fulfillment. Do not store shipping address in Corgi-Bot.`).catch(()=>{});}return i.reply({content:mtx(lang,`✅ Redeemed **${r.name}** for **${compactNumber(r.price)} 🌟**.${['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)?' Owner/Manager has been notified for manual fulfillment.':''}`,`✅ Đã đổi **${r.name}** với **${compactNumber(r.price)} 🌟**.${['DIGITAL','PHYSICAL','MYSTERY'].includes(r.type)?' Owner/Manager đã được báo để giao quà thủ công.':''}`),flags:64});}
     if(!(await GS.canManage(i.member,'rewards')))return i.reply({content:'❌ Guild management permission required.',flags:64});
     if(i.customId==='guild:modal:reward'){const Reward=require('../models/GuildReward'),type=i.fields.getTextInputValue('type').trim().toUpperCase();if(!['ROLE','TITLE','DIGITAL','PHYSICAL','MYSTERY'].includes(type))return i.reply({content:'❌ Invalid reward type.',flags:64});const r=await Reward.create({guildId:i.guildId,name:i.fields.getTextInputValue('name').trim(),type,price:Math.max(0,Number(i.fields.getTextInputValue('price'))||0),stock:Number(i.fields.getTextInputValue('stock')),roleId:i.fields.getTextInputValue('roleId').trim().replace('-',''),createdBy:i.user.id});return i.reply({content:`✅ Guild reward created: **${r.name}** • ${r.price} 🌟`,flags:64});}
     if(i.customId==='guild:modal:mission'){const Mission=require('../models/GuildMission'),metric=i.fields.getTextInputValue('metric').trim().toUpperCase(),hours=Math.max(1,Number(i.fields.getTextInputValue('hours'))||168);const r=await Mission.create({guildId:i.guildId,name:i.fields.getTextInputValue('name').trim(),metric,target:Math.max(1,Number(i.fields.getTextInputValue('target'))||1),rewardPoints:Math.max(0,Number(i.fields.getTextInputValue('reward'))||0),endsAt:new Date(Date.now()+hours*3600000),createdBy:i.user.id});return i.reply({content:`✅ Guild mission created: **${r.name}**`,flags:64});}
     if(i.customId==='guild:modal:event'){const Event=require('../models/GuildEvent'),r=await Event.create({guildId:i.guildId,name:i.fields.getTextInputValue('name').trim(),description:i.fields.getTextInputValue('description').trim(),startsAt:new Date(i.fields.getTextInputValue('start')),endsAt:new Date(i.fields.getTextInputValue('end')),rewardPoints:Math.max(0,Number(i.fields.getTextInputValue('reward'))||0),createdBy:i.user.id});return i.reply({content:`✅ Guild event scheduled: **${r.name}**`,flags:64});}
-    if(i.customId==='guild:modal:points'){const uid=i.fields.getTextInputValue('userId').trim(),amount=Math.trunc(Number(i.fields.getTextInputValue('amount'))||0);const w=await GS.adjust(i.guildId,uid,amount);return i.reply({content:`✅ <@${uid}>: **${w.points.toLocaleString()} 🌟**`,flags:64});}
+    if(i.customId==='guild:modal:points'){const uid=i.fields.getTextInputValue('userId').trim(),amount=Math.trunc(Number(i.fields.getTextInputValue('amount'))||0);const w=await GS.adjust(i.guildId,uid,amount);return i.reply({content:`✅ <@${uid}>: **${compactNumber(w.points)} 🌟**`,flags:64});}
   }
   return;
 }
