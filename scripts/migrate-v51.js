@@ -1,2 +1,2 @@
-require('dotenv').config();const mongoose=require('mongoose');
-(async()=>{try{await mongoose.connect(process.env.MONGODB_URI);await require('../src/services/marketService').seed();await require('../src/services/seasonalService').seed();await require('../src/models/SeasonalAlertState').syncIndexes();await require('../src/models/MarketAlertState').syncIndexes();const GuildSettings=require('../src/models/GuildSettings');await GuildSettings.updateMany({language:{$nin:require('../src/config/languages').map(x=>x.id)}},{$set:{language:'en'}});console.log('🛡️ V5.1 migration • Market seeded • Seasonal templates seeded • 12-language schema ready • player progression preserved');}finally{await mongoose.disconnect();}})().catch(e=>{console.error(e);process.exit(1)});
+// Retired in Corgi-Bot V7.1.1. Intentionally inert for phone-safe GitHub overlay.
+module.exports={};
