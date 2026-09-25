@@ -1,0 +1,8 @@
+CORGI-BOT V7.1.1 PHONE-SAFE PATCH
+
+Upload/overwrite every file in this ZIP preserving folders.
+Retired Game Hub / Tournament / Seasonal / Weekly Ranking files are included as inert tombstones because GitHub mobile/web upload does not delete old files.
+They can be physically deleted later; they will not register commands or run gameplay.
+
+After upload, deploy commands again so Discord removes stale /game, /tournaments and /seasonal registrations.
+Frontier fishing command is /frontier-fish (prefix ?frontierfish or ?ffish) because /fish and /fishing remain the existing full Fishing system.

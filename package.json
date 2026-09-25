@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "7.1.0",
+  "version": "7.1.1",
   "private": true,
-  "description": "Corgi-Bot V7.1 • Corgi Frontier Complete Foundation • long-term persistent flagship world.",
+  "description": "Corgi-Bot V7.1.1 • Corgi Frontier • command/direct-action parity • retired Game Hub cleanup.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
@@ -12,7 +12,6 @@
     "migrate:global-cstar": "node scripts/migrate-global-economy.js",
     "migrate:fishing": "node scripts/migrate-fishing.js",
     "migrate:v5": "node scripts/migrate-v5.js",
-    "migrate:v51": "node scripts/migrate-v51.js",
     "audit:i18n": "node scripts/audit-i18n.js",
     "migrate:clan": "node scripts/migrate-clan-guild.js",
     "validate": "node --check src/index.js && node --check src/events/interactionCreate.js && node --check src/ui/dev.js && node --check src/modules/frontier.js && node --check src/models/FrontierProfile.js && node --check src/services/progression.js && node scripts/audit-i18n.js",
