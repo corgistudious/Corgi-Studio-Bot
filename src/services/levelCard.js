@@ -59,7 +59,7 @@ async function buildLevelCard({ user, profile, lang='en' }) {
   const nextLabel = isVi ? 'TIẾN ĐỘ CẤP TIẾP THEO' : 'NEXT LEVEL PROGRESS';
   const msgLabel = isVi ? 'TIN NHẮN' : 'MESSAGES';
   const rankLabel = isVi ? 'HẠNG GLOBAL' : 'GLOBAL RANK';
-  const weeklyLabel = isVi ? 'HẠNG TUẦN' : 'WEEKLY RANK';
+  const weeklyLabel = isVi ? 'HẠNG TÀI SẢN' : 'WEALTH RANK';
   const footer = esc(isVi ? 'CORGI BOT • HỆ THỐNG XP & LEVEL' : 'CORGI BOT • XP & LEVEL SYSTEM');
 
   const overlay = Buffer.from(`
@@ -97,7 +97,7 @@ async function buildLevelCard({ user, profile, lang='en' }) {
       <text x="648" y="620" font-size="28" font-weight="900" fill="#ffd45a">#${fmt(rank.globalRank)}</text>
 
       <text x="846" y="592" font-size="16" font-weight="700" fill="#91a9df">${weeklyLabel}</text>
-      <text x="846" y="620" font-size="28" font-weight="900" fill="#86d8ff">${rank.weeklyRank ? `#${fmt(rank.weeklyRank)}` : '—'}</text>
+      <text x="846" y="620" font-size="28" font-weight="900" fill="#86d8ff">#${fmt(rank.wealthRank)}</text>
 
       <text x="725" y="655" font-size="17" font-weight="700" letter-spacing="2" text-anchor="middle" fill="#b9c9ef">${footer}</text>
     </g>
