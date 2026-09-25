@@ -17,33 +17,6 @@ async function handle(i, client) {
     if (i.customId === 'progdev:level:user')
       return i.showModal(UI.userLevelModal());
 
-    if (i.customId === 'progdev:ranking:edit')
-      return i.showModal(await UI.rewardModal());
-
-    if (i.customId === 'progdev:ranking:approve') {
-      await i.deferReply({ flags: 64 });
-
-      try {
-        const b = await P.approveRewards(i.user.id);
-
-        await sendDeveloperLog(client, {
-          title: '🏆 Weekly Ranking Rewards Approved',
-          description:
-            `Developer: ${i.user.id}\n` +
-            `Season: ${b.weekKey}\n` +
-            `Recipients: ${b.rewards.length}`
-        });
-
-        return i.editReply(
-          `✅ **${b.weekKey}** rewards sent automatically to ` +
-          `**${b.rewards.length}** ranked member(s). ` +
-          `Titles expire 7 days from approval.`
-        );
-      } catch (e) {
-        return i.editReply(`❌ ${e.message}`);
-      }
-    }
-
     /* =========================
        MODALS
     ========================= */
@@ -110,21 +83,6 @@ async function handle(i, client) {
 
       return i.reply({
         content: '✅ Advanced Level curve saved.',
-        flags: 64
-      });
-    }
-
-    if (i.customId === 'progdev:modal:rewards') {
-      await P.updateRewardConfig({
-        top1: i.fields.getTextInputValue('top1'),
-        top2: i.fields.getTextInputValue('top2'),
-        top3: i.fields.getTextInputValue('top3'),
-        top4to10: i.fields.getTextInputValue('top4to10'),
-        top11to100: i.fields.getTextInputValue('top11to100')
-      });
-
-      return i.reply({
-        content: '✅ Weekly Top reward configuration saved.',
         flags: 64
       });
     }
