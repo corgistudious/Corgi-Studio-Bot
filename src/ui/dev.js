@@ -37,11 +37,8 @@ async function home(client) {
     {label:'CToken Management',value:'ctoken',emoji:'🎟️',description:'Manage advertising-only CToken'},
     {label:'Ads Analytics',value:'adsanalytics',emoji:'📊',description:'Global advertising performance and CToken spend'},
     {label:'🌟 CXu Economy',value:'cstar',emoji:'⭐',description:'Add or subtract 🌟 CXu'},
-    {label:'Level & EXP',value:'leveling',emoji:'⚔️',description:'Global EXP curve and cooldown'},
-    {label:'Global Ranking',value:'ranking',emoji:'🏆',description:'Weekly rewards and Approve Reward'},
+    {label:'Level & EXP',value:'leveling',emoji:'⚔️',description:'Permanent global progression settings'},
     {label:'Fishing',value:'fishing',emoji:'🎣',description:'Global Fishing gameplay configuration'},
-    {label:'Game Tournaments',value:'tournaments',emoji:'🏆',description:'Schedule monthly Game Hub tournaments'},
-    {label:'Seasonal Events',value:'seasonal',emoji:'🎊',description:'Enable holidays, dates, drops and CXu boxes'},
     {label:'Custom Profile Titles',value:'titles',emoji:'🏷️',description:'Create, grant and revoke profile titles'},
     {label:'Profile Verification',value:'verification',emoji:'✅',description:'Review and assign verification badges'},
     {label:'Global Cosmetic Shop',value:'cosmetics',emoji:'🎨',description:'Create and manage Global profile cosmetics'},
@@ -350,7 +347,7 @@ function blacklistModal(kind){return new ModalBuilder().setCustomId(`dev:modal:b
 async function titles(){
   const T=require('../services/customTitles');const rows=await T.list(15);
   const desc=rows.length?rows.map(t=>`${t.enabled?'✅':'⛔'} ${t.emoji||'🏷️'} **${t.name}** • \`${t.key}\`${t.durationDays?` • ${t.durationDays}d`:' • permanent'}`).join('\n'):'No custom titles yet.';
-  const e=footer(new EmbedBuilder().setTitle('🏷️ Custom Profile Titles').setDescription(`${desc}\n\nDeveloper-only catalog. Granting a title makes it the member’s active custom profile title without deleting Weekly Ranking title history.`));
+  const e=footer(new EmbedBuilder().setTitle('🏷️ Custom Profile Titles').setDescription(`${desc}\n\nDeveloper-only catalog. Granting a title makes it the member’s active custom profile title without altering permanent progression history.`));
   const row=new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('dev:title:create').setLabel('Create Title').setEmoji('➕').setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId('dev:title:grant').setLabel('Grant to User').setEmoji('🎁').setStyle(ButtonStyle.Primary),
@@ -508,8 +505,6 @@ function fishingScoreModal(){return new ModalBuilder().setCustomId('dev:modal:fi
 function tournamentModal(){return new ModalBuilder().setCustomId('dev:modal:tournamentCreate').setTitle('Schedule Game Tournament').addComponents(input('name','Tournament name','October Pet Arena Cup'),input('gameId','Game ID','pet-arena'),input('registrationAt','Registration opens (ISO)','2026-10-01T00:00:00-04:00'),input('startsAt','Tournament starts (ISO)','2026-10-15T18:00:00-04:00'),input('endsAt','End | Max | Reward | Rules','2026-10-16T18:00:00-04:00 | 32 | 10000 | Highest score wins',true,TextInputStyle.Paragraph));}
 
 
-async function seasonal(){const S=require('../models/SeasonalEvent');await require('../services/seasonalService').seed();const rows=await S.find().sort({key:1}).lean();const e=footer(new EmbedBuilder().setTitle('🎊 Seasonal Event Control').setDescription('Global holiday events. Valid Game Hub actions can drop event materials. Crafting exchanges **1 crafted item → 1 Gift Box**.').addFields({name:'Events',value:rows.map(x=>`${x.enabled?'🟢':'⚫'} **${x.key}** • ${x.startAt?`<t:${Math.floor(new Date(x.startAt).getTime()/1000)}:d>`:'no start'} → ${x.endAt?`<t:${Math.floor(new Date(x.endAt).getTime()/1000)}:d>`:'no end'} • 🎁 ${x.cstarMin}-${x.cstarMax} CXu`).join('\n').slice(0,1024)}));const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:seasonal:configure').setLabel('Configure Event').setEmoji('⚙️').setStyle(ButtonStyle.Primary));return{embeds:[e],components:[row,backRow()]};}
-function seasonalModal(){return new ModalBuilder().setCustomId('dev:modal:seasonal').setTitle('Seasonal Event Configuration').addComponents(input('key','Event key','christmas'),input('enabled','Enabled: ON / OFF','ON'),input('dates','Start ISO | End ISO','2026-12-01T00:00:00-05:00 | 2026-12-31T23:59:59-05:00'),input('reward','Gift Box CXu min | max','250 | 5000'),input('dropMultiplier','Drop multiplier (0.1 - 10)','1'));}
 
 
 async function bankAds(){const B=require('../services/bankService'),D=require('../models/DeveloperSettings');const [b,d]=await Promise.all([B.config(),D.findOne({key:'global'}).lean()]);const e=footer(new EmbedBuilder().setTitle('🏦 CXu Bank & 📣 CToken Ads').setDescription('Global economy controls shared by Discord and the website.').addFields({name:'CXu Bank',value:`Enabled: **${b.enabled?'ON':'OFF'}**\nAPY: **${b.annualRatePercent}%**\nCompound: **${b.compoundHours}h**\nMin deposit: **${Number(b.minDeposit).toLocaleString()} CXu**`,inline:true},{name:'Corgi Ads',value:`Enabled: **${d?.ads?.enabled!==false?'ON':'OFF'}**\nMinimum budget: **🎟️ ${Number(d?.ads?.minBudget||100000).toLocaleString()} CToken**\nDefault duration: **${d?.ads?.defaultDays||7} days**`,inline:true}));const row=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('dev:bankads:configure').setLabel('Configure Bank & Ads').setStyle(ButtonStyle.Primary));return {embeds:[e],components:[row,backRow()]};}
@@ -527,4 +522,4 @@ function webRoleModal(){return new ModalBuilder().setCustomId('dev:modal:webrole
   new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('userId').setLabel('Discord User ID').setPlaceholder('123456789012345678').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(25)),
   new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('role').setLabel('Role: member / reviewer / admin / developer').setPlaceholder('reviewer').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(20))
 );}
-module.exports={webRoles,webRoleModal,adsMultipliersModal,adsCancelModal,ctoken,ctokenModal,adsAnalytics,bankAds,bankAdsModal,cosmetics,cosmeticImageModal,cosmeticTextModal,cosmeticKeyModal,home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationUserModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal,tournamentModal,seasonal,seasonalModal};
+module.exports={webRoles,webRoleModal,adsMultipliersModal,adsCancelModal,ctoken,ctokenModal,adsAnalytics,bankAds,bankAdsModal,cosmetics,cosmeticImageModal,cosmeticTextModal,cosmeticKeyModal,home,system,servers,premium,keys,cstar,blacklist,titles,verification,globalMail,fishing,fishingGeneralModal,fishingRarityModal,fishingBaitModal,fishingRodModal,fishingScoreModal,premiumGrantModal,premiumRevokeModal,keyCstarModal,keyPremiumModal,keyDisableModal,cstarModal,blacklistModal,verificationUserModal,titleCreateModal,titleGrantModal,titleRevokeModal,titleToggleModal,mailComposeModal,mailImageModal};
