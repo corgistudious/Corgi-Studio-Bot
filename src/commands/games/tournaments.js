@@ -1,1 +1,2 @@
-const {SlashCommandBuilder}=require('discord.js');const T=require('../../services/tournamentService');const {guildLang}=require('../../services/i18n');module.exports={data:new SlashCommandBuilder().setName('tournaments').setDescription('Open the Game Tournament Center').setDescriptionLocalizations({vi:'Mở Trung tâm Giải đấu Game'}),prefix:['tournaments','tournament'],async execute(i){return i.reply(await T.playerPanel(i.user.id,await guildLang(i.guildId)));},async executePrefix(m){return m.reply(await T.playerPanel(m.author.id,await guildLang(m.guildId)));}};
+// Retired in Corgi-Bot V7.1.1. Intentionally inert for phone-safe GitHub overlay.
+module.exports={};

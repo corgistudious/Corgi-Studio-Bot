@@ -1,1 +1,2 @@
-const {SlashCommandBuilder}=require('discord.js');const {guildLang}=require('../../services/i18n');const UI=require('../../modules/seasonal');module.exports={data:new SlashCommandBuilder().setName('seasonal').setDescription('Open the active Seasonal Event'),prefix:['seasonal','event'],async execute(i){return i.reply(await UI.home(i.user.id,await guildLang(i.guildId)));},async executePrefix(m){return m.reply(await UI.home(m.author.id,await guildLang(m.guildId)));}};
+// Retired in Corgi-Bot V7.1.1. Intentionally inert for phone-safe GitHub overlay.
+module.exports={};
