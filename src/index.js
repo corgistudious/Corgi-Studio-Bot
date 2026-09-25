@@ -9,7 +9,6 @@ const { startContestService } = require('./modules/contest');
 const { startPremiumService } = require('./services/premium');
 const { startDiscordStorePremium } = require('./services/discordStorePremium');
 const { startLotteryService } = require('./services/lotteryService');
-const { start: startTournamentService } = require('./services/tournamentService');
 
 const intents=[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMembers,GatewayIntentBits.GuildMessages,GatewayIntentBits.MessageContent,GatewayIntentBits.GuildModeration,GatewayIntentBits.GuildMessageReactions];
 // Online Stats needs the privileged Presence Intent. Keep startup safe unless explicitly enabled.
@@ -19,7 +18,7 @@ const client = new Client({
   partials:[Partials.Message,Partials.Channel,Partials.Reaction]
 });
 loadCommands(client); loadEvents(client);
-async function main(){ await connectDatabase(); startStatsService(client); startGiveawayService(client); startContestService(client); startPremiumService(client); startDiscordStorePremium(client); startLotteryService(client); startTournamentService(client); await client.login(process.env.DISCORD_TOKEN); }
+async function main(){ await connectDatabase(); startStatsService(client); startGiveawayService(client); startContestService(client); startPremiumService(client); startDiscordStorePremium(client); startLotteryService(client); await client.login(process.env.DISCORD_TOKEN); }
 main().catch(e=>{console.error('❌ Startup failed:',e);process.exit(1);});
 process.on('unhandledRejection',e=>console.error('Unhandled rejection:',e));
 process.on('uncaughtException',e=>console.error('Uncaught exception:',e));
