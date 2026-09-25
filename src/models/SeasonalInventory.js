@@ -1,3 +1,2 @@
-const {Schema,model}=require('mongoose');
-const schema=new Schema({userId:{type:String,unique:true,index:true},materials:{type:Map,of:Number,default:{}},crafted:{type:Map,of:Number,default:{}},boxes:{type:Map,of:Number,default:{}}},{timestamps:true,minimize:false});
-module.exports=model('SeasonalInventory',schema);
+// Retired in Corgi-Bot V7.1.1. Intentionally inert for phone-safe GitHub overlay.
+module.exports={};

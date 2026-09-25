@@ -1,3 +1,2 @@
-const {Schema,model}=require('mongoose');
-const schema=new Schema({userId:{type:String,required:true,unique:true,index:true},gamesPlayed:{type:Number,default:0},bestScores:{type:Map,of:Number,default:{}},currentGame:{type:String,default:''},turn:{type:Number,default:0},energy:{type:Number,default:100},score:{type:Number,default:0},combo:{type:Number,default:0},sessionStartedAt:Date,gameStates:{type:Map,of:Schema.Types.Mixed,default:{}}},{timestamps:true,minimize:false});
-module.exports=model('GameHubProfile',schema);
+// Retired in Corgi-Bot V7.1.1. Intentionally inert for phone-safe GitHub overlay.
+module.exports={};
