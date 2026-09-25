@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "6.3.0",
+  "version": "7.1.0",
   "private": true,
-  "description": "Corgi-Bot V6.2 • Clan Guild replacement • Full Web/Discord shared setup • Verified + Partner • 12-language help sync.",
+  "description": "Corgi-Bot V7.1 • Corgi Frontier Complete Foundation • long-term persistent flagship world.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
@@ -15,7 +15,8 @@
     "migrate:v51": "node scripts/migrate-v51.js",
     "audit:i18n": "node scripts/audit-i18n.js",
     "migrate:clan": "node scripts/migrate-clan-guild.js",
-    "validate": "node --check src/index.js && node --check src/services/webApi.js && node --check src/services/clanSystem.js && node --check src/commands/community/clan.js && node scripts/audit-i18n.js"
+    "validate": "node --check src/index.js && node --check src/events/interactionCreate.js && node --check src/ui/dev.js && node --check src/modules/frontier.js && node --check src/models/FrontierProfile.js && node --check src/services/progression.js && node scripts/audit-i18n.js",
+    "migrate:frontier": "node scripts/migrate-frontier-v71.js"
   },
   "engines": {
     "node": ">=20"
