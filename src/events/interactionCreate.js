@@ -67,6 +67,7 @@ const access=await checkAccess({userId:i.user?.id,guildId:i.guildId});
 if(!access.allowed){if(i.isRepliable()){const payload={content:access.message,flags:64};if(i.replied||i.deferred)await i.followUp(payload).catch(()=>{});else await i.reply(payload).catch(()=>{});}return;}
 if(i.customId?.startsWith('fish:')){return require('../modules/fishing').handle(i,await require('../services/i18n').guildLang(i.guildId));}
 if(i.customId?.startsWith('fr:')){return require('../modules/frontier').handle(i,await require('../services/i18n').guildLang(i.guildId));}
+if(i.customId?.startsWith('clanhub:')){return require('../modules/clanHub').handle(i,await require('../services/i18n').guildLang(i.guildId));}
 if(i.customId?.startsWith('market:')){return require('../modules/market').handle(i,await require('../services/i18n').guildLang(i.guildId));}
 if(i.isChatInputCommand()){const c=client.commands.get(i.commandName);if(c?.premiumOnly&&!(await isPremiumGuild(i.guildId)))return i.reply({content:'💎 This command requires an active Corgi Premium subscription for this server.',flags:64});if(c)await c.execute(i,client);return;}
 if(i.customId?.startsWith('eventcfg:')){if(!(await guard(i)))return;return EventControl.handle(i,client);}
