@@ -25,7 +25,7 @@ module.exports = {
   "v6.custom.equippedPreview": "✅ Kosmetik dipasang. Buka /profile untuk melihat pratinjau.",
   "v6.custom.equipped": "✅ Kosmetik dipasang.",
   "v6.missions.title": "🎯 Misi Global",
-  "v6.missions.desc": "Misi tanpa konfigurasi berotasi otomatis. Progres terhubung dengan Game Hub, Market, dan aktivitas komunitas.",
+  "v6.missions.desc": "Misi tanpa konfigurasi berotasi otomatis. Progres terhubung dengan Frontier, Market, dan aktivitas komunitas.",
   "v6.profile.like": "Suka",
   "v6.profile.follow": "Ikuti / Berhenti mengikuti",
   "v6.profile.collection": "Koleksi",

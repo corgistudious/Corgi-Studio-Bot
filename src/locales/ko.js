@@ -25,7 +25,7 @@ module.exports = {
   "v6.custom.equippedPreview": "✅ 코스메틱을 장착했습니다. /profile에서 미리 보세요.",
   "v6.custom.equipped": "✅ 코스메틱을 장착했습니다.",
   "v6.missions.title": "🎯 글로벌 미션",
-  "v6.missions.desc": "설정이 필요 없는 미션이 자동으로 순환됩니다. 진행도는 Game Hub, Market, 커뮤니티 활동과 연동됩니다.",
+  "v6.missions.desc": "설정이 필요 없는 미션이 자동으로 순환됩니다. 진행도는 Frontier, Market, 커뮤니티 활동과 연동됩니다.",
   "v6.profile.like": "좋아요",
   "v6.profile.follow": "팔로우 / 언팔로우",
   "v6.profile.collection": "컬렉션",

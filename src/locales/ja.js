@@ -25,7 +25,7 @@ module.exports = {
   "v6.custom.equippedPreview": "✅ コスメを装備しました。/profile でプレビューできます。",
   "v6.custom.equipped": "✅ コスメを装備しました。",
   "v6.missions.title": "🎯 グローバルミッション",
-  "v6.missions.desc": "設定不要のミッションは自動でローテーションします。進行状況はGame Hub、Market、コミュニティ活動と連携します。",
+  "v6.missions.desc": "設定不要のミッションは自動でローテーションします。進行状況はFrontier、Market、コミュニティ活動と連携します。",
   "v6.profile.like": "いいね",
   "v6.profile.follow": "フォロー / フォロー解除",
   "v6.profile.collection": "コレクション",

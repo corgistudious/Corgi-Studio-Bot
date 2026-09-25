@@ -25,7 +25,7 @@ module.exports = {
   "v6.custom.equippedPreview": "✅ Cosmético equipado. Abre /profile para previsualizarlo.",
   "v6.custom.equipped": "✅ Cosmético equipado.",
   "v6.missions.title": "🎯 Misiones globales",
-  "v6.missions.desc": "Las misiones sin configuración rotan automáticamente. El progreso se integra con Game Hub, Market y la actividad de la comunidad.",
+  "v6.missions.desc": "Las misiones sin configuración rotan automáticamente. El progreso se integra con Frontier, Market y la actividad de la comunidad.",
   "v6.profile.like": "Me gusta",
   "v6.profile.follow": "Seguir / Dejar de seguir",
   "v6.profile.collection": "Colección",

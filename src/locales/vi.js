@@ -25,7 +25,7 @@ module.exports = {
   "v6.custom.equippedPreview": "✅ Đã trang bị cosmetic. Mở /profile để xem trước.",
   "v6.custom.equipped": "✅ Đã trang bị cosmetic.",
   "v6.missions.title": "🎯 Nhiệm vụ Global",
-  "v6.missions.desc": "Nhiệm vụ zero-config tự xoay vòng. Tiến độ được liên kết dần với Game Hub, Market và hoạt động cộng đồng.",
+  "v6.missions.desc": "Nhiệm vụ zero-config tự xoay vòng. Tiến độ được liên kết dần với Frontier, Market và hoạt động cộng đồng.",
   "v6.profile.like": "Thích",
   "v6.profile.follow": "Theo dõi / Bỏ theo dõi",
   "v6.profile.collection": "Bộ sưu tập",

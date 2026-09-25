@@ -25,7 +25,7 @@ module.exports = {
   "v6.custom.equippedPreview": "✅ Kosmetik ausgerüstet. Öffne /profile für die Vorschau.",
   "v6.custom.equipped": "✅ Kosmetik ausgerüstet.",
   "v6.missions.title": "🎯 Globale Missionen",
-  "v6.missions.desc": "Konfigurationsfreie Missionen rotieren automatisch. Der Fortschritt wird mit Game Hub, Market und Community-Aktivitäten verknüpft.",
+  "v6.missions.desc": "Konfigurationsfreie Missionen rotieren automatisch. Der Fortschritt wird mit Frontier, Market und Community-Aktivitäten verknüpft.",
   "v6.profile.like": "Gefällt mir",
   "v6.profile.follow": "Folgen / Entfolgen",
   "v6.profile.collection": "Sammlung",

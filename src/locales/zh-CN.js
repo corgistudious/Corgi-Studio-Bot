@@ -25,7 +25,7 @@ module.exports = {
   "v6.custom.equippedPreview": "✅ 已装备外观物品。打开 /profile 预览。",
   "v6.custom.equipped": "✅ 已装备外观物品。",
   "v6.missions.title": "🎯 Global 任务",
-  "v6.missions.desc": "零配置任务会自动轮换。进度会与 Game Hub、Market 和社区活动联动。",
+  "v6.missions.desc": "零配置任务会自动轮换。进度会与 Frontier、Market 和社区活动联动。",
   "v6.profile.like": "赞",
   "v6.profile.follow": "关注 / 取消关注",
   "v6.profile.collection": "收藏",

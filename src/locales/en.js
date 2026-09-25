@@ -25,7 +25,7 @@ module.exports = {
   "v6.custom.equippedPreview": "✅ Cosmetic equipped. Open /profile to preview.",
   "v6.custom.equipped": "✅ Cosmetic equipped.",
   "v6.missions.title": "🎯 Global Missions",
-  "v6.missions.desc": "Zero-config missions rotate automatically. Progress hooks expand across Game Hub, Market and community activity.",
+  "v6.missions.desc": "Zero-config missions rotate automatically. Progress hooks expand across Frontier, Market and community activity.",
   "v6.profile.like": "Like",
   "v6.profile.follow": "Follow / Unfollow",
   "v6.profile.collection": "Collection",
