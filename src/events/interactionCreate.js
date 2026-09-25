@@ -66,10 +66,8 @@ module.exports={name:Events.InteractionCreate,async execute(i,client){try{
 const access=await checkAccess({userId:i.user?.id,guildId:i.guildId});
 if(!access.allowed){if(i.isRepliable()){const payload={content:access.message,flags:64};if(i.replied||i.deferred)await i.followUp(payload).catch(()=>{});else await i.reply(payload).catch(()=>{});}return;}
 if(i.customId?.startsWith('fish:')){return require('../modules/fishing').handle(i,await require('../services/i18n').guildLang(i.guildId));}
-if(i.customId?.startsWith('gh:')){return require('../modules/gameHub').handle(i,await require('../services/i18n').guildLang(i.guildId));}
+if(i.customId?.startsWith('fr:')){return require('../modules/frontier').handle(i,await require('../services/i18n').guildLang(i.guildId));}
 if(i.customId?.startsWith('market:')){return require('../modules/market').handle(i,await require('../services/i18n').guildLang(i.guildId));}
-if(i.customId?.startsWith('season:')){return require('../modules/seasonal').handle(i,await require('../services/i18n').guildLang(i.guildId));}
-if(i.customId?.startsWith('tour:')){const lang=await require('../services/i18n').guildLang(i.guildId);const [,a,owner,id]=i.customId.split(':');if(i.user.id!==owner)return i.reply({content:mtx(lang,'This tournament panel belongs to another player.','Bảng giải đấu này thuộc người chơi khác.'),flags:64});if(a==='join'){const r=await require('../services/tournamentService').join(owner,id,lang);if(r.error)return i.reply({content:r.error,flags:64});return i.update(r);}}
 if(i.isChatInputCommand()){const c=client.commands.get(i.commandName);if(c?.premiumOnly&&!(await isPremiumGuild(i.guildId)))return i.reply({content:'💎 This command requires an active Corgi Premium subscription for this server.',flags:64});if(c)await c.execute(i,client);return;}
 if(i.customId?.startsWith('eventcfg:')){if(!(await guard(i)))return;return EventControl.handle(i,client);}
 if(i.isButton()&&i.customId==='ticket:create')return createTicket(i);
@@ -167,8 +165,6 @@ if(i.customId?.startsWith('dev:')){
     if(i.customId==='dev:title:toggle')return i.showModal(DevUI.titleToggleModal());
     if(i.customId==='dev:mail:compose')return i.showModal(DevUI.mailComposeModal());
     if(i.customId==='dev:mail:image')return i.showModal(DevUI.mailImageModal());
-    if(i.customId==='dev:tournament:create')return i.showModal(DevUI.tournamentModal());
-    if(i.customId==='dev:seasonal:configure')return i.showModal(DevUI.seasonalModal());
     if(i.customId==='dev:cosmetic:refresh')return i.update(await DevUI.cosmetics());
 
     if(i.customId==='dev:cosmetic:edit')
@@ -222,10 +218,7 @@ if(i.customId?.startsWith('dev:')){
     if(p==='ctoken')return i.update(await DevUI.ctoken());
     if(p==='adsanalytics')return i.update(await DevUI.adsAnalytics());
     if(p==='leveling')return i.update(await require('../services/progressionDev').levelPage());
-    if(p==='ranking')return i.update(await require('../services/progressionDev').rankingPage());
     if(p==='fishing')return i.update(await DevUI.fishing());
-    if(p==='tournaments')return i.update(await require('../services/tournamentService').devPanel());
-    if(p==='seasonal')return i.update(await DevUI.seasonal());
     if(p==='titles')return i.update(await DevUI.titles());
     if(p==='verification')return i.update(await DevUI.verification());
     if(p==='cosmetics')return i.update(await DevUI.cosmetics());
@@ -470,9 +463,6 @@ if(i.customId?.startsWith('dev:')){
         return i.reply({content:`❌ ${e.message}`,flags:64});
       }
     }
-
-    if(i.customId==='dev:modal:seasonal'){try{const Event=require('../models/SeasonalEvent');const key=i.fields.getTextInputValue('key').trim().toLowerCase(),enabled=i.fields.getTextInputValue('enabled').trim().toUpperCase()==='ON',[start,end]=i.fields.getTextInputValue('dates').split('|').map(x=>x.trim()),[min,max]=i.fields.getTextInputValue('reward').split('|').map(x=>Number(x.trim())),mult=Math.max(.1,Math.min(10,Number(i.fields.getTextInputValue('dropMultiplier'))||1));const e=await Event.findOne({key});if(!e)throw new Error('Unknown event key');e.enabled=enabled;e.startAt=new Date(start);e.endAt=new Date(end);e.cstarMin=min;e.cstarMax=max;for(const m of e.materials)m.dropRate=Math.min(1,m.dropRate*mult);await e.save();return i.reply({content:`✅ Seasonal event **${key}** updated.`,flags:64});}catch(e){return i.reply({content:`❌ ${e.message}`,flags:64});}}
-    if(i.customId==='dev:modal:tournamentCreate'){try{const t=await require('../services/tournamentService').create({name:i.fields.getTextInputValue('name'),gameId:i.fields.getTextInputValue('gameId').trim().toLowerCase(),registrationAt:i.fields.getTextInputValue('registrationAt'),startsAt:i.fields.getTextInputValue('startsAt'),endsAt:i.fields.getTextInputValue('endsAt').split('|')[0].trim(),maxPlayers:Number((i.fields.getTextInputValue('endsAt').split('|')[1]||'32').trim()),rewardCstar:Number((i.fields.getTextInputValue('endsAt').split('|')[2]||'0').trim()),rules:(i.fields.getTextInputValue('endsAt').split('|').slice(3).join('|')||'').trim(),createdBy:i.user.id});return i.reply({content:`✅ Tournament **${t.name}** scheduled for <t:${Math.floor(t.startsAt.getTime()/1000)}:F>. Registration opens automatically.`,flags:64});}catch(e){return i.reply({content:`❌ ${e.message}`,flags:64});}}
     if(i.customId==='dev:modal:fishingGeneral'){const F=require('../services/fishingSettings'),on=x=>String(x).trim().toUpperCase()==='ON',feat=i.fields.getTextInputValue('features').split('|');await F.setGeneral({enabled:on(i.fields.getTextInputValue('enabled')),cooldownMs:Number(i.fields.getTextInputValue('cooldown'))*1000,starterBait:Number(i.fields.getTextInputValue('starter')),maxBag:Number(i.fields.getTextInputValue('bag')),sellAllEnabled:on(feat[0]),rankingEnabled:on(feat[1])},i.user.id);await sendDeveloperLog(client,{title:'🎣 Fishing General Updated',description:`Developer: ${i.user.id}`});return i.reply({content:'✅ Fishing general settings saved.',flags:64});}
     if(i.customId==='dev:modal:fishingRarity'){await require('../services/fishingSettings').setRarities(i.fields.getTextInputValue('rates'),i.user.id);return i.reply({content:'✅ Fishing rarity rates saved. Total = 100%.',flags:64});}
     if(i.customId==='dev:modal:fishingBait'){await require('../services/fishingSettings').setBait(i.fields.getTextInputValue('key').trim().toLowerCase(),i.fields.getTextInputValue('values'),i.user.id);return i.reply({content:'✅ Fishing bait settings saved.',flags:64});}
