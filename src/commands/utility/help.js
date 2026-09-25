@@ -15,7 +15,7 @@ function lines(lang, category) {
       '🛠️ `setup` — cấu hình server, ngôn ngữ, kênh Global Mail.',
       '👤 `member` — Profile, Ranking, ví và các lệnh thường dùng.',
       '⭐ `economy` — <:cxu_coin:1551759873241251912> CXu, Daily, chuyển tiền, Inventory.',
-      '🎮 `games` — Game Hub Direct Action, 50 game, Fishing 2.0 và Tournament.',
+      '🌍 `frontier` / `games` — Corgi Frontier • Thế Giới Khai Phá lâu dài.',
       '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats, Clan Guild.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Premium Server and Redeem CD Key.',
@@ -39,7 +39,7 @@ function lines(lang, category) {
       '🛠️ `setup` — server configuration, language, Global Mail channel.',
       '👤 `member` — Profile, Ranking and common member commands.',
       '⭐ `economy` — <:cxu_coin:1551759873241251912> CXu, Daily, transfers and Inventory.',
-      '🎮 `games` — Direct Action Game Hub, 50 games, Fishing 2.0 and Tournaments.',
+      '🌍 `frontier` / `games` — Corgi Frontier • persistent exploration world.',
       '🧡 `community` — Giveaway, Contest, Poll, Reaction Role, Ticket, Stats, Clan Guild.',
       '🛡️ `moderation` — Warn, Kick, Mute, Ban, Clear...',
       '💎 `premium` — Server Premium and CD Key redemption.',
@@ -105,8 +105,8 @@ function lines(lang, category) {
       '→ Xem hồ sơ gaming liên server. Bỏ `user` để xem chính mình.',
       'Ví dụ: `/profile user:@Corgi` hoặc `?pf @Corgi`.',
       '',
-      '`/ranking [type]` • `?ranking [weekly|global]` • alias `?rank`',
-      '→ `weekly` = BXH tuần, `global` = BXH tổng EXP.',
+      '`/ranking` • `?ranking` • alias `?rank`',
+      '→ BXH Global vĩnh viễn theo tổng EXP; không reset tuần.',
       'Ví dụ: `/ranking type:global` hoặc `?rank global`.',
       '',
       '**✨ EXP & Level**',
@@ -130,15 +130,15 @@ function lines(lang, category) {
       '`/leaderboard` • `?leaderboard` / `?lb` — BXH <:cxu_coin:1551759873241251912> CXu.',
       '`/transfer user:@user amount:1000` • `?transfer @user 1000` / `?pay @user 1000`.',
       '',
-      '`/games` • `?games` — mở Game Hub; Pet Hunt/Pet Arena nằm trong Game Hub.'
+      '`/frontier` • `/games` • `?frontier` — mở Corgi Frontier; nút bấm kích hoạt hành động trực tiếp.'
     ] : [
       '**👤 Profile & rankings**',
       '`/profile [user]` • `?profile [@user]` • alias `?pf`',
       '→ View a global gaming profile. Omit the user to view yourself.',
       'Example: `/profile user:@Corgi` or `?pf @Corgi`.',
       '',
-      '`/ranking [type]` • `?ranking [weekly|global]` • alias `?rank`',
-      '→ `weekly` = weekly ranking, `global` = all-time EXP.',
+      '`/ranking` • `?ranking` • alias `?rank`',
+      '→ Permanent Global ranking by total EXP; no weekly reset.',
       'Example: `/ranking type:global` or `?rank global`.',
       '',
       '**✨ EXP & Level**',
@@ -146,7 +146,7 @@ function lines(lang, category) {
       '• Each eligible award grants a random **15–25 EXP** with the default **60-second cooldown**.',
       '• Slash Commands, Prefix `?`, Buttons, Select Menus, Modals and bot-configuration actions **do not grant EXP**.',
       '• `/profile`, `/ranking`, `/help`, `/setup`, `/dev`, games, Ticket, Premium, Redeem and similar feature actions **do not create EXP**.',
-      '• **Global Rank** uses cumulative `totalXp`; **Weekly Rank** uses only chat EXP earned in the current week.',
+      '• **Global Rank** uses permanent cumulative `totalXp`; weekly ranking has been retired.',
       '',
       '**✅ Profile Verification**',
       'Profiles can be reviewed by a Developer through staged verification.',
@@ -162,7 +162,7 @@ function lines(lang, category) {
       '`/leaderboard` • `?leaderboard` / `?lb` — <:cxu_coin:1551759873241251912> CXu leaderboard.',
       '`/transfer user:@user amount:1000` • `?transfer @user 1000` / `?pay @user 1000`.',
       '',
-      '`/games` • `?games` — open Game Hub; Pet Hunt/Pet Arena are available inside the hub.'
+      '`/frontier` • `/games` • `?frontier` — open Corgi Frontier; buttons execute actions directly.'
     ],
 
     economy: vi ? [
@@ -204,8 +204,8 @@ function lines(lang, category) {
     ],
 
     games: vi ? [
-      '**🎮 Game Hub Direct Action • 50 Game**','`/games` • `?games` — mở Hub và chơi bằng Button/Select. `?game <id>` hoặc `/game name:<id>` để vào game bằng lệnh.','`/tournaments` • `?tournaments` — Tournament Center.',
-      '`/clan` — Clan Guild: tạo/tham gia Clan, cấp bậc Hội Trưởng → Phó Hội → Quân Sư → Tinh Anh → Thành Viên, Contribution, Trust, tiền tệ, Shop, Mission/Event và quản trị song song Web + Discord.','Fishing 2.0, Pet Hunt, Pet Arena, Expedition, Dungeon, Mining và nhiều game khác dùng chung Game Hub.','',
+      '**🌍 Corgi Frontier • Thế Giới Khai Phá**','`/frontier` • `/games` • `?frontier` — hành trình khai phá persistent; Button = hành động trực tiếp, không tab gameplay con.',
+      '`/clan` — Clan Guild: tạo/tham gia Clan, cấp bậc Hội Trưởng → Phó Hội → Quân Sư → Tinh Anh → Thành Viên, Contribution, Trust, tiền tệ, Shop, Mission/Event và quản trị song song Web + Discord.','Fishing tiếp tục là hoạt động riêng; Frontier là game mạch chính lâu dài của Corgi-Bot.','',
       '**🎮 Game dùng <:cxu_coin:1551759873241251912> CXu**','Mức cược: **10 → 1.000.000 <:cxu_coin:1551759873241251912> CXu**. <:cxu_coin:1551759873241251912> CXu chỉ là tiền ảo giải trí.','',
       '**🎣 Corgi Fishing**','`/fish` • `?fish` — mở Trung tâm Câu Cá. `/fishing` • `?fishing` — câu ngay.','Trung tâm Câu Cá gồm Túi cá, Fishdex, Cửa hàng mồi, nâng cấp cần và **1 bảng xếp hạng câu cá toàn cầu**.','Nâng cần yêu cầu đồng thời số cá đã câu tích lũy + tổng cân nặng tích lũy + <:cxu_coin:1551759873241251912> CXu. Bán cá không làm mất Fishdex/kỷ lục.','',
       '**🎲 Tài Xỉu / Sic Bo nâng cao**','`/taixiu` • `?taixiu` — mở panel • vẫn hỗ trợ cược nhanh bằng tham số','Cửa: `tai/xiu`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, hoặc cặp hai mặt như `pair12`.','',
@@ -215,7 +215,7 @@ function lines(lang, category) {
       '**🎰 Spin**','`/spin bet:<số>` • `?spin <số>`','Tiền thắng chờ nút **Rút <:cxu_coin:1551759873241251912> CXu** nếu phiên yêu cầu.','',
       '**🎟️ Lottery 24 giờ**','`/lottery buy bet:<giá vé>` • `?lottery buy <giá vé>`','Bot cấp ngẫu nhiên 5 số + 1 số đặc biệt. Vé **không mở ngay**; tự mở và trả thưởng sau 24 giờ.','`/lottery status` • `?lottery status` — xem vé gần nhất.'
     ] : [
-      '**🎮 Direct Action Game Hub • 50 Games**','`/games` • `?games` — open the Hub and play with Buttons/Selects. `?game <id>` or `/game name:<id>` opens a game by command.','`/tournaments` • `?tournaments` — Tournament Center.','Fishing 2.0, Pet Hunt, Pet Arena, Expedition, Dungeon, Mining and many more share the Game Hub.','',
+      '**🌍 Corgi Frontier • Persistent Exploration World**','`/frontier` • `/games` • `?frontier` — permanent exploration journey; each gameplay button performs its action immediately.','Fishing remains a separate activity; Frontier is Corgi-Bot’s long-term flagship game.','',
       '**🎮 <:cxu_coin:1551759873241251912> CXu Games**','Bet range: **10 → 1,000,000 <:cxu_coin:1551759873241251912> CXu**. <:cxu_coin:1551759873241251912> CXu is entertainment-only virtual currency.','',
       '**🎣 Corgi Fishing**','`/fish` • `?fish` — open Fishing Center. `/fishing` • `?fishing` — cast immediately.','Fishing Center includes Bag, Fishdex, bait shop, rod upgrades and **one global Fishing Ranking**.','Rod upgrades require lifetime fish count + lifetime weight + <:cxu_coin:1551759873241251912> CXu together. Selling fish never removes Fishdex/records.','',
       '**🎲 Advanced Sic Bo**','`/taixiu` • `?taixiu` — open panel • quick-play parameters are still supported','Bets: `big/small`, `total4`…`total17`, `single1`…`single6`, `double1`…`double6`, `triple1`…`triple6`, `anytriple`, or two-face combinations such as `pair12`.','',
