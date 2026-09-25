@@ -502,7 +502,6 @@ function fishingBaitModal(){return new ModalBuilder().setCustomId('dev:modal:fis
 function fishingRodModal(){return new ModalBuilder().setCustomId('dev:modal:fishingRod').setTitle('Fishing • Rod').addComponents(input('level','Rod level (0-6)','1'),input('values','fish | kg | cost | luck | weight','50 | 100 | 2500 | .02 | 1.08'));}
 function fishingScoreModal(){return new ModalBuilder().setCustomId('dev:modal:fishingScore').setTitle('Fishing • Ranking Score').addComponents(input('values','catch | weight | dex | bestWeight','2 | .4 | 250 | 2'));}
 
-function tournamentModal(){return new ModalBuilder().setCustomId('dev:modal:tournamentCreate').setTitle('Schedule Game Tournament').addComponents(input('name','Tournament name','October Pet Arena Cup'),input('gameId','Game ID','pet-arena'),input('registrationAt','Registration opens (ISO)','2026-10-01T00:00:00-04:00'),input('startsAt','Tournament starts (ISO)','2026-10-15T18:00:00-04:00'),input('endsAt','End | Max | Reward | Rules','2026-10-16T18:00:00-04:00 | 32 | 10000 | Highest score wins',true,TextInputStyle.Paragraph));}
 
 
 
