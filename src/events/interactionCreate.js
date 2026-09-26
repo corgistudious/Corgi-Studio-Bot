@@ -65,6 +65,9 @@ async function contestButton(i,client){
 module.exports={name:Events.InteractionCreate,async execute(i,client){try{
 const access=await checkAccess({userId:i.user?.id,guildId:i.guildId});
 if(!access.allowed){if(i.isRepliable()){const payload={content:access.message,flags:64};if(i.replied||i.deferred)await i.followUp(payload).catch(()=>{});else await i.reply(payload).catch(()=>{});}return;}
+if(i.customId?.startsWith('gh:')){return require('../modules/gameHub').handle(i,await require('../services/i18n').guildLang(i.guildId));}
+if(i.customId?.startsWith('farm:')){return require('../modules/farm').handle(i,await require('../services/i18n').guildLang(i.guildId));}
+if(i.customId?.startsWith('farmcrop:')&&i.isStringSelectMenu()){return require('../modules/farm').selectCrop(i,await require('../services/i18n').guildLang(i.guildId));}
 if(i.customId?.startsWith('fish:')){return require('../modules/fishing').handle(i,await require('../services/i18n').guildLang(i.guildId));}
 if(i.customId?.startsWith('fr:')){return require('../modules/frontier').handle(i,await require('../services/i18n').guildLang(i.guildId));}
 if(i.customId?.startsWith('clanhub:')){return require('../modules/clanHub').handle(i,await require('../services/i18n').guildLang(i.guildId));}
