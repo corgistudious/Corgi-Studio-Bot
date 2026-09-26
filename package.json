@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "7.2.0",
+  "version": "7.3.0",
   "private": true,
-  "description": "Corgi-Bot V7.1.1 • Corgi Frontier • command/direct-action parity • retired Game Hub cleanup.",
+  "description": "Corgi-Bot V7.3.0 • Community Clan Hub • D→SSS rank progression • CXu contribution • direct-action parity.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
@@ -16,7 +16,8 @@
     "migrate:clan": "node scripts/migrate-clan-guild.js",
     "validate": "node --check src/index.js && node --check src/events/interactionCreate.js && node --check src/ui/dev.js && node --check src/modules/frontier.js && node --check src/models/FrontierProfile.js && node --check src/services/progression.js && node scripts/audit-i18n.js",
     "migrate:frontier": "node scripts/migrate-frontier-v71.js",
-    "migrate:clan-hub": "node scripts/migrate-clan-hub-v72.js"
+    "migrate:clan-hub": "node scripts/migrate-clan-hub-v72.js",
+    "migrate:clan-community": "node scripts/migrate-clan-community-v73.js"
   },
   "engines": {
     "node": ">=20"
