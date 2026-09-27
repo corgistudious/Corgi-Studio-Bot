@@ -1,8 +1,8 @@
 {
   "name": "corgi-bot-new",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "private": true,
-  "description": "Corgi-Bot V8.0 • Game Hub • Corgi Farm • Living Frontier survival exploration.",
+  "description": "Corgi-Bot V9.0 • Utility & Social • Creature Hunt V1 • Pet PvP • Fishing • Clan.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
@@ -14,11 +14,12 @@
     "migrate:v5": "node scripts/migrate-v5.js",
     "audit:i18n": "node scripts/audit-i18n.js",
     "migrate:clan": "node scripts/migrate-clan-guild.js",
-    "validate": "node --check src/index.js && node --check src/events/interactionCreate.js && node --check src/modules/gameHub.js && node --check src/modules/farm.js && node --check src/modules/frontier.js && node --check src/models/FarmProfile.js && node --check src/models/FrontierProfile.js && node scripts/audit-i18n.js",
+    "validate": "node --check src/index.js && node --check src/events/interactionCreate.js && node --check src/modules/gameHub.js && node --check src/modules/creatureHunt.js && node --check src/services/creatureService.js && node --check src/services/creatureCatalog.js && node --check src/models/CreatureProfile.js && node scripts/audit-i18n.js",
     "migrate:frontier": "node scripts/migrate-frontier-v71.js",
     "migrate:clan-hub": "node scripts/migrate-clan-hub-v72.js",
     "migrate:clan-community": "node scripts/migrate-clan-community-v73.js",
-    "migrate:v8": "node scripts/migrate-v8-living-worlds.js"
+    "migrate:v8": "node scripts/migrate-v8-living-worlds.js",
+    "migrate:creature-v1": "node scripts/migrate-creature-v1.js"
   },
   "engines": {
     "node": ">=20"
