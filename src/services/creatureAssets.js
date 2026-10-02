@@ -1,0 +1,5 @@
+const path=require('path');
+const root=path.join(__dirname,'../../assets/creature-hunt/ui-v2');
+const map={hub:'creature-hub.png',hubAlt:'creature-hub-alt.png',collection:'collection.png',team:'pet-team.png',battle:'pvp-battle.png',companion:'companion.png',hp:'hp.png',atk:'atk.png',def:'def.png',spd:'spd.png',exp:'exp.png',levelUp:'level-up.png',skill:'skill.png',essence:'pet-essence.png',favorite:'favorite.png',lock:'lock.png',slot1:'team-slot-1.png',slot2:'team-slot-2.png',slot3:'team-slot-3.png',victory:'pvp-victory.png',defeat:'pvp-defeat.png',dex:'dex-milestone.png',huntZone:'hunt-zone.png',NORMAL:'element-normal.png',FIRE:'element-fire.png',WATER:'element-water.png',NATURE:'element-nature.png',LIGHT:'element-light.png',DARK:'element-dark.png',ICE:'element-ice.png',ELECTRIC:'element-electric.png',orbBasic:'orb-1.png',orbGreat:'orb-2.png',orbUltra:'orb-3.png',orbCelestial:'orb-4.png',orbSecret:'orb-5.png',orbSelection:'orb-selection.png'};
+const get=k=>path.join(root,map[k]||k);
+module.exports={root,map,get};

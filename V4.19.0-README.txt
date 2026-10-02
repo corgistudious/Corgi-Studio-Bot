@@ -1,0 +1,19 @@
+Corgi-Bot V4.19.0 — Discord Store Guild Subscription
+
+SKU: Corgi Premium Standard
+SKU ID: 1546685153252737135
+Type: Guild Subscription
+
+What changed:
+- Discord Store entitlements now unlock Server Premium STANDARD automatically.
+- Gateway handles entitlement create/update/delete.
+- Startup + 10-minute reconciliation uses Discord List Entitlements API.
+- Discord Store Premium coexists with manual/CD-Key Premium; Store expiration does not delete manual Premium.
+- /premium status and /setup Premium status understand Discord Store subscriptions with no ends_at timestamp while active.
+- Premium branding follows the effective Premium state.
+- New Mongo model: DiscordEntitlement.
+
+Required VPS .env:
+DISCORD_STANDARD_SKU_ID=1546685153252737135
+
+Do not put bot token or other secrets in source files.

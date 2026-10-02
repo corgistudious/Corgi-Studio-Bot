@@ -1,0 +1,2 @@
+const {Schema,model}=require('mongoose');
+const schema=new Schema({guildId:{type:String,index:true,required:true},userId:{type:String,index:true,required:true},points:{type:Number,default:0,min:0},lifetimeEarned:{type:Number,default:0,min:0},lifetimeSpent:{type:Number,default:0,min:0}},{timestamps:true});schema.index({guildId:1,userId:1},{unique:true});schema.index({guildId:1,points:-1});module.exports=model('GuildEconomy',schema);

@@ -1,0 +1,2 @@
+const COLORS={success:0x22c55e,approved:0x22c55e,join:0x22c55e,unban:0x22c55e,declined:0xef4444,rejected:0xef4444,ban:0xef4444,leave:0xef4444,delete:0xef4444,warn:0xfacc15,pending:0xf59e0b,review:0xf59e0b,kick:0xf97316,mute:0xf59e0b,timeout:0xf59e0b,info:0x3b82f6};
+function logColor(title='',kind=''){const x=`${kind} ${title}`.toLowerCase();for(const [k,v] of Object.entries(COLORS))if(x.includes(k))return v;return COLORS.info;}module.exports={logColor,COLORS};

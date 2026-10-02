@@ -1,0 +1,3 @@
+const Cosmetic=require('../models/GlobalCosmetic');const Social=require('../models/SocialProfile');const {ensureWallet}=require('./economyWallet');
+async function buy(userId,key){const item=await Cosmetic.findOne({key,enabled:true}).lean();if(!item)throw new Error('NOT_FOUND');const p=await Social.findOneAndUpdate({userId},{$setOnInsert:{userId}},{upsert:true,returnDocument:'after',setDefaultsOnInsert:true});if(p.ownedCosmetics.includes(key))throw new Error('OWNED');const w=await ensureWallet(userId);if(w.cstar<item.price)throw new Error('INSUFFICIENT');w.cstar-=item.price;await w.save();p.ownedCosmetics.push(key);await p.save();return item;}
+module.exports={buy};

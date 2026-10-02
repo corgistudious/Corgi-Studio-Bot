@@ -1,0 +1,11 @@
+Corgi-Bot V4.19.1 — Safe Premium Visual Identity
+
+- Removes all per-guild bot avatar PATCH operations.
+- Prevents Premium branding from triggering Discord AVATAR_RATE_LIMIT.
+- Premium configuration panels use a faint official Premium logo in the dedicated thumbnail area; it never overlays text.
+- /premium status shows the full Premium logo at the right-side thumbnail when Premium is active.
+- Free servers do not receive Premium panel branding.
+- Discord Store, CD Key and Developer Premium all share the same visual identity.
+- Discord Store entitlement integration from V4.19.0 is retained.
+- 28 Premium Application Emojis and existing Premium logic are retained.
+- Custom bot nickname and emoji theme remain available; per-guild avatar customization is removed from the Setup UI.

@@ -1,0 +1,3 @@
+const {Schema,model}=require('mongoose');
+const pet=new Schema({petId:String,level:Number,xp:Number,copies:Number,nickname:String,essence:Number,stars:Number,relic:String,favorite:Boolean,locked:Boolean,skillLevel:Number,capturedAt:Date,currentHp:Number},{_id:false});
+const schema=new Schema({sellerId:{type:String,index:true,required:true},pet:pet,price:{type:Number,min:1,required:true},status:{type:String,enum:['ACTIVE','SOLD','CANCELLED'],default:'ACTIVE',index:true},buyerId:String,soldAt:Date},{timestamps:true});schema.index({status:1,createdAt:-1});module.exports=model('CreatureMarketListing',schema);

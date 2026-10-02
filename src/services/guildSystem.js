@@ -1,0 +1,5 @@
+const {PermissionFlagsBits}=require('discord.js');const GuildEconomy=require('../models/GuildEconomy');const GuildManager=require('../models/GuildManager');
+async function wallet(guildId,userId){return GuildEconomy.findOneAndUpdate({guildId,userId},{$setOnInsert:{guildId,userId}},{upsert:true,returnDocument:'after',setDefaultsOnInsert:true});}
+async function adjust(guildId,userId,amount){const w=await wallet(guildId,userId),n=Math.trunc(Number(amount)||0);if(w.points+n<0)throw new Error('INSUFFICIENT');w.points+=n;if(n>0)w.lifetimeEarned+=n;else w.lifetimeSpent+=Math.abs(n);await w.save();return w;}
+async function canManage(member,area){if(!member)return false;if(member.guild.ownerId===member.id||member.permissions?.has(PermissionFlagsBits.ManageGuild)||member.permissions?.has(PermissionFlagsBits.Administrator))return true;const row=await GuildManager.findOne({guildId:member.guild.id,userId:member.id}).lean();return Boolean(row&&(row.permissions.includes('*')||row.permissions.includes(area)));}
+module.exports={wallet,adjust,canManage};

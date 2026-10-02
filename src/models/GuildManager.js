@@ -1,0 +1,1 @@
+const {Schema,model}=require('mongoose');const schema=new Schema({guildId:{type:String,index:true,required:true},userId:{type:String,required:true},permissions:{type:[String],default:['missions','events','shop','rewards','announcements']}},{timestamps:true});schema.index({guildId:1,userId:1},{unique:true});module.exports=model('GuildManager',schema);

@@ -1,0 +1,2 @@
+Corgi-Bot V4.18.3 — Redeem Panel
+/redeem and ?redeem open a panel. Button opens private modal. Existing reward logic preserved. Help updated. Run npm run deploy:commands because /redeem slash schema changed.

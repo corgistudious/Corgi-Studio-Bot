@@ -1,0 +1,8 @@
+1. Upload patch contents to the current Corgi-Studio-Bot repository and commit/push.
+2. On VPS: cd /opt/corgi-studio && git pull origin main
+3. npm install
+4. node --check src/modules/games/engine.js
+5. npm run deploy:commands
+6. pm2 restart corgi-studio-bot --update-env
+7. pm2 logs corgi-studio-bot --lines 50
+8. Republish the Ticket panel from /setup -> Community Panels -> Ticket so the new categories replace the old published selector.

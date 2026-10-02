@@ -1,0 +1,3 @@
+const {logColor}=require('./logColor');const {EmbedBuilder}=require('discord.js'); const {getGuildSettings}=require('./guildSettings'); const {isGuildOperational}=require('./accessControl');
+async function sendLog(guild,{title,description,fields=[]}){try{if(!(await isGuildOperational(guild.id)))return;const s=await getGuildSettings(guild.id);if(!s.modules.logs||!s.channels.logs)return;const ch=await guild.channels.fetch(s.channels.logs).catch(()=>null);if(!ch?.isTextBased())return;const e=new EmbedBuilder().setColor(logColor(title)).setTitle(title).setDescription(description||null).addFields(fields).setFooter({text:'Corgi Studio • Server Log'}).setTimestamp();await ch.send({embeds:[e]});}catch(e){console.warn('Log failed:',e.message)}}
+module.exports={sendLog};

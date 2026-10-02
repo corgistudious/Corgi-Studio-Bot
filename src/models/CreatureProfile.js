@@ -1,0 +1,16 @@
+const {Schema,model}=require('mongoose');
+const ownedSchema=new Schema({
+ petId:{type:String,required:true},level:{type:Number,default:1,min:1,max:100},xp:{type:Number,default:0,min:0},copies:{type:Number,default:1,min:1},nickname:String,
+ essence:{type:Number,default:0,min:0},stars:{type:Number,default:0,min:0,max:10},relic:{type:String,default:'none'},frame:{type:String,default:'auto'},enhance:{type:Number,default:0,min:0,max:15},refine:{type:[{stat:String,value:Number,tier:String,locked:{type:Boolean,default:false}}],default:[]},skillBranch:{type:String,default:null},skillEnergy:{type:Number,default:0,min:0,max:100},favorite:{type:Boolean,default:false},locked:{type:Boolean,default:false},skillLevel:{type:Number,default:1,min:1,max:10},capturedAt:{type:Date,default:Date.now},currentHp:{type:Number,default:null},recoveryStartedAt:Date,recoveryEndsAt:Date,koUntil:Date
+},{_id:true});
+const schema=new Schema({
+ userId:{type:String,required:true,unique:true,index:true},pets:{type:[ownedSchema],default:[]},activePetId:String,team:{type:[String],default:[]},
+ orbs:{basic:{type:Number,default:10,min:0},great:{type:Number,default:3,min:0},ultra:{type:Number,default:1,min:0},celestial:{type:Number,default:0,min:0},secret:{type:Number,default:0,min:0}},
+ essence:{type:Number,default:0,min:0},
+ hunt:{lastAt:Date,total:{type:Number,default:0},captures:{type:Number,default:0},fails:{type:Number,default:0},streak:{type:Number,default:0},bestStreak:{type:Number,default:0},encounterPetId:String,encounterExpiresAt:Date,zone:{type:String,default:'meadow'}},
+ dex:{claimedMilestones:{type:[Number],default:[]}},
+ pvp:{wins:{type:Number,default:0},losses:{type:Number,default:0},rating:{type:Number,default:1000},seasonWins:{type:Number,default:0},seasonLosses:{type:Number,default:0},streak:{type:Number,default:0},bestStreak:{type:Number,default:0},lastBattleAt:Date},
+ social:{breedUntil:Date,bred:{type:Number,default:0}},
+ progression:{battleXp:{type:Number,default:0},accountLevel:{type:Number,default:1},accountXp:{type:Number,default:0},totalEssenceEarned:{type:Number,default:0},adventureStage:{type:Number,default:1},bossKills:{type:Number,default:0}},missions:{dailyDate:String,dailyHunts:{type:Number,default:0},dailyBattles:{type:Number,default:0},dailyClaimed:{type:Boolean,default:false},weeklyKey:String,weeklyCaptures:{type:Number,default:0},weeklyBoss:{type:Number,default:0},weeklyClaimed:{type:Boolean,default:false}},achievements:{type:[String],default:[]},materials:{refineShard:{type:Number,default:0,min:0},refineStone:{type:Number,default:0,min:0},enhanceStone:{type:Number,default:0,min:0},luckyTicket:{type:Number,default:0,min:0},petEssence:{type:Number,default:0,min:0},petFood:{type:Number,default:0,min:0},recoveryKit:{type:Number,default:0,min:0},skillCrystal:{type:Number,default:0,min:0},enhancementCore:{type:Number,default:0,min:0},huntPermit:{type:Number,default:0,min:0},bossToken:{type:Number,default:0,min:0},worldOrb:{type:Number,default:0,min:0},worldRelicShard:{type:Number,default:0,min:0}},welfare:{lastDaily:Date,spinPity:{type:Number,default:0,min:0},eventPoints:{type:Number,default:0,min:0}}
+},{timestamps:true});
+module.exports=model('CreatureProfile',schema);

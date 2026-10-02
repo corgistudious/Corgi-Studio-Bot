@@ -1,0 +1,28 @@
+Corgi-Bot V4.21.0 • Corgi Fishing
+
+Added:
+- /fish + ?fish: Fishing Center
+- /fishing + ?fishing: instant cast
+- Global fishing profile/data (separate from existing player progression)
+- 11 rarity tiers N/R/VR/UR/E/L/M/GR/SR/SSR/?? with approved rarity colors
+- Species, specimen weight, Cstar value, Fishdex and lifetime records
+- Fishing Bag with Keep / Sell / Lock
+- Bait shop using the existing GLOBAL Cstar wallet
+- Rod upgrades gated by lifetime fish count + lifetime kg + Cstar
+- One GLOBAL Fishing Ranking using a balanced Fishing Score (count, weight, Fishdex, rarity catches, records)
+- VI/EN help text
+- Safe migration script: npm run migrate:fishing
+
+Deploy after uploading/merging:
+  cd /opt/corgi-studio
+  npm install
+  npm run migrate:fishing
+  npm run deploy:commands
+  pm2 restart corgi-studio-bot
+  pm2 logs corgi-studio-bot --lines 40 --nostream
+
+Data safety:
+- No existing collection is rewritten by the migration.
+- Fishing uses its own FishingProfile collection.
+- Cstar transactions reuse UserEconomy's __GLOBAL__ wallet.
+- Fishdex/lifetime records remain after selling a fish.

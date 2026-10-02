@@ -1,0 +1,2 @@
+require('dotenv').config();const mongoose=require('mongoose');
+(async()=>{await mongoose.connect(process.env.MONGODB_URI);const db=mongoose.connection.db;const r=await db.collection('guildsettings').updateMany({language:{$nin:['en','vi']}},{$set:{language:'en'}}).catch(()=>({modifiedCount:0}));console.log(`🌐 VI/EN migration • ${r.modifiedCount||0} guild(s) fell back to English`);console.log('🛡️ No player collection dropped. V10 collections are additive.');await mongoose.disconnect()})().catch(e=>{console.error(e);process.exit(1)});

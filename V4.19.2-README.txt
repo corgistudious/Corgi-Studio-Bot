@@ -1,0 +1,8 @@
+Corgi-Bot V4.19.2 — Dynamic Level Up Card
+
+- Uses the approved Corgi Bot background asset only; no generated text is baked into the image.
+- All user data is rendered dynamically by code: avatar, display name, username, Level, XP, progress %, message count, Global Rank and Weekly Rank.
+- Level-up card is posted automatically only when awardMessageXp reports one or more levels gained.
+- Card language follows the guild language setting (EN / VI).
+- Graceful fallback: if card rendering fails, the bot still sends a normal text Level Up notification.
+- Adds dependency: sharp ^0.34.1.

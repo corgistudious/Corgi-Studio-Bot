@@ -1,0 +1,4 @@
+const Social=require('../models/V10Social');
+async function ensure(userId){return Social.findOneAndUpdate({userId},{$setOnInsert:{userId}},{upsert:true,returnDocument:'after',setDefaultsOnInsert:true})}
+async function donate(from,to,amount){amount=Math.floor(Number(amount));if(from===to)throw new Error('CANNOT_DONATE_SELF');if(!Number.isFinite(amount)||amount<1)throw new Error('INVALID_AMOUNT');await Promise.all([ensure(from),ensure(to)]);const debit=await Social.updateOne({userId:from,diamonds:{$gte:amount}},{$inc:{diamonds:-amount}});if(!debit.modifiedCount)throw new Error('INSUFFICIENT_DIAMONDS');try{await Social.updateOne({userId:to},{$inc:{diamonds:amount,diamondsReceived:amount,starScore:amount}})}catch(e){await Social.updateOne({userId:from},{$inc:{diamonds:amount}});throw e}return true}
+module.exports={ensure,donate};
