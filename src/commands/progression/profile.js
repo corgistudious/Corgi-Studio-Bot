@@ -1,6 +1,66 @@
-const {SlashCommandBuilder,AttachmentBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,EmbedBuilder}=require('discord.js');
-const Card=require('../../services/profileCard');const Social=require('../../services/socialProfile');const Verification=require('../../services/profileVerification');const {guildLang,t,mtx}=require('../../services/i18n');
-function rows(user,viewer,lang){const social=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`social:like:${user.id}`).setLabel(t(lang,'v6.profile.like')).setEmoji('❤️').setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId(`social:follow:${user.id}`).setLabel(t(lang,'v6.profile.follow')).setEmoji('➕').setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId(`social:collection:${user.id}`).setLabel(t(lang,'v6.profile.collection')).setEmoji('🎨').setStyle(ButtonStyle.Secondary));const hub=new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`profile:details:${user.id}:${viewer}`).setLabel(mtx(lang,'Profile Info','Thông tin')).setEmoji('👤').setStyle(ButtonStyle.Primary),new ButtonBuilder().setCustomId(`profile:missions:${user.id}:${viewer}`).setLabel(mtx(lang,'Missions','Nhiệm vụ')).setEmoji('🎯').setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId(`profile:ranking:${user.id}:${viewer}`).setLabel(mtx(lang,'Global Ranking','Xếp hạng')).setEmoji('🏆').setStyle(ButtonStyle.Secondary),new ButtonBuilder().setCustomId(`profile:customize:${user.id}:${viewer}`).setLabel(mtx(lang,'Customize','Tùy chỉnh')).setEmoji('✨').setStyle(ButtonStyle.Success).setDisabled(user.id!==viewer));return[social,hub]}
-async function payload(user,lang,viewerId=user.id){const [s,verification,card]=await Promise.all([Social.ensure(user.id),Verification.get(user.id),Card.render(user,lang)]);const badges=Verification.approvedBadges(verification),isPartner=badges.includes('PURPLE');let content=t(lang,'v6.profile.summary',{likes:s.likes.length,followers:s.followers.length});if(isPartner)content+=`\n<:corgi_partner:1552830030697078835> ${t(lang,'profile.partnerNotice')}`;return{content,files:[new AttachmentBuilder(card,{name:'corgi-profile.png'})],components:rows(user,viewerId,lang)}}
-async function details(uid,lang){const Gift=require('../../services/giftService');const [s,v,gift]=await Promise.all([Social.ensure(uid),Verification.get(uid),Gift.ensure(uid)]);const badges=Verification.approvedBadges(v);return new EmbedBuilder().setColor(0x7c5cff).setTitle(mtx(lang,'👤 Global Profile Hub','👤 Trung tâm Hồ sơ Global')).setDescription(s.bio||mtx(lang,'No About Me set yet. Use `/customize bio`.','Chưa đặt giới thiệu. Dùng `/customize bio`.')).addFields({name:mtx(lang,'Social','Cộng đồng'),value:`❤️ ${s.likes.length} • 👥 ${s.followers.length} • ➕ ${s.following.length}`,inline:true},{name:mtx(lang,'Collection','Bộ sưu tập'),value:`🎨 ${s.ownedCosmetics.length}`,inline:true},{name:mtx(lang,'Equipped','Đang dùng'),value:`Frame: **${s.cosmetics.frame}**\nBackground: **${s.cosmetics.background}**\nAccent: **${s.cosmetics.accent}**\nTitle: **${s.cosmetics.title||'—'}**`,inline:false},{name:mtx(lang,'Verification badges','Huy hiệu xác minh'),value:badges.length?badges.join(' • '):'—',inline:false},{name:mtx(lang,'Contribution & Gifts','Cống hiến & Quà tặng'),value:`💎 **${gift.points}** • ⭐ **${gift.stars}**`,inline:true});}
-module.exports={data:new SlashCommandBuilder().setName('profile').setDescription('View a global Corgi profile').setDescriptionLocalizations({vi:'Xem hồ sơ Corgi Global'}).addUserOption(o=>o.setName('user').setDescription('Member to view').setDescriptionLocalizations({vi:'Thành viên muốn xem'})),prefix:['profile','pf'],payload,details,rows,async execute(i){const l=await guildLang(i.guildId),u=i.options.getUser('user')||i.user;return i.reply(await payload(u,l,i.user.id));},async executePrefix(m){const l=await guildLang(m.guildId),u=m.mentions.users.first()||m.author;return m.reply(await payload(u,l,m.author.id));}};
+const { SlashCommandBuilder, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const Card = require('../../services/profileCard');
+const Social = require('../../services/socialProfile');
+const Verification = require('../../services/profileVerification');
+const { guildLang, mtx } = require('../../services/i18n');
+
+function rows(user, viewer, lang) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`social:like:${user.id}:${viewer.id}`).setLabel(mtx(lang, '❤️ Like', '❤️ Thích')).setEmoji('❤️').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId(`social:follow:${user.id}:${viewer.id}`).setLabel(mtx(lang, '➕ Follow', '➕ Theo dõi')).setEmoji('➕').setStyle(ButtonStyle.Primary),
+    new ButtonBuilder().setCustomId(`social:star:${user.id}:${viewer.id}`).setLabel(mtx(lang, '⭐ Star', '⭐ Star')).setEmoji('⭐').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(`social:collection:${user.id}`).setLabel(mtx(lang, '🎨 Collection', '🎨 Bộ sưu tập')).setEmoji('🎨').setStyle(ButtonStyle.Secondary)
+  );
+}
+
+async function payload(user, lang, viewerId = user.id) {
+  const [social, verification, card] = await Promise.all([
+    Social.ensure(user.id),
+    Verification.get(user.id),
+    Card.render(user, lang)
+  ]);
+
+  const starCount = (social.stars || []).length;
+  const likeCount = (social.likes || []).length;
+  const followerCount = (social.followers || []).length;
+  const badges = Verification.approvedBadges(verification) || [];
+  const badgeText = badges.length ? ` ${badges.map(b => b === 'BLUE' ? '🔵' : '🟣').join(' ')}` : '';
+
+  const content = mtx(lang,
+    `**${user.globalName || user.username}**${badgeText}\n❤️ Likes: **${likeCount}**\n👥 Followers: **${followerCount}**\n⭐ Stars: **${starCount}**`,
+    `**${user.globalName || user.username}**${badgeText}\n❤️ Lượt thích: **${likeCount}**\n👥 Người theo dõi: **${followerCount}**\n⭐ Star: **${starCount}**`
+  );
+
+  return {
+    content,
+    components: [rows(user, { id: viewerId }, lang)],
+    files: [new AttachmentBuilder(card, { name: 'profile-card.png' })]
+  };
+}
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('profile')
+    .setDescription('View a global Corgi profile')
+    .setDescriptionLocalizations({
+      vi: 'Xem hồ sơ Corgi toàn cầu',
+      'pt-BR': 'Ver o perfil global da Corgi',
+      'pt-PT': 'Ver o perfil global da Corgi',
+      es: 'Ver tu perfil global de Corgi',
+      fr: 'Voir le profil global Corgi',
+      de: 'Globales Corgi-Profil anzeigen',
+      ja: 'Corgiのグローバルプロフィールを表示',
+      ko: 'Corgi 글로벌 프로필 보기',
+      id: 'Lihat profil global Corgi',
+      'zh-TW': '查看 Corgi 全域個人檔案',
+      'zh-CN': '查看 Corgi 全局个人资料'
+    })
+    .addUserOption((option) => option.setName('user').setDescription('Profile owner').setDescriptionLocalizations({ vi: 'Chủ sở hữu hồ sơ' })),
+  prefix: ['profile'],
+  async execute(i) {
+    const target = i.options?.getUser?.('user') || i.user;
+    const lang = await guildLang(i.guildId);
+    return i.reply(await payload(target, lang, i.user.id));
+  },
+  payload
+};
